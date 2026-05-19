@@ -1192,7 +1192,7 @@
         transform: translate(-1px, -1px);
         box-shadow: inset -1px -1px 0 rgba(0,0,0,0.2), 3px 3px 0 var(--c-darkgray);
       }
-    }
+}
 
 /* === MOBILE (< 768px) === */
     @media (max-width: 767px) {
@@ -1239,9 +1239,35 @@
       .nav-tabs::-webkit-scrollbar {
         display: none;
       }
-    }
 
-    /* Nav tabs scroll shadow indicator */
+      /* App layout fixes for mobile */
+      .app-layout {
+        height: 100dvh;
+      }
+
+      .main-content {
+        padding: var(--space-3);
+        padding-bottom: calc(var(--space-3) + 56px + env(safe-area-inset-bottom, 0px));
+      }
+
+      /* Chat panel mobile adjustments */
+      .chat-container {
+        height: calc(100dvh - 120px);
+      }
+
+      .chat-messages {
+        flex: 1;
+        min-height: 0;
+      }
+
+      /* Footer hidden on mobile */
+      .footer {
+        display: none;
+      }
+}
+  </style>
+  <!-- Nav tabs scroll shadow indicator -->
+  <style>
     .nav-tabs {
       position: relative;
     }
@@ -1280,6 +1306,172 @@
       transform: scale(1);
     }
   </style>
+  <style>
+    /* ============ APP LAYOUT (FIXED) ============ */
+    .app-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .main-area {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-4);
+      padding-bottom: calc(var(--space-4) + 56px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* ============ EMBEDDED CHAT PANEL ============ */
+    #panel-chat {
+      height: 100%;
+      display: none;
+    }
+
+    #panel-chat.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--c-darkblue);
+      border: 3px solid var(--c-gray);
+      border-radius: 4px;
+    }
+
+    .chat-header {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 3px solid var(--c-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .chat-room-tabs {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .chat-room-tab {
+      padding: var(--space-1) var(--space-3);
+      background: var(--c-darkgray);
+      border: 2px solid var(--c-gray);
+      color: var(--c-silver);
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(6px, 1.5vw, 7px);
+      cursor: pointer;
+    }
+
+    .chat-room-tab.active {
+      background: var(--c-purple);
+      border-color: var(--c-yellow);
+      color: var(--c-yellow);
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .chat-input-area {
+      padding: var(--space-3) var(--space-4);
+      border-top: 3px solid var(--c-gray);
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: var(--space-3);
+      background: var(--c-black);
+      border: 3px solid var(--c-gray);
+      color: var(--c-white);
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(7px, 1.8vw, 9px);
+    }
+
+    .chat-input-area input:focus {
+      outline: none;
+      border-color: var(--c-yellow);
+    }
+
+    .chat-bubble {
+      max-width: 75%;
+      padding: var(--space-2) var(--space-3);
+      font-size: clamp(7px, 1.8vw, 9px);
+      line-height: 1.6;
+      word-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: var(--c-purple);
+      border: 2px solid var(--c-pink);
+      color: var(--c-white);
+    }
+
+    .chat-bubble.worker, .chat-bubble.bot {
+      align-self: flex-start;
+      background: var(--c-darkgray);
+      border: 2px solid var(--c-cyan);
+      color: var(--c-white);
+    }
+
+    .chat-meta {
+      font-size: clamp(6px, 1.5vw, 8px);
+      color: var(--c-silver);
+      margin-top: 3px;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--c-darkblue);
+      border-top: 4px solid var(--c-gray);
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: clamp(6px, 1.5vw, 7px);
+      color: var(--c-silver);
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .footer-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--c-lime);
+      border-radius: 50%;
+    }
+
+    .ws-status {
+      color: var(--c-lime);
+    }
+  </style>
 </head>
 <body>
 
@@ -1309,141 +1501,148 @@
 
   <!-- MAIN APP -->
   <div id="app">
-    <div class="header">
-      <div class="header-left">
-        <button class="hamburger-btn" onclick="toggleMobileMenu()">☰</button>
-        <div>
-          <div class="header-title">🎮 PIXEL OFFICE</div>
-          <div class="header-info" id="user-info"></div>
-        </div>
-      </div>
-      <div class="company-switcher">
-        <span class="company-switcher-label">🏢:</span>
-        <select id="company-select" class="company-select" onchange="switchCompany(this.value)">
-          <!-- Populated dynamically from /api/companies -->
-        </select>
-      </div>
-      <button class="logout-btn" onclick="logout()">登出 [X]</button>
-    </div>
-
-    <nav class="nav-tabs">
-      <button class="nav-tab active" data-panel="dashboard">📊 控制台</button>
-      <button class="nav-tab" data-panel="departments">🏢 部門</button>
-      <button class="nav-tab" data-panel="tasks">📋 任務</button>
-      <button class="nav-tab" data-panel="workers">⚙️ Worker</button>
-      <button class="nav-tab" data-panel="audit">📜 稽核</button>
-    </nav>
-
-    <!-- BOTTOM TAB NAVIGATION (Mobile Only) -->
-    <nav class="bottom-tab-nav">
-      <div class="bottom-tabs">
-        <button class="bottom-tab active" data-panel="dashboard">
-          <span class="tab-icon">📊</span>
-          <span class="tab-label">首頁</span>
-        </button>
-        <button class="bottom-tab" data-panel="departments">
-          <span class="tab-icon">🏢</span>
-          <span class="tab-label">部門</span>
-        </button>
-        <button class="bottom-tab" data-panel="tasks">
-          <span class="tab-icon">📋</span>
-          <span class="tab-label">任務</span>
-        </button>
-        <button class="bottom-tab" data-panel="workers">
-          <span class="tab-icon">⚙️</span>
-          <span class="tab-label">Worker</span>
-        </button>
-        <button class="bottom-tab" data-panel="chat">
-          <span class="tab-icon">💬</span>
-          <span class="tab-label">聊天</span>
-        </button>
-        <button class="bottom-tab" data-panel="audit">
-          <span class="tab-icon">📋</span>
-          <span class="tab-label">稽核</span>
-        </button>
-      </div>
-    </nav>
-
-    <main class="main-content">
-      <!-- DASHBOARD -->
-      <div id="panel-dashboard" class="panel active">
-        <h2 class="section-title">📊 全域統計</h2>
-        <div class="stats-grid" id="stats-grid"></div>
-        <h2 class="section-title">📋 最近任務</h2>
-        <div class="task-list" id="recent-tasks"></div>
-      </div>
-
-      <!-- DEPARTMENTS -->
-      <div id="panel-departments" class="panel">
-        <h2 class="section-title">🏢 部門專案
-          <button onclick="openDeptModal()" style="margin-left:20px;background:var(--c-green);border:3px solid var(--c-white);color:var(--c-white);padding:8px 16px;font-family:'Press Start 2P';font-size:8px;cursor:pointer;">+ 新增部門</button>
-        </h2>
-        <div class="dept-grid" id="dept-grid"></div>
-      </div>
-
-      <!-- TASKS -->
-      <div id="panel-tasks" class="panel">
-        <h2 class="section-title">📋 任務管理</h2>
-        <div class="task-controls">
-          <select id="task-filter-dept" class="pixel-select">
-            <option value="">全部部門</option>
-          </select>
-          <select id="task-filter-status" class="pixel-select">
-            <option value="">全部狀態</option>
-            <option value="pending">待處理</option>
-            <option value="in_progress">進行中</option>
-            <option value="completed">已完成</option>
-            <option value="failed">失敗</option>
-          </select>
-          <button class="add-task-btn" onclick="openTaskModal()">+ 新增任務</button>
-        </div>
-        <div class="task-list" id="task-list"></div>
-      </div>
-
-      <!-- WORKERS -->
-      <div id="panel-workers" class="panel">
-        <h2 class="section-title">⚙️ Worker 狀態</h2>
-        <div class="worker-controls">
-          <div class="worker-toggle">
-            <button class="toggle-btn active" data-view="all" onclick="setWorkerView('all')">📋 全部</button>
-            <button class="toggle-btn" data-view="machines" onclick="setWorkerView('machines')">🖥️ 雙電腦狀態</button>
+    <div class="app-layout">
+      <div class="main-area">
+        <div class="header">
+          <div class="header-left">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()">☰</button>
+            <div>
+              <div class="header-title">🎮 PIXEL OFFICE</div>
+              <div class="header-info" id="user-info"></div>
+            </div>
           </div>
+          <div class="company-switcher">
+            <span class="company-switcher-label">🏢:</span>
+            <select id="company-select" class="company-select" onchange="switchCompany(this.value)">
+              <!-- Populated dynamically from /api/companies -->
+            </select>
+          </div>
+          <button class="logout-btn" onclick="logout()">登出 [X]</button>
         </div>
-        <div id="worker-content"></div>
-      </div>
 
-      <!-- AUDIT LOG -->
-      <div id="panel-audit" class="panel">
-        <h2 class="section-title">📜 稽核日誌</h2>
-        <div class="log-list" id="audit-log"></div>
-      </div>
-    </main>
+        <nav class="nav-tabs">
+          <button class="nav-tab active" data-panel="dashboard">📊 控制台</button>
+          <button class="nav-tab" data-panel="departments">🏢 部門</button>
+          <button class="nav-tab" data-panel="tasks">📋 任務</button>
+          <button class="nav-tab" data-panel="workers">⚙️ Worker</button>
+          <button class="nav-tab" data-panel="audit">📜 稽核</button>
+        </nav>
 
-    <footer class="footer">
-      <div class="footer-status">
-        <div class="status-dot"></div>
-        <span>系統上線</span>
+        <!-- BOTTOM TAB NAVIGATION (Mobile Only) -->
+        <nav class="bottom-tab-nav">
+          <div class="bottom-tabs">
+            <button class="bottom-tab active" data-panel="dashboard">
+              <span class="tab-icon">📊</span>
+              <span class="tab-label">首頁</span>
+            </button>
+            <button class="bottom-tab" data-panel="departments">
+              <span class="tab-icon">🏢</span>
+              <span class="tab-label">部門</span>
+            </button>
+            <button class="bottom-tab" data-panel="tasks">
+              <span class="tab-icon">📋</span>
+              <span class="tab-label">任務</span>
+            </button>
+            <button class="bottom-tab" data-panel="workers">
+              <span class="tab-icon">⚙️</span>
+              <span class="tab-label">Worker</span>
+            </button>
+            <button class="bottom-tab" data-panel="chat">
+              <span class="tab-icon">💬</span>
+              <span class="tab-label">聊天</span>
+            </button>
+            <button class="bottom-tab" data-panel="audit">
+              <span class="tab-icon">📋</span>
+              <span class="tab-label">稽核</span>
+            </button>
+          </div>
+        </nav>
+
+        <main class="main-content">
+          <!-- DASHBOARD -->
+          <div id="panel-dashboard" class="panel active">
+            <h2 class="section-title">📊 全域統計</h2>
+            <div class="stats-grid" id="stats-grid"></div>
+            <h2 class="section-title">📋 最近任務</h2>
+            <div class="task-list" id="recent-tasks"></div>
+          </div>
+
+          <!-- DEPARTMENTS -->
+          <div id="panel-departments" class="panel">
+            <h2 class="section-title">🏢 部門專案
+              <button onclick="openDeptModal()" style="margin-left:20px;background:var(--c-green);border:3px solid var(--c-white);color:var(--c-white);padding:8px 16px;font-family:'Press Start 2P';font-size:8px;cursor:pointer;">+ 新增部門</button>
+            </h2>
+            <div class="dept-grid" id="dept-grid"></div>
+          </div>
+
+          <!-- TASKS -->
+          <div id="panel-tasks" class="panel">
+            <h2 class="section-title">📋 任務管理</h2>
+            <div class="task-controls">
+              <select id="task-filter-dept" class="pixel-select">
+                <option value="">全部部門</option>
+              </select>
+              <select id="task-filter-status" class="pixel-select">
+                <option value="">全部狀態</option>
+                <option value="pending">待處理</option>
+                <option value="in_progress">進行中</option>
+                <option value="completed">已完成</option>
+                <option value="failed">失敗</option>
+              </select>
+              <button class="add-task-btn" onclick="openTaskModal()">+ 新增任務</button>
+            </div>
+            <div class="task-list" id="task-list"></div>
+          </div>
+
+          <!-- WORKERS -->
+          <div id="panel-workers" class="panel">
+            <h2 class="section-title">⚙️ Worker 狀態</h2>
+            <div class="worker-controls">
+              <div class="worker-toggle">
+                <button class="toggle-btn active" data-view="all" onclick="setWorkerView('all')">📋 全部</button>
+                <button class="toggle-btn" data-view="machines" onclick="setWorkerView('machines')">🖥️ 雙電腦狀態</button>
+              </div>
+            </div>
+            <div id="worker-content"></div>
+          </div>
+
+          <!-- AUDIT LOG -->
+          <div id="panel-audit" class="panel">
+            <h2 class="section-title">📜 稽核日誌</h2>
+            <div class="log-list" id="audit-log"></div>
+          </div>
+
+          <!-- CHAT PANEL (Embedded) -->
+          <div id="panel-chat" class="panel">
+            <div class="chat-container">
+              <div class="chat-header">
+                <span id="chat-room-title" style="font-size:9px; color:var(--c-yellow);">💬 公開聊天室</span>
+                <div class="chat-room-tabs">
+                  <button class="chat-room-tab active" data-room="general" data-room-name="公開聊天室" onclick="switchChatRoom('general', 'general', '公開聊天室')">公開</button>
+                </div>
+              </div>
+              <div id="chat-messages" class="chat-messages"></div>
+              <div class="chat-input-area">
+                <input id="chat-input" type="text" placeholder="輸入訊息..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+                <button onclick="sendChatMessage()" class="pixel-btn" style="width:auto;margin:0;">送出</button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer class="footer">
+          <div class="footer-status">
+            <div class="status-dot"></div>
+            <span>系統上線</span>
+          </div>
+          <div>PIXEL OFFICE v1.0 | <span class="ws-status" id="ws-status">● WS 已連線</span></div>
+          <div id="server-time"></div>
+        </footer>
       </div>
-      <div>PIXEL OFFICE v1.0 | <span class="ws-status" id="ws-status">● WS 已連線</span></div>
-      <div id="server-time"></div>
-    </footer>
+    </div>
   </div>
 
-  <!-- Chat Side Panel -->
-  <div id="chat-panel" style="display:none; position:fixed; right:0; top:0; bottom:0; width:380px; max-width:90vw; background:var(--c-darkblue); border-left:4px solid var(--c-yellow); z-index:200; display:flex; flex-direction:column;">
-    <div style="padding:15px; border-bottom:3px solid var(--c-gray); display:flex; justify-content:space-between; align-items:center;">
-      <span id="chat-room-title" style="font-size:9px; color:var(--c-yellow);"></span>
-      <button onclick="closeChat()" style="background:var(--c-red); border:2px solid var(--c-white); color:var(--c-white); width:24px; height:24px; font-family:'Press Start 2P'; font-size:8px; cursor:pointer;">×</button>
-    </div>
-    <div id="chat-messages" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px;">
-    </div>
-    <div style="padding:15px; border-top:3px solid var(--c-gray);">
-      <div style="display:flex; gap:8px;">
-        <input id="chat-input" type="text" placeholder="輸入訊息..." onkeydown="if(event.key==='Enter')sendChatMessage()" style="flex:1; padding:10px; background:var(--c-black); border:3px solid var(--c-gray); color:var(--c-white); font-family:'Press Start 2P'; font-size:8px;">
-        <button onclick="sendChatMessage()" style="background:var(--c-green); border:3px solid var(--c-white); color:var(--c-white); padding:10px 12px; font-family:'Press Start 2P'; font-size:8px; cursor:pointer;">送出</button>
-      </div>
-    </div>
-  </div>
+  
 
   <!-- TASK MODAL -->
   <div class="modal" id="task-modal">
@@ -2146,45 +2345,56 @@
     let currentChatRoom = null;
     let chatRefreshInterval = null;
 
-    function openChat(room_type, room_id, room_name) {
-      currentChatRoom = { room_type, room_id, room_name };
-      document.getElementById('chat-room-title').textContent = '💬 ' + room_name;
-      document.getElementById('chat-panel').style.display = 'flex';
-      document.getElementById('chat-messages').innerHTML = '';
-      loadChatMessages();
-      if (chatRefreshInterval) clearInterval(chatRefreshInterval);
-      chatRefreshInterval = setInterval(loadChatMessages, 3000);
+    // Initialize default chat room
+    function initChat() {
+      if (!currentChatRoom) {
+        currentChatRoom = { room_type: 'general', room_id: 'general', room_name: '公開聊天室' };
+      }
     }
 
-    function closeChat() {
-      document.getElementById('chat-panel').style.display = 'none';
-      if (chatRefreshInterval) { clearInterval(chatRefreshInterval); chatRefreshInterval = null; }
-      currentChatRoom = null;
+    function switchChatRoom(room_type, room_id, room_name) {
+      currentChatRoom = { room_type, room_id, room_name };
+      document.getElementById('chat-room-title').textContent = '💬 ' + room_name;
+      // Update tab active states
+      document.querySelectorAll('.chat-room-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.room === room_type && tab.dataset.roomId === room_id);
+      });
+      loadChatMessages();
+    }
+
+    function openChat(room_type, room_id, room_name) {
+      // Switch to chat panel first
+      switchPanel('chat');
+      // Then set the room
+      switchChatRoom(room_type, room_id, room_name);
     }
 
     function loadChatMessages() {
-      if (!currentChatRoom) return;
+      if (!currentChatRoom) initChat();
       const params = new URLSearchParams({ room_type: currentChatRoom.room_type, room_id: currentChatRoom.room_id });
       fetch('/api/messages?' + params, { headers: { 'Authorization': 'Bearer ' + token, 'X-Company-ID': currentCompany } })
         .then(r => r.json())
         .then(msgs => {
           const container = document.getElementById('chat-messages');
+          if (!container) return;
           const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
           container.innerHTML = msgs.map(m => `
-            <div class="chat-bubble ${m.sender_type}" style="display:flex; flex-direction:column; ${m.sender_type === 'user' ? 'align-self:flex-end;' : 'align-self:flex-start;'}">
+            <div class="chat-bubble ${m.sender_type}">
               <div style="font-size:6px; color:var(--c-silver); margin-bottom:3px;">${m.sender_name}</div>
               <div>${m.content}</div>
               <div class="chat-meta">${new Date(m.created_at).toLocaleTimeString()}</div>
             </div>
           `).join('');
-          if (wasAtBottom) container.scrollTop = container.scrollHeight;
+          // Auto-scroll to bottom on new messages
+          container.scrollTop = container.scrollHeight;
         });
     }
 
     function sendChatMessage() {
       const input = document.getElementById('chat-input');
+      if (!input) return;
       const content = input.value.trim();
-      if (!content || !currentChatRoom) return;
+      if (!content || !currentChatRoom) initChat();
       fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'X-Company-ID': currentCompany },
