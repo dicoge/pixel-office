@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🎮 Pixel Office — AI Agent 管理系統</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     /* ============ PIXEL 16-COLOR PALETTE ============ */
@@ -27,14 +29,21 @@
       --c-peach: #ffb347;
     }
 
+    /* Pixel font rendering - preserve pixels but improve clarity */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       image-rendering: pixelated;
-      -webkit-font-smoothing: none;
-      -moz-osx-font-smoothing: unset;
-      text-rendering: optimizeSpeed;
+      -webkit-font-smoothing: antialiased !important;
+      -moz-osx-font-smoothing: grayscale !important;
+      text-rendering: optimizeLegibility !important;
+      font-smooth: always;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     body {
@@ -44,6 +53,7 @@
       min-height: 100vh;
       font-size: 10px;
       line-height: 1.8;
+      font-weight: 400;
     }
 
     /* ============ LOGIN SCREEN ============ */
