@@ -463,9 +463,10 @@ async function executeCommand(command, companyId, db) {
 const wss = new WebSocketServer({ server, path: '/ws' });
 const clients = new Set();
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   clients.add(ws);
-  ws.on('close', () => clients.delete(ws));
+  console.log(`WS client connected. Total clients: ${clients.size}, IP: ${req.socket.remoteAddress}`);
+  ws.on('close', () => { clients.delete(ws); console.log(`WS client disconnected. Total clients: ${clients.size}`); });
 });
 
 function broadcast(data) {
