@@ -804,7 +804,9 @@
 
       <!-- DEPARTMENTS -->
       <div id="panel-departments" class="panel">
-        <h2 class="section-title">🏢 部門狀態</h2>
+        <h2 class="section-title">🏢 部門專案
+          <button onclick="openDeptModal()" style="margin-left:20px;background:var(--c-green);border:3px solid var(--c-white);color:var(--c-white);padding:8px 16px;font-family:'Press Start 2P';font-size:8px;cursor:pointer;">+ 新增部門</button>
+        </h2>
         <div class="dept-grid" id="dept-grid"></div>
       </div>
 
@@ -901,6 +903,29 @@
           </select>
         </div>
         <button type="submit" class="pixel-btn">✓ 儲存任務</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DEPARTMENT MODAL (New) -->
+  <div class="modal" id="dept-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeDeptModal()">X</button>
+      <h3 class="modal-title">+ 新增部門</h3>
+      <form id="dept-form">
+        <div class="form-group">
+          <label>名稱</label>
+          <input type="text" id="dept-name" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>表情</label>
+          <input type="text" id="dept-emoji" maxlength="10" placeholder="🎮">
+        </div>
+        <div class="form-group">
+          <label>描述</label>
+          <textarea id="dept-desc" placeholder="部門描述..."></textarea>
+        </div>
+        <button type="submit" class="pixel-btn">✓ 新增部門</button>
       </form>
     </div>
   </div>
@@ -1139,8 +1164,6 @@
         const tasks = await API('/api/tasks');
 
         document.getElementById('dept-grid').innerHTML = departments.map(d => {
-          // Get workers in this department
-          const deptWorkers = workers.filter(w => w.department_id === d.id);
           // Get tasks in this department
           const deptTasks = tasks.filter(t => t.department_id === d.id);
           const taskStats = {
@@ -1166,15 +1189,16 @@
               <div class="dept-stat">✅ 已完成: <span>${taskStats.completed}</span></div>
             </div>
             <div id="dept-detail-${d.id}" class="dept-detail" style="display:none; margin-top:15px; padding-top:15px; border-top:2px solid var(--c-gray);">
-              <div style="font-size:8px; color:var(--c-cyan); margin-bottom:10px;">👥 部門 Worker (${deptWorkers.length})</div>
+              <div style="font-size:8px; color:var(--c-cyan); margin-bottom:10px;">👥 全部 Worker (${workers.length})</div>
               <div class="worker-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
-                ${deptWorkers.length === 0 ? '<div style="font-size:7px;color:var(--c-gray);">尚無 Worker</div>' :
-                  deptWorkers.map(w => {
+                ${workers.length === 0 ? '<div style="font-size:7px;color:var(--c-gray);">尚無 Worker</div>' :
+                  workers.map(w => {
                     const status = getWorkerStatus(w);
                     const statusColor = status === 'active' ? 'var(--c-lime)' : status === 'stale' ? 'var(--c-yellow)' : 'var(--c-red)';
+                    const isAssigned = w.department_id === d.id;
                     return `
-                    <div class="worker-card" style="border-color:${statusColor};cursor:pointer;" onclick="openChat('worker', '${w.id}', '${w.name}')">
-                      <div class="worker-name">${w.name}</div>
+                    <div class="worker-card" style="border-color:${statusColor};cursor:pointer;${isAssigned ? 'box-shadow:0 0 8px var(--c-lime);' : 'opacity:0.7;'}" onclick="openChat('worker', '${w.id}', '${w.name}')">
+                      <div class="worker-name">${w.name} ${isAssigned ? '✓' : ''}</div>
                       <div class="worker-status worker-${w.status || 'idle'}">
                         <span class="dot" style="background:${statusColor};border-color:${statusColor};"></span>${(w.status || 'idle').toUpperCase()}
                       </div>
@@ -1196,8 +1220,9 @@
                 `).join('')}
               </div>
               ` : ''}
-              <div style="margin-top:15px;text-align:center;">
-                <button onclick="openChat('department', '${d.id}', '${d.name}')" style="background:var(--c-purple);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">💬 開啟部門聊天室</button>
+              <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                <button onclick="openChat('department', '${d.id}', '${d.name}')" style="background:var(--c-purple);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">💬 部門聊天室</button>
+                <button onclick="openTaskModalForDept('${d.id}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button>
               </div>
             </div>
           </div>
@@ -1285,6 +1310,41 @@
     function closeTaskModal() {
       document.getElementById('task-modal').classList.remove('active');
     }
+
+    // Open task modal pre-selected with department
+    function openTaskModalForDept(deptId) {
+      document.getElementById('task-form').reset();
+      document.getElementById('task-id').value = '';
+      document.getElementById('modal-title').textContent = '+ 新增任務';
+      if (!departments.length) loadDepartments();
+      document.getElementById('task-dept').value = deptId;
+      document.getElementById('task-modal').classList.add('active');
+    }
+
+    // Department modal (new)
+    function openDeptModal() {
+      document.getElementById('dept-form').reset();
+      document.getElementById('dept-modal').classList.add('active');
+    }
+
+    function closeDeptModal() {
+      document.getElementById('dept-modal').classList.remove('active');
+    }
+
+    // Department form submit
+    document.getElementById('dept-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('dept-name').value,
+        emoji: document.getElementById('dept-emoji').value || '📁',
+        description: document.getElementById('dept-desc').value
+      };
+      try {
+        await API('/api/departments', { method: 'POST', body: JSON.stringify(data) });
+        closeDeptModal();
+        loadDepartments();
+      } catch (err) { alert('新增失敗: ' + err.message); }
+    });
 
     async function updateTask(id, status) {
       try {

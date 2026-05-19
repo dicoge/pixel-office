@@ -26,7 +26,7 @@ const TASK_QUEUE_API_KEY = process.env.TASK_QUEUE_API_KEY || 's3cr3t_t4sk_k3y_20
 
 // Admin credentials (hardcoded - Railway env var override disabled to prevent hash corruption)
 const ADMIN_USERNAME = 'dicoge';
-const ADMIN_PASSWORD_HASH = '$2a$12$5FK//t71g253O1nhz213LOlOhy7LEKDz6HJaBKJtXFqpWLvCtJd8W';
+const ADMIN_PASSWORD_HASH = 'a.hF7uOM4T1yPfFv56VlieJTAdaMam8Ja';
 
 // ============ INIT ============
 const app = express();
@@ -157,46 +157,25 @@ function initDatabase() {
     { id: 'company-b', name: 'MacBook', emoji: '💻' }
   ];
 
-  // Seed departments for EACH company (7 departments)
+  // Seed 3 departments (shared across all companies)
   const deptStmt = db.prepare('INSERT OR IGNORE INTO departments (id, name, emoji, description, company_id) VALUES (?, ?, ?, ?, ?)');
   const departments = [
-    // Company A - 7 departments
-    ['dept-gaming-a', '遊戲開發部', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-a'],
-    ['dept-investment-a', '投資研究部', '📊', '股票/每日報告/停損監控', 'company-a'],
-    ['dept-website-a', '網站建設部', '🌐', '網頁開發與維護', 'company-a'],
-    ['dept-system-a', '系統管理部', '🖥️', 'Worker 健康狀態/系統監控', 'company-a'],
-    ['dept-dev-a', '開發實作部', '🔧', '專案開發與實作', 'company-a'],
-    ['dept-test-a', '測試驗證部', '📋', '品質測試與驗證', 'company-a'],
-    ['dept-monitor-a', '投資監控部', '📈', '投資組合監控與分析', 'company-a'],
-    // Company B - 7 departments
-    ['dept-gaming-b', '遊戲開發部', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-b'],
-    ['dept-investment-b', '投資研究部', '📊', '股票/每日報告/停損監控', 'company-b'],
-    ['dept-website-b', '網站建設部', '🌐', '網頁開發與維護', 'company-b'],
-    ['dept-system-b', '系統管理部', '🖥️', 'Worker 健康狀態/系統監控', 'company-b'],
-    ['dept-dev-b', '開發實作部', '🔧', '專案開發與實作', 'company-b'],
-    ['dept-test-b', '測試驗證部', '📋', '品質測試與驗證', 'company-b'],
-    ['dept-monitor-b', '投資監控部', '📈', '投資組合監控與分析', 'company-b']
+    ['dept-dungeon', 'DungeonD3', '🎮', '地城爬塔遊戲開發', 'company-a'],
+    ['dept-stock', '每日台股報告', '📊', '股票研究與每日報告', 'company-a'],
+    ['dept-pixeloffice', 'Pixel Office', '🎮', 'AI Agent 管理系統維護', 'company-a']
   ];
   departments.forEach(d => deptStmt.run(...d));
 
-  // Seed 7 workers for BOTH companies
+  // Seed 7 workers (shared across all companies)
   const workerStmt = db.prepare('INSERT OR IGNORE INTO workers (id, name, status, department_id, company_id, machine_id) VALUES (?, ?, ?, ?, ?, ?)');
-  // Company A workers (MiniPc) - 7 workers
-  workerStmt.run('worker-1', 'OpenClaw', 'active', 'dept-gaming-a', 'company-a', 'MiniPc');
-  workerStmt.run('worker-2', 'Codex', 'idle', 'dept-investment-a', 'company-a', 'MiniPc');
-  workerStmt.run('worker-3', 'OpenCode', 'idle', 'dept-website-a', 'company-a', 'MiniPc');
-  workerStmt.run('worker-7', 'DungeonBot', 'idle', 'dept-dev-a', 'company-a', 'MiniPc');
-  workerStmt.run('worker-8', 'PixelCoder', 'idle', 'dept-test-a', 'company-a', 'MiniPc');
-  workerStmt.run('worker-9', 'AgentSmith', 'idle', 'dept-monitor-a', 'company-a', 'MiniPc');
-  workerStmt.run('worker-10', 'ServerBot', 'idle', 'dept-system-a', 'company-a', 'MiniPc');
-  // Company B workers (MacBook) - 7 workers
-  workerStmt.run('worker-4', 'OpenClaw', 'active', 'dept-gaming-b', 'company-b', 'MacBook');
-  workerStmt.run('worker-5', 'Codex', 'idle', 'dept-investment-b', 'company-b', 'MacBook');
-  workerStmt.run('worker-6', 'OpenCode', 'idle', 'dept-website-b', 'company-b', 'MacBook');
-  workerStmt.run('worker-11', 'DungeonBot', 'idle', 'dept-dev-b', 'company-b', 'MacBook');
-  workerStmt.run('worker-12', 'PixelCoder', 'idle', 'dept-test-b', 'company-b', 'MacBook');
-  workerStmt.run('worker-13', 'AgentSmith', 'idle', 'dept-monitor-b', 'company-b', 'MacBook');
-  workerStmt.run('worker-14', 'ServerBot', 'idle', 'dept-system-b', 'company-b', 'MacBook');
+  // 7 workers for both companies
+  workerStmt.run('worker-1', 'OpenClaw', 'active', 'dept-dungeon', 'company-a', 'MiniPc');
+  workerStmt.run('worker-2', 'Codex', 'idle', 'dept-stock', 'company-a', 'MiniPc');
+  workerStmt.run('worker-3', 'OpenCode', 'idle', 'dept-pixeloffice', 'company-a', 'MiniPc');
+  workerStmt.run('worker-4', 'DungeonBot', 'idle', null, 'company-a', 'MiniPc');
+  workerStmt.run('worker-5', 'PixelCoder', 'idle', null, 'company-a', 'MiniPc');
+  workerStmt.run('worker-6', 'ServerBot', 'idle', null, 'company-a', 'MiniPc');
+  workerStmt.run('worker-7', 'AgentSmith', 'idle', null, 'company-a', 'MiniPc');
 
   // Messages table
   db.exec(`
@@ -426,8 +405,8 @@ app.use('/api/', authMiddleware);
 // Departments
 app.get('/api/departments', (req, res) => {
   const company_id = getCompanyId(req);
-  const depts = db.prepare('SELECT * FROM departments WHERE company_id = ? ORDER BY created_at').all(company_id);
-  const tasks = db.prepare('SELECT department_id, status, COUNT(*) as count FROM tasks WHERE company_id = ? GROUP BY department_id, status').all(company_id);
+  const depts = db.prepare('SELECT * FROM departments ORDER BY created_at').all();
+  const tasks = db.prepare('SELECT department_id, status, COUNT(*) as count FROM tasks GROUP BY department_id, status').all();
   const deptTasks = {};
   tasks.forEach(t => {
     if (!deptTasks[t.department_id]) deptTasks[t.department_id] = {};
@@ -437,6 +416,20 @@ app.get('/api/departments', (req, res) => {
     ...d,
     task_counts: deptTasks[d.id] || {}
   })));
+});
+
+// POST /api/departments - Create new department
+app.post('/api/departments', (req, res) => {
+  const { name, emoji, description } = req.body;
+  if (!name || !emoji) {
+    return res.status(400).json({ error: 'name and emoji are required' });
+  }
+  const id = 'dept-' + uuidv4().slice(0, 8);
+  db.prepare(`INSERT INTO departments (id, name, emoji, description, company_id) VALUES (?, ?, ?, ?, 'company-a')`)
+    .run(id, name, emoji, description || '');
+  const dept = db.prepare('SELECT * FROM departments WHERE id = ?').get(id);
+  broadcast({ type: 'department_updated', department: dept });
+  res.status(201).json(dept);
 });
 
 // PATCH Department (editable names)
