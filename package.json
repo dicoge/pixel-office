@@ -1,0 +1,20 @@
+{
+  "name": "pixel-office",
+  "version": "1.0.0",
+  "description": "Pixel-styled AI Agent Team Management View",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^9.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "ws": "^8.16.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5",
+    "uuid": "^9.0.1"
+  }
+}

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: pixel-office
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: JWT_SECRET
+        value: CHANGE_ME_IN_PRODUCTION
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

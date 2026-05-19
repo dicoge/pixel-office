@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 Pixel Office — AI Agent 管理系統</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    /* ============ PIXEL 16-COLOR PALETTE ============ */
+    :root {
+      --c-black: #1a1a2e;
+      --c-darkblue: #16213e;
+      --c-purple: #4a2c7a;
+      --c-green: #0f9b0f;
+      --c-brown: #8b4513;
+      --c-darkgray: #2d2d2d;
+      --c-gray: #6b6b6b;
+      --c-silver: #a0a0a0;
+      --c-white: #f0f0f0;
+      --c-red: #e74c3c;
+      --c-orange: #e67e22;
+      --c-yellow: #f1c40f;
+      --c-lime: #2ecc71;
+      --c-cyan: #00d4aa;
+      --c-blue: #3498db;
+      --c-pink: #ff69b4;
+      --c-peach: #ffb347;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      image-rendering: pixelated;
+    }
+
+    body {
+      font-family: 'Press Start 2P', monospace;
+      background: var(--c-black);
+      color: var(--c-white);
+      min-height: 100vh;
+      font-size: 10px;
+      line-height: 1.8;
+    }
+
+    /* ============ LOGIN SCREEN ============ */
+    #login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .pixel-logo {
+      font-size: 14px;
+      color: var(--c-yellow);
+      text-shadow: 3px 3px 0 var(--c-orange);
+      margin-bottom: 10px;
+      animation: blink 1s step-end infinite;
+    }
+
+    .pixel-subtitle {
+      font-size: 8px;
+      color: var(--c-cyan);
+      margin-bottom: 40px;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0.8; }
+    }
+
+    .pixel-art-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 2px;
+    }
+
+    .pixel-art-logo div {
+      background: var(--c-yellow);
+    }
+
+    .pixel-art-logo div:nth-child(1), .pixel-art-logo div:nth-child(4), .pixel-art-logo div:nth-child(6) { background: var(--c-yellow); }
+    .pixel-art-logo div:nth-child(2), .pixel-art-logo div:nth-child(3) { background: var(--c-orange); }
+    .pixel-art-logo div:nth-child(5) { background: var(--c-red); }
+
+    .login-box {
+      background: var(--c-darkblue);
+      border: 4px solid var(--c-white);
+      padding: 30px;
+      width: 320px;
+      max-width: 100%;
+      box-shadow: 8px 8px 0 var(--c-purple);
+    }
+
+    .pixel-input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: var(--c-black);
+      border: 3px solid var(--c-white);
+      color: var(--c-white);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+    }
+
+    .pixel-input:focus {
+      outline: none;
+      border-color: var(--c-yellow);
+      box-shadow: 4px 4px 0 var(--c-yellow);
+    }
+
+    .pixel-btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 15px;
+      background: var(--c-green);
+      border: 4px solid var(--c-white);
+      color: var(--c-white);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 var(--c-darkgray);
+      transition: all 0.1s;
+    }
+
+    .pixel-btn:hover {
+      background: var(--c-lime);
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--c-darkgray);
+    }
+
+    .pixel-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--c-darkgray);
+    }
+
+    .pixel-btn.secondary {
+      background: var(--c-purple);
+    }
+
+    .pixel-btn.secondary:hover {
+      background: var(--c-pink);
+    }
+
+    .error-msg {
+      color: var(--c-red);
+      font-size: 8px;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    /* ============ MAIN APP ============ */
+    #app {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(180deg, var(--c-purple) 0%, var(--c-darkblue) 100%);
+      border-bottom: 4px solid var(--c-white);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .header-title {
+      font-size: 12px;
+      color: var(--c-yellow);
+      text-shadow: 2px 2px 0 var(--c-orange);
+    }
+
+    .header-info {
+      font-size: 8px;
+      color: var(--c-silver);
+    }
+
+    .logout-btn {
+      background: var(--c-red);
+      border: 3px solid var(--c-white);
+      color: var(--c-white);
+      padding: 8px 12px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      cursor: pointer;
+    }
+
+    .company-switcher {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .company-switcher-label {
+      font-size: 7px;
+      color: var(--c-silver);
+    }
+
+    .company-select {
+      padding: 8px 12px;
+      background: var(--c-black);
+      border: 3px solid var(--c-yellow);
+      color: var(--c-yellow);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      cursor: pointer;
+    }
+
+    .company-select:focus {
+      outline: none;
+      box-shadow: 4px 4px 0 var(--c-orange);
+    }
+
+    .company-select option {
+      background: var(--c-darkblue);
+      color: var(--c-white);
+    }
+
+    /* ============ NAV TABS ============ */
+    .nav-tabs {
+      display: flex;
+      background: var(--c-darkgray);
+      border-bottom: 3px solid var(--c-gray);
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      padding: 12px 16px;
+      background: var(--c-darkgray);
+      border: none;
+      border-right: 2px solid var(--c-gray);
+      color: var(--c-silver);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .nav-tab:hover {
+      background: var(--c-purple);
+      color: var(--c-white);
+    }
+
+    .nav-tab.active {
+      background: var(--c-darkblue);
+      color: var(--c-yellow);
+      border-bottom: 3px solid var(--c-yellow);
+    }
+
+    /* ============ MAIN CONTENT ============ */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .section-title {
+      font-size: 11px;
+      color: var(--c-cyan);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--c-cyan);
+    }
+
+    /* ============ DASHBOARD ============ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: var(--c-darkblue);
+      border: 3px solid var(--c-gray);
+      padding: 15px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      color: var(--c-yellow);
+      margin: 8px 0;
+    }
+
+    .stat-label {
+      font-size: 7px;
+      color: var(--c-silver);
+    }
+
+    /* ============ DEPARTMENTS ============ */
+    .dept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+    }
+
+    .dept-card {
+      background: var(--c-darkblue);
+      border: 4px solid var(--c-purple);
+      padding: 20px;
+      box-shadow: 6px 6px 0 var(--c-purple);
+    }
+
+    .dept-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .dept-emoji {
+      font-size: 24px;
+    }
+
+    .dept-name {
+      font-size: 10px;
+      color: var(--c-yellow);
+    }
+
+    .dept-desc {
+      font-size: 7px;
+      color: var(--c-silver);
+      margin-bottom: 15px;
+    }
+
+    .dept-stats {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .dept-stat {
+      font-size: 7px;
+    }
+
+    .dept-stat span {
+      color: var(--c-lime);
+    }
+
+    /* Department edit button */
+    .dept-edit-btn {
+      margin-left: auto;
+      background: var(--c-purple);
+      border: 2px solid var(--c-white);
+      color: var(--c-white);
+      padding: 4px 8px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      cursor: pointer;
+    }
+
+    .dept-edit-btn:hover {
+      background: var(--c-pink);
+    }
+
+    /* ============ TASKS ============ */
+    .task-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .pixel-select {
+      padding: 10px;
+      background: var(--c-black);
+      border: 3px solid var(--c-white);
+      color: var(--c-white);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+    }
+
+    .add-task-btn {
+      background: var(--c-green);
+      border: 3px solid var(--c-white);
+      color: var(--c-white);
+      padding: 10px 16px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      cursor: pointer;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-card {
+      background: var(--c-darkblue);
+      border: 3px solid var(--c-gray);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .task-title {
+      font-size: 9px;
+      color: var(--c-white);
+      flex: 1;
+    }
+
+    .task-status {
+      padding: 4px 8px;
+      font-size: 6px;
+      border: 2px solid;
+    }
+
+    .status-pending { color: var(--c-yellow); border-color: var(--c-yellow); background: rgba(241,196,15,0.1); }
+    .status-in_progress { color: var(--c-blue); border-color: var(--c-blue); background: rgba(52,152,219,0.1); }
+    .status-completed { color: var(--c-lime); border-color: var(--c-lime); background: rgba(46,204,113,0.1); }
+    .status-failed { color: var(--c-red); border-color: var(--c-red); background: rgba(231,76,60,0.1); }
+
+    .task-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 7px;
+      color: var(--c-silver);
+      flex-wrap: wrap;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .task-btn {
+      padding: 6px 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      cursor: pointer;
+      border: 2px solid var(--c-white);
+      background: var(--c-darkgray);
+      color: var(--c-white);
+    }
+
+    .task-btn:hover { background: var(--c-purple); }
+    .task-btn.complete { background: var(--c-green); }
+    .task-btn.failed { background: var(--c-red); }
+
+    /* ============ MODAL ============ */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--c-darkblue);
+      border: 4px solid var(--c-yellow);
+      padding: 25px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 8px 8px 0 var(--c-purple);
+    }
+
+    .modal-title {
+      font-size: 11px;
+      color: var(--c-yellow);
+      margin-bottom: 20px;
+    }
+
+    .modal-close {
+      float: right;
+      background: var(--c-red);
+      border: 2px solid var(--c-white);
+      color: var(--c-white);
+      width: 28px;
+      height: 28px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 8px;
+      color: var(--c-silver);
+      margin-bottom: 6px;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      background: var(--c-black);
+      border: 3px solid var(--c-gray);
+      color: var(--c-white);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    /* ============ WORKERS ============ */
+    .worker-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .worker-toggle {
+      display: flex;
+      gap: 10px;
+    }
+
+    .toggle-btn {
+      padding: 8px 12px;
+      background: var(--c-darkgray);
+      border: 3px solid var(--c-gray);
+      color: var(--c-silver);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      cursor: pointer;
+    }
+
+    .toggle-btn.active {
+      background: var(--c-purple);
+      border-color: var(--c-yellow);
+      color: var(--c-yellow);
+    }
+
+    .machine-group {
+      background: var(--c-darkblue);
+      border: 4px solid var(--c-purple);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 6px 6px 0 var(--c-purple);
+    }
+
+    .machine-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--c-purple);
+    }
+
+    .machine-name {
+      font-size: 10px;
+      color: var(--c-cyan);
+    }
+
+    .machine-stats {
+      font-size: 7px;
+      color: var(--c-silver);
+    }
+
+    .worker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .worker-card {
+      background: var(--c-darkblue);
+      border: 3px solid var(--c-green);
+      padding: 15px;
+    }
+
+    .worker-name {
+      font-size: 9px;
+      color: var(--c-yellow);
+      margin-bottom: 8px;
+    }
+
+    .worker-status {
+      font-size: 7px;
+    }
+
+    .worker-status .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border: 2px solid;
+    }
+
+    .worker-active .dot { background: var(--c-lime); border-color: var(--c-lime); }
+    .worker-idle .dot { background: var(--c-yellow); border-color: var(--c-yellow); }
+    .worker-offline .dot { background: var(--c-red); border-color: var(--c-red); }
+
+    /* ============ AUDIT LOGS ============ */
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-entry {
+      background: var(--c-darkblue);
+      border-left: 4px solid var(--c-purple);
+      padding: 12px;
+      font-size: 7px;
+    }
+
+    .log-time {
+      color: var(--c-gray);
+      margin-right: 10px;
+    }
+
+    .log-action {
+      color: var(--c-cyan);
+    }
+
+    /* ============ FOOTER ============ */
+    .footer {
+      background: var(--c-purple);
+      border-top: 4px solid var(--c-white);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7px;
+      color: var(--c-silver);
+    }
+
+    .footer-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--c-lime);
+      border: 2px solid var(--c-white);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .ws-status {
+      color: var(--c-lime);
+    }
+
+    /* ============ EMPTY STATE ============ */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--c-gray);
+      font-size: 9px;
+    }
+
+    /* ============ CHAT PANEL ============ */
+    .chat-bubble { max-width:75%; padding:8px 12px; font-size:9px; line-height:1.6; word-wrap:break-word; }
+    .chat-bubble.user { align-self:flex-end; background:var(--c-purple); border:2px solid var(--c-pink); color:var(--c-white); }
+    .chat-bubble.worker { align-self:flex-start; background:var(--c-darkgray); border:2px solid var(--c-cyan); color:var(--c-white); }
+    .chat-meta { font-size:8px; color:var(--c-silver); margin-top:3px; }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 600px) {
+      .header-title { font-size: 9px; }
+      .dept-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer { flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    }
+
+    @media (max-width: 375px) {
+      .header { padding: 10px; gap: 8px; }
+      .header-title { font-size: 8px; }
+      .logout-btn { font-size: 6px; padding: 6px 8px; }
+      .company-select { font-size: 7px; padding: 6px 8px; }
+      .nav-tabs { scrollbar-width: none; -ms-overflow-style: none; }
+      .nav-tabs::-webkit-scrollbar { display: none; }
+      .pixel-logo { font-size: 11px; }
+      .login-box { padding: 20px; }
+      .stat-card { padding: 10px; }
+    }
+
+    /* Nav tabs scroll shadow indicator */
+    .nav-tabs {
+      position: relative;
+    }
+    .nav-tabs::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 40px;
+      background: linear-gradient(to right, transparent, var(--c-darkgray));
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .nav-tabs.scroll-active::after {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen">
+    <div class="pixel-art-logo">
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+    </div>
+    <div class="pixel-logo">PIXEL OFFICE</div>
+    <div class="pixel-subtitle">AI AGENT MANAGEMENT SYSTEM v1.0</div>
+    
+    <div class="login-box">
+      <input type="text" id="login-username" class="pixel-input" placeholder="USERNAME" maxlength="20">
+      <input type="password" id="login-password" class="pixel-input" placeholder="PASSWORD" maxlength="30">
+      <button class="pixel-btn" onclick="doLogin()">▶ LOGIN</button>
+      <button class="pixel-btn secondary" onclick="doRegister()">✎ REGISTER</button>
+      <div class="error-msg" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app">
+    <div class="header">
+      <div>
+        <div class="header-title">🎮 PIXEL OFFICE</div>
+        <div class="header-info" id="user-info"></div>
+      </div>
+      <div class="company-switcher">
+        <span class="company-switcher-label">🏢:</span>
+        <select id="company-select" class="company-select" onchange="switchCompany(this.value)">
+          <!-- Populated dynamically from /api/companies -->
+        </select>
+      </div>
+      <button class="logout-btn" onclick="logout()">LOGOUT [X]</button>
+    </div>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-panel="dashboard">📊 DASHBOARD</button>
+      <button class="nav-tab" data-panel="departments">🏢 DEPARTMENTS</button>
+      <button class="nav-tab" data-panel="tasks">📋 TASKS</button>
+      <button class="nav-tab" data-panel="workers">⚙️ WORKERS</button>
+      <button class="nav-tab" data-panel="audit">📜 AUDIT LOG</button>
+    </nav>
+
+    <main class="main-content">
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="panel active">
+        <h2 class="section-title">📊 GLOBAL STATISTICS</h2>
+        <div class="stats-grid" id="stats-grid"></div>
+        <h2 class="section-title">📋 RECENT TASKS</h2>
+        <div class="task-list" id="recent-tasks"></div>
+      </div>
+
+      <!-- DEPARTMENTS -->
+      <div id="panel-departments" class="panel">
+        <h2 class="section-title">🏢 DEPARTMENT STATUS</h2>
+        <div class="dept-grid" id="dept-grid"></div>
+      </div>
+
+      <!-- TASKS -->
+      <div id="panel-tasks" class="panel">
+        <h2 class="section-title">📋 TASK MANAGEMENT</h2>
+        <div class="task-controls">
+          <select id="task-filter-dept" class="pixel-select">
+            <option value="">ALL DEPARTMENTS</option>
+          </select>
+          <select id="task-filter-status" class="pixel-select">
+            <option value="">ALL STATUS</option>
+            <option value="pending">PENDING</option>
+            <option value="in_progress">IN PROGRESS</option>
+            <option value="completed">COMPLETED</option>
+            <option value="failed">FAILED</option>
+          </select>
+          <button class="add-task-btn" onclick="openTaskModal()">+ NEW TASK</button>
+        </div>
+        <div class="task-list" id="task-list"></div>
+      </div>
+
+      <!-- WORKERS -->
+      <div id="panel-workers" class="panel">
+        <h2 class="section-title">⚙️ WORKER STATUS</h2>
+        <div class="worker-controls">
+          <div class="worker-toggle">
+            <button class="toggle-btn active" data-view="all" onclick="setWorkerView('all')">📋 ALL</button>
+            <button class="toggle-btn" data-view="machines" onclick="setWorkerView('machines')">🖥️ 雙電腦狀態</button>
+          </div>
+        </div>
+        <div id="worker-content"></div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div id="panel-audit" class="panel">
+        <h2 class="section-title">📜 AUDIT LOG</h2>
+        <div class="log-list" id="audit-log"></div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-status">
+        <div class="status-dot"></div>
+        <span>SYSTEM ONLINE</span>
+      </div>
+      <div>PIXEL OFFICE v1.0 | <span class="ws-status" id="ws-status">● WS CONNECTED</span></div>
+      <div id="server-time"></div>
+    </footer>
+  </div>
+
+  <!-- Chat Side Panel -->
+  <div id="chat-panel" style="display:none; position:fixed; right:0; top:0; bottom:0; width:380px; max-width:90vw; background:var(--c-darkblue); border-left:4px solid var(--c-yellow); z-index:200; display:flex; flex-direction:column;">
+    <div style="padding:15px; border-bottom:3px solid var(--c-gray); display:flex; justify-content:space-between; align-items:center;">
+      <span id="chat-room-title" style="font-size:9px; color:var(--c-yellow);"></span>
+      <button onclick="closeChat()" style="background:var(--c-red); border:2px solid var(--c-white); color:var(--c-white); width:24px; height:24px; font-family:'Press Start 2P'; font-size:8px; cursor:pointer;">×</button>
+    </div>
+    <div id="chat-messages" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px;">
+    </div>
+    <div style="padding:15px; border-top:3px solid var(--c-gray);">
+      <div style="display:flex; gap:8px;">
+        <input id="chat-input" type="text" placeholder="輸入訊息..." onkeydown="if(event.key==='Enter')sendChatMessage()" style="flex:1; padding:10px; background:var(--c-black); border:3px solid var(--c-gray); color:var(--c-white); font-family:'Press Start 2P'; font-size:8px;">
+        <button onclick="sendChatMessage()" style="background:var(--c-green); border:3px solid var(--c-white); color:var(--c-white); padding:10px 12px; font-family:'Press Start 2P'; font-size:8px; cursor:pointer;">送出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASK MODAL -->
+  <div class="modal" id="task-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeTaskModal()">X</button>
+      <h3 class="modal-title" id="modal-title">+ NEW TASK</h3>
+      <form id="task-form">
+        <input type="hidden" id="task-id">
+        <div class="form-group">
+          <label>DEPARTMENT</label>
+          <select id="task-dept" required></select>
+        </div>
+        <div class="form-group">
+          <label>TITLE</label>
+          <input type="text" id="task-title" required maxlength="100">
+        </div>
+        <div class="form-group">
+          <label>DESCRIPTION</label>
+          <textarea id="task-desc"></textarea>
+        </div>
+        <div class="form-group">
+          <label>PRIORITY</label>
+          <select id="task-priority">
+            <option value="low">LOW</option>
+            <option value="normal" selected>NORMAL</option>
+            <option value="high">HIGH</option>
+            <option value="critical">CRITICAL</option>
+          </select>
+        </div>
+        <button type="submit" class="pixel-btn">✓ SAVE TASK</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- DEPARTMENT EDIT MODAL -->
+  <div class="modal" id="dept-edit-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeDeptEditModal()">X</button>
+      <h3 class="modal-title">✎ EDIT DEPARTMENT</h3>
+      <form id="dept-edit-form">
+        <input type="hidden" id="dept-edit-id">
+        <div class="form-group">
+          <label>NAME</label>
+          <input type="text" id="dept-edit-name" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>EMOJI</label>
+          <input type="text" id="dept-edit-emoji" maxlength="10" placeholder="🎮">
+        </div>
+        <button type="submit" class="pixel-btn">✓ SAVE</button>
+      </form>
+    </div>
+  </div>
+
+<script>
+    // ============ STATE ============
+    let token = localStorage.getItem('pixel_token');
+    let user = JSON.parse(localStorage.getItem('pixel_user') || 'null');
+    let ws = null;
+    let departments = [];
+    let currentCompany = sessionStorage.getItem('pixel_company') || 'company-a';
+
+    // ============ API ============
+    const API = async (path, opts = {}) => {
+      const res = await fetch(path, {
+        ...opts,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Company-ID': currentCompany,
+          ...opts.headers
+        }
+      });
+      if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API Error');
+      return data;
+    };
+
+    // ============ COMPANY SWITCHER ============
+    async function loadCompanies() {
+      try {
+        const data = await API('/api/companies');
+        const select = document.getElementById('company-select');
+        select.innerHTML = data.companies.map(c =>
+          `<option value="${c.id}">${c.emoji} ${c.name}</option>`
+        ).join('');
+      } catch (e) { console.error('Companies error:', e); }
+    }
+
+    function switchCompany(companyId) {
+      currentCompany = companyId;
+      sessionStorage.setItem('pixel_company', companyId);
+      document.getElementById('company-select').value = companyId;
+      // Reload all data for the new company
+      loadDashboard();
+      loadDepartments();
+      loadTasks();
+      loadWorkers();
+    }
+
+    // ============ AUTH ============
+    async function showApp() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      document.getElementById('user-info').textContent = `USER: ${user.username} [${user.role}]`;
+      // Initialize company switcher from API
+      await loadCompanies();
+      // Initialize company switcher from sessionStorage
+      document.getElementById('company-select').value = currentCompany;
+      connectWS();
+      loadDashboard();
+      loadDepartments();
+    }
+
+    function logout() {
+      localStorage.removeItem('pixel_token');
+      localStorage.removeItem('pixel_user');
+      token = null; user = null;
+      location.reload();
+    }
+
+    async function doLogin() {
+      const u = document.getElementById('login-username').value.trim();
+      const p = document.getElementById('login-password').value;
+      document.getElementById('login-error').textContent = '';
+      if (!u || !p) { document.getElementById('login-error').textContent = 'FILL ALL FIELDS'; return; }
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        token = data.token; user = data.user;
+        localStorage.setItem('pixel_token', token);
+        localStorage.setItem('pixel_user', JSON.stringify(user));
+        showApp();
+      } catch (e) {
+        document.getElementById('login-error').textContent = e.message;
+      }
+    }
+
+    async function doRegister() {
+      const u = document.getElementById('login-username').value.trim();
+      const p = document.getElementById('login-password').value;
+      document.getElementById('login-error').textContent = '';
+      if (!u || !p) { document.getElementById('login-error').textContent = 'FILL ALL FIELDS'; return; }
+      try {
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        token = data.token; user = data.user;
+        localStorage.setItem('pixel_token', token);
+        localStorage.setItem('pixel_user', JSON.stringify(user));
+        showApp();
+      } catch (e) {
+        document.getElementById('login-error').textContent = e.message;
+      }
+    }
+
+    // ============ WEBSOCKET ============
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${proto}//${location.host}/ws`);
+      ws.onopen = () => { document.getElementById('ws-status').textContent = '● WS CONNECTED'; };
+      ws.onclose = () => {
+        document.getElementById('ws-status').textContent = '○ WS RECONNECTING...';
+        setTimeout(connectWS, 3000);
+      };
+      ws.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        handleBroadcast(data);
+      };
+    }
+
+    function handleBroadcast(data) {
+      if (data.type === 'task_created' || data.type === 'task_updated') loadDashboard();
+      if (data.type === 'task_created' || data.type === 'task_updated') loadTasks();
+      if (data.type === 'worker_ping' || data.type === 'worker_registered') loadWorkers();
+      if (data.type === 'department_updated') loadDepartments();
+    }
+
+    // ============ NAVIGATION ============
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(`panel-${tab.dataset.panel}`).classList.add('active');
+        if (tab.dataset.panel === 'dashboard') loadDashboard();
+        if (tab.dataset.panel === 'departments') loadDepartments();
+        if (tab.dataset.panel === 'tasks') loadTasks();
+        if (tab.dataset.panel === 'workers') { loadWorkers(); startWorkerAutoRefresh(); }
+        else { stopWorkerAutoRefresh(); }
+        if (tab.dataset.panel === 'audit') loadAudit();
+      });
+    });
+
+    // ============ DASHBOARD ============
+    async function loadDashboard() {
+      try {
+        const stats = await API('/api/stats');
+        
+        const totalTasks = (stats.tasks.pending || 0) + (stats.tasks.in_progress || 0) + 
+                          (stats.tasks.completed || 0) + (stats.tasks.failed || 0);
+        const totalWorkers = (stats.workers.active || 0) + (stats.workers.idle || 0) + 
+                            (stats.workers.offline || 0);
+
+        document.getElementById('stats-grid').innerHTML = `
+          <div class="stat-card">
+            <div class="stat-label">TOTAL TASKS</div>
+            <div class="stat-value">${totalTasks}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">PENDING</div>
+            <div class="stat-value" style="color:var(--c-yellow)">${stats.tasks.pending || 0}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">IN PROGRESS</div>
+            <div class="stat-value" style="color:var(--c-blue)">${stats.tasks.in_progress || 0}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">COMPLETED</div>
+            <div class="stat-value" style="color:var(--c-lime)">${stats.tasks.completed || 0}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">WORKERS</div>
+            <div class="stat-value">${totalWorkers}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">ACTIVE</div>
+            <div class="stat-value" style="color:var(--c-lime)">${stats.workers.active || 0}</div>
+          </div>
+        `;
+
+        if (stats.recent_tasks.length === 0) {
+          document.getElementById('recent-tasks').innerHTML = '<div class="empty-state">NO TASKS YET</div>';
+        } else {
+          document.getElementById('recent-tasks').innerHTML = stats.recent_tasks.map(t => `
+            <div class="task-card">
+              <div class="task-header">
+                <span class="task-title">${t.title}</span>
+                <span class="task-status status-${t.status}">${t.status.toUpperCase()}</span>
+              </div>
+              <div class="task-meta">
+                <span>${t.department_emoji} ${t.department_name}</span>
+                <span>CREATED: ${new Date(t.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) { console.error('Dashboard error:', e); }
+    }
+
+    // ============ DEPARTMENTS ============
+    async function loadDepartments() {
+      try {
+        departments = await API('/api/departments');
+        document.getElementById('dept-grid').innerHTML = departments.map(d => `
+          <div class="dept-card" data-dept-id="${d.id}">
+            <div class="dept-header">
+              <span class="dept-emoji">${d.emoji}</span>
+              <span class="dept-name">${d.name}</span>
+              <button class="dept-edit-btn" onclick="openDeptEditModal('${d.id}')">✎</button>
+            </div>
+            <div class="dept-desc">${d.description}</div>
+            <div class="dept-stats">
+              <div class="dept-stat">📋 TOTAL: <span>${Object.values(d.task_counts).reduce((a,b)=>a+b,0)}</span></div>
+              <div class="dept-stat">⏳ PENDING: <span>${d.task_counts.pending||0}</span></div>
+              <div class="dept-stat">🔄 ACTIVE: <span>${d.task_counts.in_progress||0}</span></div>
+              <div class="dept-stat">✅ DONE: <span>${d.task_counts.completed||0}</span></div>
+            </div>
+          </div>
+        `).join('');
+
+        // Update task modal dropdown
+        const taskDept = document.getElementById('task-dept');
+        if (taskDept) {
+          taskDept.innerHTML = departments.map(d => `<option value="${d.id}">${d.emoji} ${d.name}</option>`).join('');
+        }
+        const taskFilterDept = document.getElementById('task-filter-dept');
+        if (taskFilterDept) {
+          taskFilterDept.innerHTML = '<option value="">ALL DEPARTMENTS</option>' + 
+            departments.map(d => `<option value="${d.id}">${d.emoji} ${d.name}</option>`).join('');
+        }
+        // Make department cards clickable for chat
+        makeDepartmentsClickable();
+      } catch (e) { console.error('Departments error:', e); }
+    }
+
+    // ============ TASKS ============
+    async function loadTasks() {
+      try {
+        const dept = document.getElementById('task-filter-dept').value;
+        const status = document.getElementById('task-filter-status').value;
+        let url = '/api/tasks?';
+        if (dept) url += `department_id=${dept}&`;
+        if (status) url += `status=${status}&`;
+        const tasks = await API(url);
+        renderTasks(tasks);
+      } catch (e) { console.error('Tasks error:', e); }
+    }
+
+    function renderTasks(tasks) {
+      if (tasks.length === 0) {
+        document.getElementById('task-list').innerHTML = '<div class="empty-state">NO TASKS FOUND</div>';
+        return;
+      }
+      document.getElementById('task-list').innerHTML = tasks.map(t => `
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-title">${t.title}</span>
+            <span class="task-status status-${t.status}">${t.status.toUpperCase().replace('_',' ')}</span>
+          </div>
+          ${t.description ? `<div style="font-size:7px;color:var(--c-silver);margin:5px 0">${t.description}</div>` : ''}
+          <div class="task-meta">
+            <span>PRIORITY: ${(t.priority||'normal').toUpperCase()}</span>
+            <span>CREATED: ${new Date(t.created_at).toLocaleDateString()}</span>
+          </div>
+          <div class="task-actions">
+            ${t.status !== 'completed' ? `<button class="task-btn complete" onclick="updateTask('${t.id}','completed')">✓ DONE</button>` : ''}
+            ${t.status !== 'in_progress' && t.status !== 'completed' ? `<button class="task-btn" onclick="updateTask('${t.id}','in_progress')">▶ START</button>` : ''}
+            ${t.status !== 'failed' ? `<button class="task-btn failed" onclick="updateTask('${t.id}','failed')">✗ FAIL</button>` : ''}
+            <button class="task-btn" onclick="openTaskModal('${t.id}')">✎ EDIT</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openTaskModal(id = null) {
+      document.getElementById('task-form').reset();
+      document.getElementById('task-id').value = '';
+      document.getElementById('modal-title').textContent = '+ NEW TASK';
+      if (!departments.length) loadDepartments();
+      if (id) {
+        API(`/api/tasks/${id}`).then(t => {
+          document.getElementById('task-id').value = t.id;
+          document.getElementById('task-dept').value = t.department_id;
+          document.getElementById('task-title').value = t.title;
+          document.getElementById('task-desc').value = t.description || '';
+          document.getElementById('task-priority').value = t.priority || 'normal';
+          document.getElementById('modal-title').textContent = '✎ EDIT TASK';
+        });
+      }
+      document.getElementById('task-modal').classList.add('active');
+    }
+
+    function closeTaskModal() {
+      document.getElementById('task-modal').classList.remove('active');
+    }
+
+    async function updateTask(id, status) {
+      try {
+        await API(`/api/tasks/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status })
+        });
+        loadTasks();
+      } catch (e) { alert('Update failed: ' + e.message); }
+    }
+
+    document.getElementById('task-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('task-id').value;
+      const data = {
+        department_id: document.getElementById('task-dept').value,
+        title: document.getElementById('task-title').value,
+        description: document.getElementById('task-desc').value,
+        priority: document.getElementById('task-priority').value
+      };
+      try {
+        if (id) {
+          await API(`/api/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+        } else {
+          await API('/api/tasks', { method: 'POST', body: JSON.stringify(data) });
+        }
+        closeTaskModal();
+        loadTasks();
+      } catch (e) { alert('Save failed: ' + e.message); }
+    });
+
+    document.getElementById('task-filter-dept').addEventListener('change', loadTasks);
+    document.getElementById('task-filter-status').addEventListener('change', loadTasks);
+
+    // ============ WORKERS ============
+    let workerView = 'all';
+    let workerRefreshInterval = null;
+
+    function setWorkerView(view) {
+      workerView = view;
+      document.querySelectorAll('.toggle-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.view === view);
+      });
+      loadWorkers();
+    }
+
+    function getWorkerStatus(w) {
+      if (!w.last_ping) return 'offline';
+      const pingTime = new Date(w.last_ping);
+      const now = new Date();
+      const diffMs = now - pingTime;
+      const diffMin = diffMs / 60000;
+      if (diffMin < 5) return 'active';
+      if (diffMin < 15) return 'stale';
+      return 'offline';
+    }
+
+    function formatLastPing(lastPing) {
+      if (!lastPing) return 'NEVER';
+      const pingTime = new Date(lastPing);
+      const now = new Date();
+      const diffMs = now - pingTime;
+      const diffMin = Math.floor(diffMs / 60000);
+      if (diffMin < 1) return 'JUST NOW';
+      if (diffMin < 60) return `${diffMin}MIN AGO`;
+      const diffHr = Math.floor(diffMin / 60);
+      if (diffHr < 24) return `${diffHr}HR AGO`;
+      return pingTime.toLocaleDateString();
+    }
+
+    function renderWorkerCard(w) {
+      const status = getWorkerStatus(w);
+      const statusIcon = status === 'active' ? '🟢' : status === 'stale' ? '🟡' : '⚫';
+      const deptInfo = w.department_name ? `${w.department_emoji || ''} ${w.department_name}` : '—';
+      return `
+        <div class="worker-card worker-${status}" data-worker-id="${w.id}">
+          <div class="worker-name">${w.machine_id ? `[${w.machine_id}] ` : ''}${w.name}</div>
+          <div class="worker-status worker-${w.status || 'idle'}">
+            <span class="dot"></span>${w.status.toUpperCase() || 'IDLE'}
+          </div>
+          <div style="font-size:7px;color:var(--c-silver);margin-top:8px;">
+            <div>⏱ ${formatLastPing(w.last_ping)}</div>
+            <div>🏢 ${deptInfo}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMachineGroup(machineId, machineWorkers) {
+      const activeWorkers = machineWorkers.filter(w => getWorkerStatus(w) === 'active');
+      const lastActivity = machineWorkers
+        .map(w => w.last_ping)
+        .filter(Boolean)
+        .sort()
+        .reverse()[0];
+
+      return `
+        <div class="machine-group">
+          <div class="machine-header">
+            <div class="machine-name">🖥️ ${machineId}</div>
+            <div class="machine-stats">
+              <span style="color:var(--c-lime)">● ${activeWorkers.length}</span> ACTIVE / ${machineWorkers.length} TOTAL
+            </div>
+          </div>
+          <div class="worker-grid">
+            ${machineWorkers.map(w => renderWorkerCard(w)).join('')}
+          </div>
+          <div style="font-size:7px;color:var(--c-gray);margin-top:10px;text-align:right;">
+            LAST ACTIVITY: ${formatLastPing(lastActivity)}
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadWorkers() {
+      try {
+        const workers = await API('/api/workers/status');
+
+        if (workerView === 'all') {
+          // Flat list view
+          if (workers.length === 0) {
+            document.getElementById('worker-content').innerHTML = '<div class="empty-state">NO WORKERS REGISTERED</div>';
+          } else {
+            document.getElementById('worker-content').innerHTML = `<div class="worker-grid">${workers.map(w => renderWorkerCard(w)).join('')}</div>`;
+          }
+        } else {
+          // Machine grouped view
+          const machines = {};
+          workers.forEach(w => {
+            const mid = w.machine_id || 'UNKNOWN';
+            if (!machines[mid]) machines[mid] = [];
+            machines[mid].push(w);
+          });
+
+          const sortedMachines = Object.keys(machines).sort();
+          if (sortedMachines.length === 0) {
+            document.getElementById('worker-content').innerHTML = '<div class="empty-state">NO WORKERS REGISTERED</div>';
+          } else {
+            document.getElementById('worker-content').innerHTML = sortedMachines.map(mid =>
+              renderMachineGroup(mid, machines[mid])
+            ).join('');
+          }
+        }
+
+        // Broadcast worker updates for dashboard stats
+        broadcast({ type: 'workers_loaded', workers });
+        // Make worker cards clickable for chat
+        makeWorkersClickable();
+      } catch (e) { console.error('Workers error:', e); }
+    }
+
+    // Auto-refresh workers every 10 seconds when panel is active
+    function startWorkerAutoRefresh() {
+      stopWorkerAutoRefresh();
+      workerRefreshInterval = setInterval(() => {
+        if (document.getElementById('panel-workers').classList.contains('active')) {
+          loadWorkers();
+        }
+      }, 10000);
+    }
+
+    function stopWorkerAutoRefresh() {
+      if (workerRefreshInterval) {
+        clearInterval(workerRefreshInterval);
+        workerRefreshInterval = null;
+      }
+    }
+
+    // ============ AUDIT LOG ============
+    async function loadAudit() {
+      try {
+        const stats = await API('/api/stats');
+        document.getElementById('audit-log').innerHTML = stats.audit_logs.map(log => {
+          const details = log.details ? JSON.parse(log.details) : {};
+          return `
+            <div class="log-entry">
+              <span class="log-time">${new Date(log.created_at).toLocaleString()}</span>
+              <span class="log-action">[${log.action.toUpperCase()}]</span>
+              ${log.entity_type}: ${log.entity_id} 
+              ${details.username ? `by ${details.username}` : ''}
+              ${details.title ? `- "${details.title}"` : ''}
+            </div>
+          `;
+        }).join('') || '<div class="empty-state">NO LOGS</div>';
+      } catch (e) { console.error('Audit error:', e); }
+    }
+
+    // ============ SERVER TIME ============
+    setInterval(() => {
+      document.getElementById('server-time').textContent = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // ============ CHAT SYSTEM ============
+    let currentChatRoom = null;
+    let chatRefreshInterval = null;
+
+    function openChat(room_type, room_id, room_name) {
+      currentChatRoom = { room_type, room_id, room_name };
+      document.getElementById('chat-room-title').textContent = '💬 ' + room_name;
+      document.getElementById('chat-panel').style.display = 'flex';
+      document.getElementById('chat-messages').innerHTML = '';
+      loadChatMessages();
+      if (chatRefreshInterval) clearInterval(chatRefreshInterval);
+      chatRefreshInterval = setInterval(loadChatMessages, 3000);
+    }
+
+    function closeChat() {
+      document.getElementById('chat-panel').style.display = 'none';
+      if (chatRefreshInterval) { clearInterval(chatRefreshInterval); chatRefreshInterval = null; }
+      currentChatRoom = null;
+    }
+
+    function loadChatMessages() {
+      if (!currentChatRoom) return;
+      const params = new URLSearchParams({ room_type: currentChatRoom.room_type, room_id: currentChatRoom.room_id });
+      fetch('/api/messages?' + params, { headers: { 'Authorization': 'Bearer ' + token, 'X-Company-ID': currentCompany } })
+        .then(r => r.json())
+        .then(msgs => {
+          const container = document.getElementById('chat-messages');
+          const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+          container.innerHTML = msgs.map(m => `
+            <div class="chat-bubble ${m.sender_type}" style="display:flex; flex-direction:column; ${m.sender_type === 'user' ? 'align-self:flex-end;' : 'align-self:flex-start;'}">
+              <div style="font-size:6px; color:var(--c-silver); margin-bottom:3px;">${m.sender_name}</div>
+              <div>${m.content}</div>
+              <div class="chat-meta">${new Date(m.created_at).toLocaleTimeString()}</div>
+            </div>
+          `).join('');
+          if (wasAtBottom) container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const content = input.value.trim();
+      if (!content || !currentChatRoom) return;
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'X-Company-ID': currentCompany },
+        body: JSON.stringify({ sender_id: 'dicoge', sender_type: 'user', sender_name: 'dicoge', content, room_type: currentChatRoom.room_type, room_id: currentChatRoom.room_id })
+      }).then(() => { input.value = ''; loadChatMessages(); });
+    }
+
+    // Make worker cards clickable
+    function makeWorkersClickable() {
+      document.querySelectorAll('.worker-card').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.onclick = () => {
+          const name = card.querySelector('.worker-name')?.textContent || card.textContent;
+          const workerId = card.dataset.workerId;
+          if (workerId) openChat('worker', workerId, name);
+        };
+      });
+    }
+
+    // Make department cards clickable
+    function makeDepartmentsClickable() {
+      document.querySelectorAll('.dept-card').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.onclick = () => {
+          const name = card.querySelector('.dept-name')?.textContent || card.textContent;
+          const deptId = card.dataset.deptId;
+          if (deptId) openChat('department', deptId, name);
+        };
+      });
+    }
+
+    // ============ DEPARTMENT EDIT MODAL ============
+    function openDeptEditModal(id) {
+      const dept = departments.find(d => d.id === id);
+      if (!dept) return;
+
+      document.getElementById('dept-edit-id').value = id;
+      document.getElementById('dept-edit-name').value = dept.name;
+      document.getElementById('dept-edit-emoji').value = dept.emoji;
+      document.getElementById('dept-edit-modal').classList.add('active');
+    }
+
+    function closeDeptEditModal() {
+      document.getElementById('dept-edit-modal').classList.remove('active');
+    }
+
+    // Department edit form submission
+    document.getElementById('dept-edit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('dept-edit-id').value;
+      const data = {
+        name: document.getElementById('dept-edit-name').value,
+        emoji: document.getElementById('dept-edit-emoji').value
+      };
+
+      try {
+        await API(`/api/departments/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(data)
+        });
+        closeDeptEditModal();
+        loadDepartments();
+      } catch (err) {
+        alert('Update failed: ' + err.message);
+      }
+    });
+
+    // ============ INIT ============
+    if (token && user) {
+      showApp();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
