@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Database = require('better-sqlite3');
+const Database = require('./db');
 const { WebSocketServer } = require('ws');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -26,7 +26,7 @@ const TASK_QUEUE_API_KEY = process.env.TASK_QUEUE_API_KEY || 's3cr3t_t4sk_k3y_20
 
 // Admin credentials (hardcoded - Railway env var override disabled to prevent hash corruption)
 const ADMIN_USERNAME = 'dicoge';
-const ADMIN_PASSWORD_HASH = '$2a$12$RyZVPKfMg0VnJkRJ7HgpkuZwzrZSreAxrZ5FbWxbvSE6eHSN5JvEm';
+const ADMIN_PASSWORD_HASH = '$2a$12$LQv/c1NFPa6xJvEmGJAxeOqBVRz6k7wDvAJ3YfRqUvJvEmJQ4mCq';
 
 // ============ INIT ============
 const app = express();
@@ -53,137 +53,154 @@ const corsOptions = {
 const db = new Database(DB_PATH);
 
 // Initialize schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    role TEXT DEFAULT 'user',
-    created_at TEXT DEFAULT (datetime('now'))
-  );
+function initDatabase() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT DEFAULT 'user',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
 
-  CREATE TABLE IF NOT EXISTS departments (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    emoji TEXT NOT NULL,
-    description TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );
+    CREATE TABLE IF NOT EXISTS departments (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      emoji TEXT NOT NULL,
+      description TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
 
-  CREATE TABLE IF NOT EXISTS tasks (
-    id TEXT PRIMARY KEY,
-    department_id TEXT NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    status TEXT DEFAULT 'pending',
-    priority TEXT DEFAULT 'normal',
-    assigned_to TEXT,
-    created_by TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now')),
-    completed_at TEXT,
-    FOREIGN KEY (department_id) REFERENCES departments(id)
-  );
+    CREATE TABLE IF NOT EXISTS tasks (
+      id TEXT PRIMARY KEY,
+      department_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      status TEXT DEFAULT 'pending',
+      priority TEXT DEFAULT 'normal',
+      assigned_to TEXT,
+      created_by TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      completed_at TEXT,
+      FOREIGN KEY (department_id) REFERENCES departments(id)
+    );
 
-  CREATE TABLE IF NOT EXISTS workers (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    status TEXT DEFAULT 'idle',
-    department_id TEXT,
-    machine_id TEXT,
-    last_ping TEXT DEFAULT (datetime('now')),
-    created_at TEXT DEFAULT (datetime('now'))
-  );
+    CREATE TABLE IF NOT EXISTS workers (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      status TEXT DEFAULT 'idle',
+      department_id TEXT,
+      machine_id TEXT,
+      last_ping TEXT DEFAULT (datetime('now')),
+      created_at TEXT DEFAULT (datetime('now'))
+    );
 
-  CREATE TABLE IF NOT EXISTS audit_logs (
-    id TEXT PRIMARY KEY,
-    action TEXT NOT NULL,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT,
-    user_id TEXT,
-    details TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );
-`);
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT,
+      user_id TEXT,
+      details TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 
-// Migration: Add company_id columns if they don't exist (for existing databases)
-try {
-  db.exec("ALTER TABLE workers ADD COLUMN company_id TEXT DEFAULT 'company-a'");
-} catch (e) {
-  // Column already exists, ignore
+  // Migration: Add company_id columns if they don't exist (for existing databases)
+  try {
+    db.exec("ALTER TABLE workers ADD COLUMN company_id TEXT DEFAULT 'company-a'");
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.exec("ALTER TABLE departments ADD COLUMN company_id TEXT DEFAULT 'company-a'");
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.exec("ALTER TABLE tasks ADD COLUMN company_id TEXT DEFAULT 'company-a'");
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.exec("ALTER TABLE users ADD COLUMN company_ids TEXT DEFAULT 'company-a'");
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  // Migration: Add machine_id column if it doesn't exist (for existing databases)
+  try {
+    db.exec("ALTER TABLE workers ADD COLUMN machine_id TEXT");
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  // Companies table (for custom company names)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS companies (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      emoji TEXT DEFAULT '🏢',
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // Seed companies if not exist
+  const companyStmt = db.prepare('INSERT OR IGNORE INTO companies (id, name, emoji) VALUES (?, ?, ?)');
+  companyStmt.run('company-a', 'MiniPc', '🖥️');
+  companyStmt.run('company-b', 'MacBook', '💻');
+
+  // Companies definition (kept for fallback/initialization)
+  const COMPANIES = [
+    { id: 'company-a', name: 'MiniPc', emoji: '🖥️' },
+    { id: 'company-b', name: 'MacBook', emoji: '💻' }
+  ];
+
+  // Seed departments for EACH company
+  const deptStmt = db.prepare('INSERT OR IGNORE INTO departments (id, name, emoji, description, company_id) VALUES (?, ?, ?, ?, ?)');
+  const departments = [
+    // Company A
+    ['dept-gaming-a', '遊戲開發部-A', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-a'],
+    ['dept-investment-a', '投資研究部-A', '📊', '股票/每日報告/停損監控', 'company-a'],
+    ['dept-execution-a', '任務執行部-A', '🎯', '一般任務', 'company-a'],
+    ['dept-audit-a', '稽核日誌部-A', '📋', '派工記錄（JSONL+Markdown）', 'company-a'],
+    ['dept-system-a', '系統狀態-A', '⚙️', 'Worker 健康狀態', 'company-a'],
+    // Company B
+    ['dept-gaming-b', '遊戲開發部-B', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-b'],
+    ['dept-investment-b', '投資研究部-B', '📊', '股票/每日報告/停損監控', 'company-b'],
+    ['dept-execution-b', '任務執行部-B', '🎯', '一般任務', 'company-b'],
+    ['dept-audit-b', '稽核日誌部-B', '📋', '派工記錄（JSONL+Markdown）', 'company-b'],
+    ['dept-system-b', '系統狀態-B', '⚙️', 'Worker 健康狀態', 'company-b']
+  ];
+  departments.forEach(d => deptStmt.run(...d));
+
+  // Seed demo workers for BOTH companies (using MiniPc/MacBook machine identifiers)
+  const workerStmt = db.prepare('INSERT OR IGNORE INTO workers (id, name, status, department_id, company_id, machine_id) VALUES (?, ?, ?, ?, ?, ?)');
+  // Company A workers (MiniPc)
+  workerStmt.run('worker-1', 'OpenClaw', 'active', 'dept-gaming-a', 'company-a', 'MiniPc');
+  workerStmt.run('worker-2', 'Codex', 'idle', 'dept-investment-a', 'company-a', 'MiniPc');
+  workerStmt.run('worker-3', 'OpenCode', 'idle', 'dept-system-a', 'company-a', 'MiniPc');
+  // Company B workers (MacBook)
+  workerStmt.run('worker-4', 'OpenClaw', 'active', 'dept-gaming-b', 'company-b', 'MacBook');
+  workerStmt.run('worker-5', 'Codex', 'idle', 'dept-investment-b', 'company-b', 'MacBook');
+  workerStmt.run('worker-6', 'OpenCode', 'idle', 'dept-system-b', 'company-b', 'MacBook');
+
+  // Messages table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY,
+      company_id TEXT NOT NULL,
+      sender_id TEXT,
+      sender_type TEXT DEFAULT 'user',
+      sender_name TEXT,
+      content TEXT NOT NULL,
+      room_type TEXT,
+      room_id TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
 }
-try {
-  db.exec("ALTER TABLE departments ADD COLUMN company_id TEXT DEFAULT 'company-a'");
-} catch (e) {
-  // Column already exists, ignore
-}
-try {
-  db.exec("ALTER TABLE tasks ADD COLUMN company_id TEXT DEFAULT 'company-a'");
-} catch (e) {
-  // Column already exists, ignore
-}
-try {
-  db.exec("ALTER TABLE users ADD COLUMN company_ids TEXT DEFAULT 'company-a'");
-} catch (e) {
-  // Column already exists, ignore
-}
-// Migration: Add machine_id column if it doesn't exist (for existing databases)
-try {
-  db.exec("ALTER TABLE workers ADD COLUMN machine_id TEXT");
-} catch (e) {
-  // Column already exists, ignore
-}
-
-// Companies table (for custom company names)
-db.exec(`
-  CREATE TABLE IF NOT EXISTS companies (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    emoji TEXT DEFAULT '🏢',
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
-  )
-`);
-
-// Seed companies if not exist
-const companyStmt = db.prepare('INSERT OR IGNORE INTO companies (id, name, emoji) VALUES (?, ?, ?)');
-companyStmt.run('company-a', 'MiniPc', '🖥️');
-companyStmt.run('company-b', 'MacBook', '💻');
-
-// Companies definition (kept for fallback/initialization)
-const COMPANIES = [
-  { id: 'company-a', name: 'MiniPc', emoji: '🖥️' },
-  { id: 'company-b', name: 'MacBook', emoji: '💻' }
-];
-
-// Seed departments for EACH company
-const deptStmt = db.prepare('INSERT OR IGNORE INTO departments (id, name, emoji, description, company_id) VALUES (?, ?, ?, ?, ?)');
-const departments = [
-  // Company A
-  ['dept-gaming-a', '遊戲開發部-A', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-a'],
-  ['dept-investment-a', '投資研究部-A', '📊', '股票/每日報告/停損監控', 'company-a'],
-  ['dept-execution-a', '任務執行部-A', '🎯', '一般任務', 'company-a'],
-  ['dept-audit-a', '稽核日誌部-A', '📋', '派工記錄（JSONL+Markdown）', 'company-a'],
-  ['dept-system-a', '系統狀態-A', '⚙️', 'Worker 健康狀態', 'company-a'],
-  // Company B
-  ['dept-gaming-b', '遊戲開發部-B', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-b'],
-  ['dept-investment-b', '投資研究部-B', '📊', '股票/每日報告/停損監控', 'company-b'],
-  ['dept-execution-b', '任務執行部-B', '🎯', '一般任務', 'company-b'],
-  ['dept-audit-b', '稽核日誌部-B', '📋', '派工記錄（JSONL+Markdown）', 'company-b'],
-  ['dept-system-b', '系統狀態-B', '⚙️', 'Worker 健康狀態', 'company-b']
-];
-departments.forEach(d => deptStmt.run(...d));
-
-// Seed demo workers for BOTH companies (using MiniPc/MacBook machine identifiers)
-const workerStmt = db.prepare('INSERT OR IGNORE INTO workers (id, name, status, department_id, company_id, machine_id) VALUES (?, ?, ?, ?, ?, ?)');
-// Company A workers (MiniPc)
-workerStmt.run('worker-1', 'OpenClaw', 'active', 'dept-gaming-a', 'company-a', 'MiniPc');
-workerStmt.run('worker-2', 'Codex', 'idle', 'dept-investment-a', 'company-a', 'MiniPc');
-workerStmt.run('worker-3', 'OpenCode', 'idle', 'dept-system-a', 'company-a', 'MiniPc');
-// Company B workers (MacBook)
-workerStmt.run('worker-4', 'OpenClaw', 'active', 'dept-gaming-b', 'company-b', 'MacBook');
-workerStmt.run('worker-5', 'Codex', 'idle', 'dept-investment-b', 'company-b', 'MacBook');
-workerStmt.run('worker-6', 'OpenCode', 'idle', 'dept-system-b', 'company-b', 'MacBook');
 
 // ============ MIDDLEWARE ============
 app.use(cors(corsOptions));
@@ -546,21 +563,6 @@ app.post('/api/webhook/test', (req, res) => {
   res.json({ message: 'Webhook test sent (mock)', url, type });
 });
 
-// Messages table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS messages (
-    id TEXT PRIMARY KEY,
-    company_id TEXT NOT NULL,
-    sender_id TEXT,
-    sender_type TEXT DEFAULT 'user',
-    sender_name TEXT,
-    content TEXT NOT NULL,
-    room_type TEXT,
-    room_id TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  )
-`);
-
 // GET messages (chat history)
 app.get('/api/messages', (req, res) => {
   const company_id = getCompanyId(req);
@@ -598,7 +600,18 @@ app.get('/', (req, res) => {
 });
 
 // ============ START ============
-server.listen(PORT, () => {
-  console.log(`🎮 Pixel Office running on port ${PORT}`);
-  console.log(`📁 Database: ${DB_PATH}`);
-});
+async function start() {
+  try {
+    await db.init();
+    initDatabase();
+    server.listen(PORT, () => {
+      console.log(`🎮 Pixel Office running on port ${PORT}`);
+      console.log(`📁 Database: ${DB_PATH}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+start();
