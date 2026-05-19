@@ -508,7 +508,7 @@
     }
 
     .stat-value {
-      font-size: clamp(14px, 4vw, 18px);
+      font-size: clamp(14px, 4vw, 16px);
       color: var(--c-yellow);
       margin: var(--space-2) 0;
     }
@@ -529,7 +529,7 @@
       background: var(--c-darkblue);
       border: 4px solid var(--c-purple);
       padding: var(--space-4);
-      box-shadow: 6px 6px 0 var(--c-purple);
+      box-shadow: 4px 4px 0 var(--c-purple);
     }
 
     .dept-header {
@@ -811,7 +811,7 @@
       border: 4px solid var(--c-purple);
       padding: var(--space-4);
       margin-bottom: var(--space-4);
-      box-shadow: 6px 6px 0 var(--c-purple);
+      box-shadow: 4px 4px 0 var(--c-purple);
     }
 
     .machine-header {
@@ -1194,10 +1194,11 @@
       }
     }
 
-    /* === SMALL MOBILE (< 375px) === */
-    @media (max-width: 374px) {
+/* === MOBILE (< 768px) === */
+    @media (max-width: 767px) {
       .header {
-        padding: var(--space-2);
+        min-height: 44px;
+        padding: var(--space-2) var(--space-3);
       }
 
       .header-title {
@@ -1355,6 +1356,10 @@
         <button class="bottom-tab" data-panel="chat">
           <span class="tab-icon">💬</span>
           <span class="tab-label">聊天</span>
+        </button>
+        <button class="bottom-tab" data-panel="audit">
+          <span class="tab-icon">📋</span>
+          <span class="tab-label">稽核</span>
         </button>
       </div>
     </nav>
