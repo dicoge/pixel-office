@@ -1899,13 +1899,10 @@
 
     function openDefaultChat() {
       // Open default chat when chat tab is tapped
-      // Set currentChatRoom BEFORE calling openChat to prevent recursion
       if (!currentChatRoom) {
         currentChatRoom = { room_type: 'general', room_id: 'general', room_name: '公開聊天室' };
-        switchPanel('chat');
+        document.getElementById('panel-chat').classList.add('active');
         loadChatMessages();
-      } else {
-        switchPanel('chat');
       }
     }
 
@@ -2368,15 +2365,14 @@
     }
 
     function openChat(room_type, room_id, room_name) {
-      // Set the room BEFORE switching panel to prevent openDefaultChat re-triggering openChat
+      // Set the room directly without calling switchPanel (which would call openDefaultChat → recursion)
       currentChatRoom = { room_type, room_id, room_name };
-      // Switch to chat panel
-      switchPanel('chat');
-      // Update UI
+      // Switch to chat panel directly
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-chat').classList.add('active');
       document.getElementById('chat-room-title').textContent = '💬 ' + room_name;
-      document.querySelectorAll('.chat-room-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.room === room_type && tab.dataset.roomId === room_id);
-      });
       loadChatMessages();
     }
 
