@@ -1080,21 +1080,26 @@
       const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
       ws = new WebSocket(`${proto}//${location.host}/ws`);
       ws.onopen = () => { document.getElementById('ws-status').textContent = '● WS CONNECTED'; };
+      ws.onerror = (e) => { console.error('WebSocket error:', e); document.getElementById('ws-status').textContent = '○ WS ERROR'; };
       ws.onclose = () => {
         document.getElementById('ws-status').textContent = '○ WS RECONNECTING...';
         setTimeout(connectWS, 3000);
       };
       ws.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        handleBroadcast(data);
+        try {
+          const data = JSON.parse(e.data);
+          handleBroadcast(data);
+        } catch (err) { console.error('WS message parse error:', err); }
       };
     }
 
     function handleBroadcast(data) {
+      console.log('WS broadcast:', data.type, data);
       if (data.type === 'task_created' || data.type === 'task_updated') loadDashboard();
       if (data.type === 'task_created' || data.type === 'task_updated') loadTasks();
       if (data.type === 'worker_ping' || data.type === 'worker_registered') loadWorkers();
       if (data.type === 'department_updated') loadDepartments();
+      if (data.type === 'message_sent') loadChatMessages();
     }
 
     // ============ NAVIGATION ============
