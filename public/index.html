@@ -1899,8 +1899,13 @@
 
     function openDefaultChat() {
       // Open default chat when chat tab is tapped
+      // Set currentChatRoom BEFORE calling openChat to prevent recursion
       if (!currentChatRoom) {
-        openChat('general', 'general', '公開聊天室');
+        currentChatRoom = { room_type: 'general', room_id: 'general', room_name: '公開聊天室' };
+        switchPanel('chat');
+        loadChatMessages();
+      } else {
+        switchPanel('chat');
       }
     }
 
