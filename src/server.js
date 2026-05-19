@@ -1,4 +1,4 @@
-const express = require('express');
+const express = requ$2a$12$slub8wYxmWSuYnmc7LOnH.hF7uOM4T1yPfFv56VlieJTAdaMam8Ja'express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Database = require('./db');
@@ -26,7 +26,7 @@ const TASK_QUEUE_API_KEY = process.env.TASK_QUEUE_API_KEY || 's3cr3t_t4sk_k3y_20
 
 // Admin credentials (hardcoded - Railway env var override disabled to prevent hash corruption)
 const ADMIN_USERNAME = 'dicoge';
-const ADMIN_PASSWORD_HASH = '$2a$12$slub8wYxmWSuYnmc7LOnH.hF7uOM4T1yPfFv56VlieJTAdaMam8Ja';
+const ADMIN_PASSWORD_HASH = '$2a$12$2F2UHCzUjNHyzOE1wsz7vuSLiS/aRj1.aijJI3nYp4KUXpmx9D3Pi';
 
 // ============ INIT ============
 const app = express();
