@@ -208,6 +208,257 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// ============ NATURAL LANGUAGE COMMAND PARSER ============
+/**
+ * Parses natural language commands from chat messages.
+ * Returns null if not a command, or an object with command type and parameters.
+ */
+function parseCommand(text) {
+  if (!text || typeof text !== 'string') return null;
+  
+  const trimmed = text.trim();
+  
+  // Pattern 1: "派 XXX 去 YYY" → assign task to worker
+  // Matches: 派 OpenClaw 去修bug, 派Codex去做報告, 派 DungeonBot 去執行任務
+  const assignMatch = trimmed.match(/^[派指派]?\s*(.+?)\s*(?:去|去做|去修|去執行|去處理|去完成)\s*(.+)/);
+  if (assignMatch) {
+    return {
+      type: 'assign',
+      worker: assignMatch[1].trim(),
+      task: assignMatch[2].trim()
+    };
+  }
+  
+  // Pattern 2: "開新任務 XXX" or "新建任務 XXX" → create task
+  const createTaskMatch = trimmed.match(/^(?:開新任務|新建任務|建立任務|建立新任務)\s*(.+)/i);
+  if (createTaskMatch) {
+    return {
+      type: 'create_task',
+      title: createTaskMatch[1].trim()
+    };
+  }
+  
+  // Pattern 3: "查看 XXX" or "查詢 XXX" → query status
+  const queryMatch = trimmed.match(/^(?:查看|查詢|看看|看一下)\s*(.+)/i);
+  if (queryMatch) {
+    return {
+      type: 'query',
+      target: queryMatch[1].trim()
+    };
+  }
+  
+  // Pattern 4: "狀態" or "系統狀態" → overall stats
+  if (/^(?:狀態|系統狀態|看一下狀態|查狀態)$/.test(trimmed)) {
+    return {
+      type: 'stats'
+    };
+  }
+  
+  // Pattern 5: "worker列表" or "員工列表" → list workers
+  if (/^(?:worker列表|員工列表|workers?|workers\s+list)$/i.test(trimmed)) {
+    return {
+      type: 'list_workers'
+    };
+  }
+  
+  // Pattern 6: "任務列表" or "所有任務" → list tasks
+  if (/^(?:任務列表|所有任務|tasks?|tasks\s+list)$/i.test(trimmed)) {
+    return {
+      type: 'list_tasks'
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Executes a parsed command and returns a response message.
+ */
+async function executeCommand(command, companyId, db) {
+  switch (command.type) {
+    case 'assign': {
+      // Find worker by name
+      const worker = db.prepare(`
+        SELECT w.*, d.name as department_name, d.emoji as department_emoji
+        FROM workers w
+        LEFT JOIN departments d ON w.department_id = d.id
+        WHERE w.company_id = ? AND w.name LIKE ?
+        LIMIT 1
+      `).get(companyId, `%${command.worker}%`);
+      
+      if (!worker) {
+        // List available workers
+        const workers = db.prepare('SELECT name FROM workers WHERE company_id = ?').all(companyId);
+        const workerNames = workers.map(w => w.name).join(', ');
+        return `❌ 找不到 worker "${command.worker}"，可用 worker: ${workerNames || '無'}`;
+      }
+      
+      // Determine department - use worker's current department or default to first
+      const department = worker.department_id || 
+        db.prepare('SELECT id FROM departments WHERE company_id = ? LIMIT 1').get(companyId)?.id;
+      
+      if (!department) {
+        return '❌ 沒有可用的部門，請先建立部門';
+      }
+      
+      // Create task and assign to worker
+      const taskId = require('uuid').v4();
+      db.prepare(`
+        INSERT INTO tasks (id, department_id, title, status, assigned_to, created_by, company_id)
+        VALUES (?, ?, ?, 'pending', ?, ?, ?)
+      `).run(taskId, department, command.task, worker.id, 'system', companyId);
+      
+      const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId);
+      
+      // Update worker status to busy
+      db.prepare("UPDATE workers SET status = 'busy' WHERE id = ?").run(worker.id);
+      
+      return `✅ 已指派任務給 ${worker.name}${worker.department_name ? ` (${worker.department_emoji} ${worker.department_name})` : ''}:\n📋 ${command.task}\n🔖 任務ID: ${taskId.slice(0, 8)}`;
+    }
+    
+    case 'create_task': {
+      // Use first department as default
+      const department = db.prepare('SELECT id, name, emoji FROM departments WHERE company_id = ? LIMIT 1').get(companyId);
+      
+      if (!department) {
+        return '❌ 沒有可用的部門，請先建立部門';
+      }
+      
+      const taskId = require('uuid').v4();
+      db.prepare(`
+        INSERT INTO tasks (id, department_id, title, status, created_by, company_id)
+        VALUES (?, ?, ?, 'pending', ?, ?)
+      `).run(taskId, department.id, command.title, 'system', companyId);
+      
+      const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId);
+      
+      return `✅ 已建立新任務 ${department.emoji} ${department.name}:\n📋 ${command.title}\n🔖 任務ID: ${taskId.slice(0, 8)}`;
+    }
+    
+    case 'query': {
+      const target = command.target.toLowerCase();
+      
+      // Query department
+      const dept = db.prepare(`
+        SELECT d.*, COUNT(t.id) as task_count
+        FROM departments d
+        LEFT JOIN tasks t ON t.department_id = d.id AND t.company_id = ?
+        WHERE d.company_id = ? AND (d.name LIKE ? OR d.id LIKE ?)
+        GROUP BY d.id
+        LIMIT 1
+      `).get(companyId, companyId, `%${target}%`, `%${target}%`);
+      
+      if (dept) {
+        const tasks = db.prepare(`
+          SELECT status, COUNT(*) as count FROM tasks 
+          WHERE department_id = ? AND company_id = ?
+          GROUP BY status
+        `).all(dept.id, companyId);
+        
+        const taskCounts = {};
+        tasks.forEach(t => { taskCounts[t.status] = t.count; });
+        
+        const pending = taskCounts.pending || 0;
+        const inProgress = taskCounts.in_progress || 0;
+        const completed = taskCounts.completed || 0;
+        
+        return `${dept.emoji} ${dept.name}\n📊 任務: ${pending} 待處理, ${inProgress} 進行中, ${completed} 已完成\n💬 ${dept.description || '無描述'}`;
+      }
+      
+      // Query task by title
+      const task = db.prepare(`
+        SELECT t.*, d.name as department_name, d.emoji as department_emoji
+        FROM tasks t
+        JOIN departments d ON t.department_id = d.id
+        WHERE t.company_id = ? AND t.title LIKE ?
+        ORDER BY t.created_at DESC LIMIT 1
+      `).get(companyId, `%${target}%`);
+      
+      if (task) {
+        const statusEmoji = task.status === 'completed' ? '✅' : 
+                           task.status === 'in_progress' ? '🔄' : '⏳';
+        return `${task.department_emoji} ${task.title}\n📌 狀態: ${statusEmoji} ${task.status}\n🏷️ 部門: ${task.department_name}`;
+      }
+      
+      return `❌ 找不到 "${command.target}" 相關的部門或任務`;
+    }
+    
+    case 'stats': {
+      const taskStats = db.prepare(`
+        SELECT status, COUNT(*) as count FROM tasks WHERE company_id = ? GROUP BY status
+      `).all(companyId);
+      const workerStats = db.prepare(`
+        SELECT status, COUNT(*) as count FROM workers WHERE company_id = ? GROUP BY status
+      `).all(companyId);
+      const totalWorkers = db.prepare('SELECT COUNT(*) as count FROM workers WHERE company_id = ?').get(companyId);
+      
+      const taskCounts = {};
+      taskStats.forEach(s => { taskCounts[s.status] = s.count; });
+      const workerCounts = {};
+      workerStats.forEach(s => { workerCounts[s.status] = s.count; });
+      
+      return `📊 Pixel Office 系統狀態\n\n` +
+        `👥 Workers: ${totalWorkers.count} 總數 | ` +
+        `🟢 ${workerCounts.active || 0} 活躍 | ` +
+        `🟡 ${workerCounts.idle || 0} 閒置 | ` +
+        `🔵 ${workerCounts.busy || 0} 忙碌\n` +
+        `📋 Tasks: ` +
+        `⏳ ${taskCounts.pending || 0} 待處理 | ` +
+        `🔄 ${taskCounts.in_progress || 0} 進行中 | ` +
+        `✅ ${taskCounts.completed || 0} 已完成`;
+    }
+    
+    case 'list_workers': {
+      const workers = db.prepare(`
+        SELECT w.*, d.name as department_name, d.emoji as department_emoji
+        FROM workers w
+        LEFT JOIN departments d ON w.department_id = d.id
+        WHERE w.company_id = ?
+        ORDER BY w.status, w.name
+      `).all(companyId);
+      
+      if (workers.length === 0) {
+        return '📋 沒有 workers';
+      }
+      
+      const lines = ['👥 Worker 列表:\n'];
+      workers.forEach(w => {
+        const statusIcon = w.status === 'active' ? '🟢' : w.status === 'busy' ? '🔵' : '🟡';
+        const dept = w.department_name ? ` (${w.department_emoji} ${w.department_name})` : ' (無部門)';
+        lines.push(`${statusIcon} ${w.name}${dept} - ${w.status}`);
+      });
+      
+      return lines.join('\n');
+    }
+    
+    case 'list_tasks': {
+      const tasks = db.prepare(`
+        SELECT t.*, d.name as department_name, d.emoji as department_emoji
+        FROM tasks t
+        JOIN departments d ON t.department_id = d.id
+        WHERE t.company_id = ?
+        ORDER BY t.created_at DESC LIMIT 10
+      `).all(companyId);
+      
+      if (tasks.length === 0) {
+        return '📋 沒有任務';
+      }
+      
+      const lines = ['📋 最近任務:\n'];
+      tasks.forEach(t => {
+        const statusIcon = t.status === 'completed' ? '✅' : 
+                          t.status === 'in_progress' ? '🔄' : '⏳';
+        lines.push(`${statusIcon} [${t.department_emoji}] ${t.title} (${t.status})`);
+      });
+      
+      return lines.join('\n');
+    }
+    
+    default:
+      return null;
+  }
+}
+
 // ============ WEBSOCKET ============
 const wss = new WebSocketServer({ server, path: '/ws' });
 const clients = new Set();
@@ -583,7 +834,7 @@ app.get('/api/messages', (req, res) => {
 });
 
 // POST message (send chat)
-app.post('/api/messages', (req, res) => {
+app.post('/api/messages', async (req, res) => {
   const company_id = getCompanyId(req);
   const { sender_id, sender_type, sender_name, content, room_type, room_id } = req.body;
   if (!content || !room_type || !room_id) return res.status(400).json({ error: 'content, room_type, room_id required' });
@@ -596,6 +847,24 @@ app.post('/api/messages', (req, res) => {
 
   const msg = db.prepare('SELECT * FROM messages WHERE id = ?').get(id);
   broadcast({ type: 'message_sent', message: msg });
+
+  // Try to parse and execute natural language commands
+  const command = parseCommand(content);
+  if (command) {
+    const response = await executeCommand(command, company_id, db);
+    if (response) {
+      // Send bot response message
+      const botId = 'bot-' + uuidv4().slice(0, 8);
+      db.prepare(`
+        INSERT INTO messages (id, company_id, sender_id, sender_type, sender_name, content, room_type, room_id)
+        VALUES (?, ?, ?, 'bot', '🤖 PixelBot', ?, ?, ?)
+      `).run(botId, company_id, response, room_type, room_id);
+
+      const botMsg = db.prepare('SELECT * FROM messages WHERE id = ?').get(botId);
+      broadcast({ type: 'message_sent', message: botMsg });
+    }
+  }
+
   res.status(201).json(msg);
 });
 
