@@ -26,7 +26,7 @@ const TASK_QUEUE_API_KEY = process.env.TASK_QUEUE_API_KEY || 's3cr3t_t4sk_k3y_20
 
 // Admin credentials (hardcoded - Railway env var override disabled to prevent hash corruption)
 const ADMIN_USERNAME = 'dicoge';
-const ADMIN_PASSWORD_HASH = '$2a$12$LQv/c1NFPa6xJvEmGJAxeOqBVRz6k7wDvAJ3YfRqUvJvEmJQ4mCq';
+const ADMIN_PASSWORD_HASH = '$2a$12$5FK//t71g253O1nhz213LOlOhy7LEKDz6HJaBKJtXFqpWLvCtJd8W';
 
 // ============ INIT ============
 const app = express();
