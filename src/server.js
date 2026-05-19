@@ -867,7 +867,7 @@ app.post('/api/messages', async (req, res) => {
     db.prepare(`
       INSERT INTO messages (id, company_id, sender_id, sender_type, sender_name, content, room_type, room_id)
       VALUES (?, ?, ?, 'bot', '🤖 PixelBot', ?, ?, ?)
-    `).run(botId, company_id, botResponse, room_type, room_id);
+    `).run(botId, company_id, 'bot', botResponse, room_type, room_id);
 
     const botMsg = db.prepare('SELECT * FROM messages WHERE id = ?').get(botId);
     broadcast({ type: 'message_sent', message: botMsg });
