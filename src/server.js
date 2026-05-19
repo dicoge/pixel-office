@@ -1,4 +1,4 @@
-const express = requ$2a$12$slub8wYxmWSuYnmc7LOnH.hF7uOM4T1yPfFv56VlieJTAdaMam8Ja'express');
+const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Database = require('./db');
