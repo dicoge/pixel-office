@@ -850,19 +850,26 @@ app.post('/api/messages', async (req, res) => {
 
   // Try to parse and execute natural language commands
   const command = parseCommand(content);
-  if (command) {
-    const response = await executeCommand(command, company_id, db);
-    if (response) {
-      // Send bot response message
-      const botId = 'bot-' + uuidv4().slice(0, 8);
-      db.prepare(`
-        INSERT INTO messages (id, company_id, sender_id, sender_type, sender_name, content, room_type, room_id)
-        VALUES (?, ?, ?, 'bot', '🤖 PixelBot', ?, ?, ?)
-      `).run(botId, company_id, response, room_type, room_id);
+  let botResponse = null;
 
-      const botMsg = db.prepare('SELECT * FROM messages WHERE id = ?').get(botId);
-      broadcast({ type: 'message_sent', message: botMsg });
-    }
+  if (command) {
+    // Command matched - execute it
+    botResponse = await executeCommand(command, company_id, db);
+  } else {
+    // No command matched - still respond with a friendly message
+    botResponse = '收到！我在這裡 🤖\n\n可用指令：\n• 派 [Worker] 去 [任務] — 指派任務\n• 狀態 — 系統概覽\n• worker列表 — 查看所有 Worker\n• 任務列表 — 查看所有任務\n• 開新任務 [名稱] — 建立新任務\n• 查看 [目標] — 查詢狀態';
+  }
+
+  if (botResponse) {
+    // Send bot response message
+    const botId = 'bot-' + uuidv4().slice(0, 8);
+    db.prepare(`
+      INSERT INTO messages (id, company_id, sender_id, sender_type, sender_name, content, room_type, room_id)
+      VALUES (?, ?, ?, 'bot', '🤖 PixelBot', ?, ?, ?)
+    `).run(botId, company_id, botResponse, room_type, room_id);
+
+    const botMsg = db.prepare('SELECT * FROM messages WHERE id = ?').get(botId);
+    broadcast({ type: 'message_sent', message: botMsg });
   }
 
   res.status(201).json(msg);
