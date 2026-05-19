@@ -2363,10 +2363,16 @@
     }
 
     function openChat(room_type, room_id, room_name) {
-      // Switch to chat panel first
+      // Set the room BEFORE switching panel to prevent openDefaultChat re-triggering openChat
+      currentChatRoom = { room_type, room_id, room_name };
+      // Switch to chat panel
       switchPanel('chat');
-      // Then set the room
-      switchChatRoom(room_type, room_id, room_name);
+      // Update UI
+      document.getElementById('chat-room-title').textContent = '💬 ' + room_name;
+      document.querySelectorAll('.chat-room-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.room === room_type && tab.dataset.roomId === room_id);
+      });
+      loadChatMessages();
     }
 
     function loadChatMessages() {
