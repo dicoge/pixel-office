@@ -758,13 +758,13 @@
       <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
     </div>
     <div class="pixel-logo">PIXEL OFFICE</div>
-    <div class="pixel-subtitle">AI AGENT MANAGEMENT SYSTEM v1.0</div>
+    <div class="pixel-subtitle">AI AGENT 管理系統 v1.0</div>
     
     <div class="login-box">
-      <input type="text" id="login-username" class="pixel-input" placeholder="USERNAME" maxlength="20">
-      <input type="password" id="login-password" class="pixel-input" placeholder="PASSWORD" maxlength="30">
-      <button class="pixel-btn" onclick="doLogin()">▶ LOGIN</button>
-      <button class="pixel-btn secondary" onclick="doRegister()">✎ REGISTER</button>
+      <input type="text" id="login-username" class="pixel-input" placeholder="使用者名稱" maxlength="20">
+      <input type="password" id="login-password" class="pixel-input" placeholder="密碼" maxlength="30">
+      <button class="pixel-btn" onclick="doLogin()">▶ 登入</button>
+      <button class="pixel-btn secondary" onclick="doRegister()">✎ 註冊</button>
       <div class="error-msg" id="login-error"></div>
     </div>
   </div>
@@ -782,57 +782,57 @@
           <!-- Populated dynamically from /api/companies -->
         </select>
       </div>
-      <button class="logout-btn" onclick="logout()">LOGOUT [X]</button>
+      <button class="logout-btn" onclick="logout()">登出 [X]</button>
     </div>
 
     <nav class="nav-tabs">
-      <button class="nav-tab active" data-panel="dashboard">📊 DASHBOARD</button>
-      <button class="nav-tab" data-panel="departments">🏢 DEPARTMENTS</button>
-      <button class="nav-tab" data-panel="tasks">📋 TASKS</button>
-      <button class="nav-tab" data-panel="workers">⚙️ WORKERS</button>
-      <button class="nav-tab" data-panel="audit">📜 AUDIT LOG</button>
+      <button class="nav-tab active" data-panel="dashboard">📊 控制台</button>
+      <button class="nav-tab" data-panel="departments">🏢 部門</button>
+      <button class="nav-tab" data-panel="tasks">📋 任務</button>
+      <button class="nav-tab" data-panel="workers">⚙️ Worker</button>
+      <button class="nav-tab" data-panel="audit">📜 稽核日誌</button>
     </nav>
 
     <main class="main-content">
       <!-- DASHBOARD -->
       <div id="panel-dashboard" class="panel active">
-        <h2 class="section-title">📊 GLOBAL STATISTICS</h2>
+        <h2 class="section-title">📊 全域統計</h2>
         <div class="stats-grid" id="stats-grid"></div>
-        <h2 class="section-title">📋 RECENT TASKS</h2>
+        <h2 class="section-title">📋 最近任務</h2>
         <div class="task-list" id="recent-tasks"></div>
       </div>
 
       <!-- DEPARTMENTS -->
       <div id="panel-departments" class="panel">
-        <h2 class="section-title">🏢 DEPARTMENT STATUS</h2>
+        <h2 class="section-title">🏢 部門狀態</h2>
         <div class="dept-grid" id="dept-grid"></div>
       </div>
 
       <!-- TASKS -->
       <div id="panel-tasks" class="panel">
-        <h2 class="section-title">📋 TASK MANAGEMENT</h2>
+        <h2 class="section-title">📋 任務管理</h2>
         <div class="task-controls">
           <select id="task-filter-dept" class="pixel-select">
-            <option value="">ALL DEPARTMENTS</option>
+            <option value="">全部部門</option>
           </select>
           <select id="task-filter-status" class="pixel-select">
-            <option value="">ALL STATUS</option>
-            <option value="pending">PENDING</option>
-            <option value="in_progress">IN PROGRESS</option>
-            <option value="completed">COMPLETED</option>
-            <option value="failed">FAILED</option>
+            <option value="">全部狀態</option>
+            <option value="pending">待處理</option>
+            <option value="in_progress">進行中</option>
+            <option value="completed">已完成</option>
+            <option value="failed">失敗</option>
           </select>
-          <button class="add-task-btn" onclick="openTaskModal()">+ NEW TASK</button>
+          <button class="add-task-btn" onclick="openTaskModal()">+ 新增任務</button>
         </div>
         <div class="task-list" id="task-list"></div>
       </div>
 
       <!-- WORKERS -->
       <div id="panel-workers" class="panel">
-        <h2 class="section-title">⚙️ WORKER STATUS</h2>
+        <h2 class="section-title">⚙️ Worker 狀態</h2>
         <div class="worker-controls">
           <div class="worker-toggle">
-            <button class="toggle-btn active" data-view="all" onclick="setWorkerView('all')">📋 ALL</button>
+            <button class="toggle-btn active" data-view="all" onclick="setWorkerView('all')">📋 全部</button>
             <button class="toggle-btn" data-view="machines" onclick="setWorkerView('machines')">🖥️ 雙電腦狀態</button>
           </div>
         </div>
@@ -841,7 +841,7 @@
 
       <!-- AUDIT LOG -->
       <div id="panel-audit" class="panel">
-        <h2 class="section-title">📜 AUDIT LOG</h2>
+        <h2 class="section-title">📜 稽核日誌</h2>
         <div class="log-list" id="audit-log"></div>
       </div>
     </main>
@@ -849,9 +849,9 @@
     <footer class="footer">
       <div class="footer-status">
         <div class="status-dot"></div>
-        <span>SYSTEM ONLINE</span>
+        <span>系統上線</span>
       </div>
-      <div>PIXEL OFFICE v1.0 | <span class="ws-status" id="ws-status">● WS CONNECTED</span></div>
+      <div>PIXEL OFFICE v1.0 | <span class="ws-status" id="ws-status">● WS 已連線</span></div>
       <div id="server-time"></div>
     </footer>
   </div>
@@ -876,31 +876,31 @@
   <div class="modal" id="task-modal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeTaskModal()">X</button>
-      <h3 class="modal-title" id="modal-title">+ NEW TASK</h3>
+      <h3 class="modal-title" id="modal-title">+ 新增任務</h3>
       <form id="task-form">
         <input type="hidden" id="task-id">
         <div class="form-group">
-          <label>DEPARTMENT</label>
+          <label>部門</label>
           <select id="task-dept" required></select>
         </div>
         <div class="form-group">
-          <label>TITLE</label>
+          <label>標題</label>
           <input type="text" id="task-title" required maxlength="100">
         </div>
         <div class="form-group">
-          <label>DESCRIPTION</label>
+          <label>描述</label>
           <textarea id="task-desc"></textarea>
         </div>
         <div class="form-group">
-          <label>PRIORITY</label>
+          <label>優先權</label>
           <select id="task-priority">
-            <option value="low">LOW</option>
-            <option value="normal" selected>NORMAL</option>
-            <option value="high">HIGH</option>
-            <option value="critical">CRITICAL</option>
+            <option value="low">低</option>
+            <option value="normal" selected>普通</option>
+            <option value="high">高</option>
+            <option value="critical">緊急</option>
           </select>
         </div>
-        <button type="submit" class="pixel-btn">✓ SAVE TASK</button>
+        <button type="submit" class="pixel-btn">✓ 儲存任務</button>
       </form>
     </div>
   </div>
@@ -909,18 +909,18 @@
   <div class="modal" id="dept-edit-modal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeDeptEditModal()">X</button>
-      <h3 class="modal-title">✎ EDIT DEPARTMENT</h3>
+      <h3 class="modal-title">✎ 編輯部門</h3>
       <form id="dept-edit-form">
         <input type="hidden" id="dept-edit-id">
         <div class="form-group">
-          <label>NAME</label>
+          <label>名稱</label>
           <input type="text" id="dept-edit-name" required maxlength="50">
         </div>
         <div class="form-group">
-          <label>EMOJI</label>
+          <label>表情</label>
           <input type="text" id="dept-edit-emoji" maxlength="10" placeholder="🎮">
         </div>
-        <button type="submit" class="pixel-btn">✓ SAVE</button>
+        <button type="submit" class="pixel-btn">✓ 儲存</button>
       </form>
     </div>
   </div>
@@ -976,7 +976,7 @@
     async function showApp() {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
-      document.getElementById('user-info').textContent = `USER: ${user.username} [${user.role}]`;
+      document.getElementById('user-info').textContent = `使用者: ${user.username} [${user.role === 'admin' ? '管理員' : '使用者'}]`;
       // Initialize company switcher from API
       await loadCompanies();
       // Initialize company switcher from sessionStorage
@@ -997,7 +997,7 @@
       const u = document.getElementById('login-username').value.trim();
       const p = document.getElementById('login-password').value;
       document.getElementById('login-error').textContent = '';
-      if (!u || !p) { document.getElementById('login-error').textContent = 'FILL ALL FIELDS'; return; }
+      if (!u || !p) { document.getElementById('login-error').textContent = '請填寫所有欄位'; return; }
       try {
         const res = await fetch('/auth/login', {
           method: 'POST',
@@ -1019,7 +1019,7 @@
       const u = document.getElementById('login-username').value.trim();
       const p = document.getElementById('login-password').value;
       document.getElementById('login-error').textContent = '';
-      if (!u || !p) { document.getElementById('login-error').textContent = 'FILL ALL FIELDS'; return; }
+      if (!u || !p) { document.getElementById('login-error').textContent = '請填寫所有欄位'; return; }
       try {
         const res = await fetch('/auth/register', {
           method: 'POST',
@@ -1087,33 +1087,33 @@
 
         document.getElementById('stats-grid').innerHTML = `
           <div class="stat-card">
-            <div class="stat-label">TOTAL TASKS</div>
+            <div class="stat-label">總任務數</div>
             <div class="stat-value">${totalTasks}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">PENDING</div>
+            <div class="stat-label">待處理</div>
             <div class="stat-value" style="color:var(--c-yellow)">${stats.tasks.pending || 0}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">IN PROGRESS</div>
+            <div class="stat-label">進行中</div>
             <div class="stat-value" style="color:var(--c-blue)">${stats.tasks.in_progress || 0}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">COMPLETED</div>
+            <div class="stat-label">已完成</div>
             <div class="stat-value" style="color:var(--c-lime)">${stats.tasks.completed || 0}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">WORKERS</div>
+            <div class="stat-label">Worker 數</div>
             <div class="stat-value">${totalWorkers}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">ACTIVE</div>
+            <div class="stat-label">活躍中</div>
             <div class="stat-value" style="color:var(--c-lime)">${stats.workers.active || 0}</div>
           </div>
         `;
 
         if (stats.recent_tasks.length === 0) {
-          document.getElementById('recent-tasks').innerHTML = '<div class="empty-state">NO TASKS YET</div>';
+          document.getElementById('recent-tasks').innerHTML = '<div class="empty-state">尚無任務</div>';
         } else {
           document.getElementById('recent-tasks').innerHTML = stats.recent_tasks.map(t => `
             <div class="task-card">
@@ -1135,22 +1135,73 @@
     async function loadDepartments() {
       try {
         departments = await API('/api/departments');
-        document.getElementById('dept-grid').innerHTML = departments.map(d => `
+        const workers = await API('/api/workers/status');
+        const tasks = await API('/api/tasks');
+
+        document.getElementById('dept-grid').innerHTML = departments.map(d => {
+          // Get workers in this department
+          const deptWorkers = workers.filter(w => w.department_id === d.id);
+          // Get tasks in this department
+          const deptTasks = tasks.filter(t => t.department_id === d.id);
+          const taskStats = {
+            total: deptTasks.length,
+            pending: deptTasks.filter(t => t.status === 'pending').length,
+            in_progress: deptTasks.filter(t => t.status === 'in_progress').length,
+            completed: deptTasks.filter(t => t.status === 'completed').length,
+            failed: deptTasks.filter(t => t.status === 'failed').length
+          };
+
+          return `
           <div class="dept-card" data-dept-id="${d.id}">
-            <div class="dept-header">
+            <div class="dept-header" onclick="toggleDeptDetail('${d.id}')" style="cursor:pointer;">
               <span class="dept-emoji">${d.emoji}</span>
               <span class="dept-name">${d.name}</span>
-              <button class="dept-edit-btn" onclick="openDeptEditModal('${d.id}')">✎</button>
+              <button class="dept-edit-btn" onclick="event.stopPropagation(); openDeptEditModal('${d.id}')">✎</button>
             </div>
             <div class="dept-desc">${d.description}</div>
             <div class="dept-stats">
-              <div class="dept-stat">📋 TOTAL: <span>${Object.values(d.task_counts).reduce((a,b)=>a+b,0)}</span></div>
-              <div class="dept-stat">⏳ PENDING: <span>${d.task_counts.pending||0}</span></div>
-              <div class="dept-stat">🔄 ACTIVE: <span>${d.task_counts.in_progress||0}</span></div>
-              <div class="dept-stat">✅ DONE: <span>${d.task_counts.completed||0}</span></div>
+              <div class="dept-stat">📋 總數: <span>${taskStats.total}</span></div>
+              <div class="dept-stat">⏳ 待處理: <span>${taskStats.pending}</span></div>
+              <div class="dept-stat">🔄 進行中: <span>${taskStats.in_progress}</span></div>
+              <div class="dept-stat">✅ 已完成: <span>${taskStats.completed}</span></div>
+            </div>
+            <div id="dept-detail-${d.id}" class="dept-detail" style="display:none; margin-top:15px; padding-top:15px; border-top:2px solid var(--c-gray);">
+              <div style="font-size:8px; color:var(--c-cyan); margin-bottom:10px;">👥 部門 Worker (${deptWorkers.length})</div>
+              <div class="worker-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
+                ${deptWorkers.length === 0 ? '<div style="font-size:7px;color:var(--c-gray);">尚無 Worker</div>' :
+                  deptWorkers.map(w => {
+                    const status = getWorkerStatus(w);
+                    const statusColor = status === 'active' ? 'var(--c-lime)' : status === 'stale' ? 'var(--c-yellow)' : 'var(--c-red)';
+                    return `
+                    <div class="worker-card" style="border-color:${statusColor};cursor:pointer;" onclick="openChat('worker', '${w.id}', '${w.name}')">
+                      <div class="worker-name">${w.name}</div>
+                      <div class="worker-status worker-${w.status || 'idle'}">
+                        <span class="dot" style="background:${statusColor};border-color:${statusColor};"></span>${(w.status || 'idle').toUpperCase()}
+                      </div>
+                      <div style="font-size:6px;color:var(--c-silver);margin-top:5px;">
+                        <div>⏱ ${formatLastPing(w.last_ping)}</div>
+                      </div>
+                    </div>
+                  `}).join('')
+                }
+              </div>
+              ${deptTasks.filter(t => t.status === 'in_progress' || t.status === 'pending').length > 0 ? `
+              <div style="font-size:8px; color:var(--c-cyan); margin:15px 0 10px;">📋 進行中/待處理任務</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                ${deptTasks.filter(t => t.status === 'in_progress' || t.status === 'pending').slice(0, 5).map(t => `
+                  <div style="background:var(--c-black);padding:8px;border:2px solid var(--c-gray);font-size:7px;">
+                    <span class="task-status status-${t.status}" style="font-size:6px;">${t.status === 'in_progress' ? '進行中' : '待處理'}</span>
+                    <span style="margin-left:8px;">${t.title}</span>
+                  </div>
+                `).join('')}
+              </div>
+              ` : ''}
+              <div style="margin-top:15px;text-align:center;">
+                <button onclick="openChat('department', '${d.id}', '${d.name}')" style="background:var(--c-purple);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">💬 開啟部門聊天室</button>
+              </div>
             </div>
           </div>
-        `).join('');
+        `}).join('');
 
         // Update task modal dropdown
         const taskDept = document.getElementById('task-dept');
@@ -1159,12 +1210,17 @@
         }
         const taskFilterDept = document.getElementById('task-filter-dept');
         if (taskFilterDept) {
-          taskFilterDept.innerHTML = '<option value="">ALL DEPARTMENTS</option>' + 
+          taskFilterDept.innerHTML = '<option value="">全部部門</option>' + 
             departments.map(d => `<option value="${d.id}">${d.emoji} ${d.name}</option>`).join('');
         }
-        // Make department cards clickable for chat
-        makeDepartmentsClickable();
       } catch (e) { console.error('Departments error:', e); }
+    }
+
+    function toggleDeptDetail(deptId) {
+      const detail = document.getElementById(`dept-detail-${deptId}`);
+      if (detail) {
+        detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
+      }
     }
 
     // ============ TASKS ============
@@ -1182,25 +1238,27 @@
 
     function renderTasks(tasks) {
       if (tasks.length === 0) {
-        document.getElementById('task-list').innerHTML = '<div class="empty-state">NO TASKS FOUND</div>';
+        document.getElementById('task-list').innerHTML = '<div class="empty-state">尚無任務</div>';
         return;
       }
+      const statusLabels = { pending: '待處理', in_progress: '進行中', completed: '已完成', failed: '失敗' };
+      const priorityLabels = { low: '低', normal: '普通', high: '高', critical: '緊急' };
       document.getElementById('task-list').innerHTML = tasks.map(t => `
         <div class="task-card">
           <div class="task-header">
             <span class="task-title">${t.title}</span>
-            <span class="task-status status-${t.status}">${t.status.toUpperCase().replace('_',' ')}</span>
+            <span class="task-status status-${t.status}">${statusLabels[t.status] || t.status}</span>
           </div>
           ${t.description ? `<div style="font-size:7px;color:var(--c-silver);margin:5px 0">${t.description}</div>` : ''}
           <div class="task-meta">
-            <span>PRIORITY: ${(t.priority||'normal').toUpperCase()}</span>
-            <span>CREATED: ${new Date(t.created_at).toLocaleDateString()}</span>
+            <span>優先權: ${priorityLabels[t.priority] || t.priority || '普通'}</span>
+            <span>建立: ${new Date(t.created_at).toLocaleDateString()}</span>
           </div>
           <div class="task-actions">
-            ${t.status !== 'completed' ? `<button class="task-btn complete" onclick="updateTask('${t.id}','completed')">✓ DONE</button>` : ''}
-            ${t.status !== 'in_progress' && t.status !== 'completed' ? `<button class="task-btn" onclick="updateTask('${t.id}','in_progress')">▶ START</button>` : ''}
-            ${t.status !== 'failed' ? `<button class="task-btn failed" onclick="updateTask('${t.id}','failed')">✗ FAIL</button>` : ''}
-            <button class="task-btn" onclick="openTaskModal('${t.id}')">✎ EDIT</button>
+            ${t.status !== 'completed' ? `<button class="task-btn complete" onclick="updateTask('${t.id}','completed')">✓ 完成</button>` : ''}
+            ${t.status !== 'in_progress' && t.status !== 'completed' ? `<button class="task-btn" onclick="updateTask('${t.id}','in_progress')">▶ 開始</button>` : ''}
+            ${t.status !== 'failed' ? `<button class="task-btn failed" onclick="updateTask('${t.id}','failed')">✗ 失敗</button>` : ''}
+            <button class="task-btn" onclick="openTaskModal('${t.id}')">✎ 編輯</button>
           </div>
         </div>
       `).join('');
@@ -1209,7 +1267,7 @@
     function openTaskModal(id = null) {
       document.getElementById('task-form').reset();
       document.getElementById('task-id').value = '';
-      document.getElementById('modal-title').textContent = '+ NEW TASK';
+      document.getElementById('modal-title').textContent = '+ 新增任務';
       if (!departments.length) loadDepartments();
       if (id) {
         API(`/api/tasks/${id}`).then(t => {
@@ -1218,7 +1276,7 @@
           document.getElementById('task-title').value = t.title;
           document.getElementById('task-desc').value = t.description || '';
           document.getElementById('task-priority').value = t.priority || 'normal';
-          document.getElementById('modal-title').textContent = '✎ EDIT TASK';
+          document.getElementById('modal-title').textContent = '✎ 編輯任務';
         });
       }
       document.getElementById('task-modal').classList.add('active');
@@ -1285,15 +1343,15 @@
     }
 
     function formatLastPing(lastPing) {
-      if (!lastPing) return 'NEVER';
+      if (!lastPing) return '從未';
       const pingTime = new Date(lastPing);
       const now = new Date();
       const diffMs = now - pingTime;
       const diffMin = Math.floor(diffMs / 60000);
-      if (diffMin < 1) return 'JUST NOW';
-      if (diffMin < 60) return `${diffMin}MIN AGO`;
+      if (diffMin < 1) return '剛剛';
+      if (diffMin < 60) return `${diffMin}分鐘前`;
       const diffHr = Math.floor(diffMin / 60);
-      if (diffHr < 24) return `${diffHr}HR AGO`;
+      if (diffHr < 24) return `${diffHr}小時前`;
       return pingTime.toLocaleDateString();
     }
 
@@ -1328,14 +1386,14 @@
           <div class="machine-header">
             <div class="machine-name">🖥️ ${machineId}</div>
             <div class="machine-stats">
-              <span style="color:var(--c-lime)">● ${activeWorkers.length}</span> ACTIVE / ${machineWorkers.length} TOTAL
+              <span style="color:var(--c-lime)">● ${activeWorkers.length}</span> 活躍 / ${machineWorkers.length} 總數
             </div>
           </div>
           <div class="worker-grid">
             ${machineWorkers.map(w => renderWorkerCard(w)).join('')}
           </div>
           <div style="font-size:7px;color:var(--c-gray);margin-top:10px;text-align:right;">
-            LAST ACTIVITY: ${formatLastPing(lastActivity)}
+            最後活動: ${formatLastPing(lastActivity)}
           </div>
         </div>
       `;
@@ -1348,7 +1406,7 @@
         if (workerView === 'all') {
           // Flat list view
           if (workers.length === 0) {
-            document.getElementById('worker-content').innerHTML = '<div class="empty-state">NO WORKERS REGISTERED</div>';
+            document.getElementById('worker-content').innerHTML = '<div class="empty-state">尚無 Worker 註冊</div>';
           } else {
             document.getElementById('worker-content').innerHTML = `<div class="worker-grid">${workers.map(w => renderWorkerCard(w)).join('')}</div>`;
           }
@@ -1363,7 +1421,7 @@
 
           const sortedMachines = Object.keys(machines).sort();
           if (sortedMachines.length === 0) {
-            document.getElementById('worker-content').innerHTML = '<div class="empty-state">NO WORKERS REGISTERED</div>';
+            document.getElementById('worker-content').innerHTML = '<div class="empty-state">尚無 Worker 註冊</div>';
           } else {
             document.getElementById('worker-content').innerHTML = sortedMachines.map(mid =>
               renderMachineGroup(mid, machines[mid])
@@ -1410,7 +1468,7 @@
               ${details.title ? `- "${details.title}"` : ''}
             </div>
           `;
-        }).join('') || '<div class="empty-state">NO LOGS</div>';
+        }).join('') || '<div class="empty-state">尚無日誌</div>';
       } catch (e) { console.error('Audit error:', e); }
     }
 

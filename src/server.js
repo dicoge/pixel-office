@@ -157,34 +157,46 @@ function initDatabase() {
     { id: 'company-b', name: 'MacBook', emoji: '💻' }
   ];
 
-  // Seed departments for EACH company
+  // Seed departments for EACH company (7 departments)
   const deptStmt = db.prepare('INSERT OR IGNORE INTO departments (id, name, emoji, description, company_id) VALUES (?, ?, ?, ?, ?)');
   const departments = [
-    // Company A
-    ['dept-gaming-a', '遊戲開發部-A', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-a'],
-    ['dept-investment-a', '投資研究部-A', '📊', '股票/每日報告/停損監控', 'company-a'],
-    ['dept-execution-a', '任務執行部-A', '🎯', '一般任務', 'company-a'],
-    ['dept-audit-a', '稽核日誌部-A', '📋', '派工記錄（JSONL+Markdown）', 'company-a'],
-    ['dept-system-a', '系統狀態-A', '⚙️', 'Worker 健康狀態', 'company-a'],
-    // Company B
-    ['dept-gaming-b', '遊戲開發部-B', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-b'],
-    ['dept-investment-b', '投資研究部-B', '📊', '股票/每日報告/停損監控', 'company-b'],
-    ['dept-execution-b', '任務執行部-B', '🎯', '一般任務', 'company-b'],
-    ['dept-audit-b', '稽核日誌部-B', '📋', '派工記錄（JSONL+Markdown）', 'company-b'],
-    ['dept-system-b', '系統狀態-B', '⚙️', 'Worker 健康狀態', 'company-b']
+    // Company A - 7 departments
+    ['dept-gaming-a', '遊戲開發部', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-a'],
+    ['dept-investment-a', '投資研究部', '📊', '股票/每日報告/停損監控', 'company-a'],
+    ['dept-website-a', '網站建設部', '🌐', '網頁開發與維護', 'company-a'],
+    ['dept-system-a', '系統管理部', '🖥️', 'Worker 健康狀態/系統監控', 'company-a'],
+    ['dept-dev-a', '開發實作部', '🔧', '專案開發與實作', 'company-a'],
+    ['dept-test-a', '測試驗證部', '📋', '品質測試與驗證', 'company-a'],
+    ['dept-monitor-a', '投資監控部', '📈', '投資組合監控與分析', 'company-a'],
+    // Company B - 7 departments
+    ['dept-gaming-b', '遊戲開發部', '🎮', 'DungeonD3（Codex/OpenCode/OpenClaw）', 'company-b'],
+    ['dept-investment-b', '投資研究部', '📊', '股票/每日報告/停損監控', 'company-b'],
+    ['dept-website-b', '網站建設部', '🌐', '網頁開發與維護', 'company-b'],
+    ['dept-system-b', '系統管理部', '🖥️', 'Worker 健康狀態/系統監控', 'company-b'],
+    ['dept-dev-b', '開發實作部', '🔧', '專案開發與實作', 'company-b'],
+    ['dept-test-b', '測試驗證部', '📋', '品質測試與驗證', 'company-b'],
+    ['dept-monitor-b', '投資監控部', '📈', '投資組合監控與分析', 'company-b']
   ];
   departments.forEach(d => deptStmt.run(...d));
 
-  // Seed demo workers for BOTH companies (using MiniPc/MacBook machine identifiers)
+  // Seed 7 workers for BOTH companies
   const workerStmt = db.prepare('INSERT OR IGNORE INTO workers (id, name, status, department_id, company_id, machine_id) VALUES (?, ?, ?, ?, ?, ?)');
-  // Company A workers (MiniPc)
+  // Company A workers (MiniPc) - 7 workers
   workerStmt.run('worker-1', 'OpenClaw', 'active', 'dept-gaming-a', 'company-a', 'MiniPc');
   workerStmt.run('worker-2', 'Codex', 'idle', 'dept-investment-a', 'company-a', 'MiniPc');
-  workerStmt.run('worker-3', 'OpenCode', 'idle', 'dept-system-a', 'company-a', 'MiniPc');
-  // Company B workers (MacBook)
+  workerStmt.run('worker-3', 'OpenCode', 'idle', 'dept-website-a', 'company-a', 'MiniPc');
+  workerStmt.run('worker-7', 'DungeonBot', 'idle', 'dept-dev-a', 'company-a', 'MiniPc');
+  workerStmt.run('worker-8', 'PixelCoder', 'idle', 'dept-test-a', 'company-a', 'MiniPc');
+  workerStmt.run('worker-9', 'AgentSmith', 'idle', 'dept-monitor-a', 'company-a', 'MiniPc');
+  workerStmt.run('worker-10', 'ServerBot', 'idle', 'dept-system-a', 'company-a', 'MiniPc');
+  // Company B workers (MacBook) - 7 workers
   workerStmt.run('worker-4', 'OpenClaw', 'active', 'dept-gaming-b', 'company-b', 'MacBook');
   workerStmt.run('worker-5', 'Codex', 'idle', 'dept-investment-b', 'company-b', 'MacBook');
-  workerStmt.run('worker-6', 'OpenCode', 'idle', 'dept-system-b', 'company-b', 'MacBook');
+  workerStmt.run('worker-6', 'OpenCode', 'idle', 'dept-website-b', 'company-b', 'MacBook');
+  workerStmt.run('worker-11', 'DungeonBot', 'idle', 'dept-dev-b', 'company-b', 'MacBook');
+  workerStmt.run('worker-12', 'PixelCoder', 'idle', 'dept-test-b', 'company-b', 'MacBook');
+  workerStmt.run('worker-13', 'AgentSmith', 'idle', 'dept-monitor-b', 'company-b', 'MacBook');
+  workerStmt.run('worker-14', 'ServerBot', 'idle', 'dept-system-b', 'company-b', 'MacBook');
 
   // Messages table
   db.exec(`
