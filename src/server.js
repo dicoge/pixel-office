@@ -22,7 +22,10 @@ const RATE_LIMIT_WINDOW = 5 * 60 * 1000; // 5 minutes
 const RATE_LIMIT_MAX = 20;
 
 // Task Queue API Key for worker registration
-const TASK_QUEUE_API_KEY = process.env.TASK_QUEUE_API_KEY || 's3cr3t_t4sk_k3y_2026';
+const TASK_QUEUE_API_KEY=process.env.TASK_QUEUE_API_KEY || 's3cr3t_t4sk_k3y_2026';
+
+// Hermes WebSocket Auth Token
+const HERMES_AUTH_TOKEN=process.env.HERMES_AUTH_TOKEN || 'hermes-secret-token-2026';
 
 // Admin credentials (hardcoded - Railway env var override disabled to prevent hash corruption)
 const ADMIN_USERNAME = 'dicoge';
@@ -462,11 +465,38 @@ async function executeCommand(command, companyId, db) {
 // ============ WEBSOCKET ============
 const wss = new WebSocketServer({ server, path: '/ws' });
 const clients = new Set();
+const hermesClients = new Set(); // Hermes-connected clients
 
 wss.on('connection', (ws, req) => {
-  clients.add(ws);
-  console.log(`WS client connected. Total clients: ${clients.size}, IP: ${req.socket.remoteAddress}`);
-  ws.on('close', () => { clients.delete(ws); console.log(`WS client disconnected. Total clients: ${clients.size}`); });
+  // Parse token from query string
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const token = url.searchParams.get('token');
+
+  // Check if this is a Hermes connection with valid token
+  if (token === HERMES_AUTH_TOKEN) {
+    hermesClients.add(ws);
+    ws.hermesId = 'hermes-' + uuidv4().slice(0, 8);
+    ws.isHermes = true;
+    console.log(`🔗 Hermes client connected: ${ws.hermesId}. Total Hermes clients: ${hermesClients.size}, IP: ${req.socket.remoteAddress}`);
+  } else {
+    // Regular client
+    clients.add(ws);
+    console.log(`WS client connected. Total clients: ${clients.size}, IP: ${req.socket.remoteAddress}`);
+  }
+
+  ws.on('close', () => {
+    if (ws.isHermes) {
+      hermesClients.delete(ws);
+      console.log(`🔓 Hermes client disconnected: ${ws.hermesId}. Total Hermes clients: ${hermesClients.size}`);
+    } else {
+      clients.delete(ws);
+      console.log(`WS client disconnected. Total clients: ${clients.size}`);
+    }
+  });
+
+  ws.on('error', (err) => {
+    console.error(`WebSocket error for ${ws.isHermes ? ws.hermesId : 'client'}:`, err.message);
+  });
 });
 
 function broadcast(data) {
@@ -474,6 +504,15 @@ function broadcast(data) {
   clients.forEach(client => {
     if (client.readyState === 1) client.send(msg);
   });
+}
+
+// Broadcast to all connected Hermes clients
+function broadcastToHermes(data) {
+  const msg = JSON.stringify(data);
+  hermesClients.forEach(client => {
+    if (client.readyState === 1) client.send(msg);
+  });
+  console.log(`📡 Broadcast to Hermes: ${data.type}, recipients: ${hermesClients.size}`);
 }
 
 // ============ AUTH HELPERS ============
@@ -857,23 +896,22 @@ app.post('/api/messages', async (req, res) => {
     // Command matched - execute it
     botResponse = await executeCommand(command, company_id, db);
   } else {
-    // No command matched - route to Hermes AI
-    try {
-      const hermesRes = await fetch('http://127.0.0.1:8642/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'minimax/minimax-m2.7',
-          messages: [{ role: 'user', content }],
-          max_tokens: 500
-        })
+    // No command matched - broadcast to Hermes clients for AI response
+    if (hermesClients.size > 0) {
+      console.log(`📨 No command matched, broadcasting to ${hermesClients.size} Hermes client(s)`);
+      broadcastToHermes({
+        type: 'user_message',
+        message: msg,
+        room_type: room_type,
+        room_id: room_id
       });
-      const data = await hermesRes.json();
-      botResponse = data.choices?.[0]?.message?.content || null;
-      if (!botResponse) throw new Error('Empty response');
-    } catch (err) {
-      console.error('Hermes API error:', err);
-      botResponse = '⚠️ Hermes 目前無法回覆，請稍後再試。';
+      // Don't set botResponse here - Hermes will reply via /api/hermes-reply
+      // Return early so we don't send a pending response
+      return res.status(201).json({ ...msg, pending_hermes: true });
+    } else {
+      // No Hermes clients connected, return a message indicating waiting for Hermes
+      console.log('⚠️ No Hermes clients connected, message queued');
+      return res.status(201).json({ ...msg, waiting_hermes: true });
     }
   }
 
@@ -890,6 +928,43 @@ VALUES (?, ?, 'hermes', 'bot', '🤖 Hermes', ?, ?, ?)
   }
 
   res.status(201).json(msg);
+});
+
+// POST /api/hermes-reply - Hermes replies to a user message
+app.post('/api/hermes-reply', authMiddleware, (req, res) => {
+  const company_id = getCompanyId(req);
+  const { message_id, content, hermes_id } = req.body;
+
+  if (!message_id || !content) {
+    return res.status(400).json({ error: 'message_id and content are required' });
+  }
+
+  // Verify the original message exists and belongs to this company
+  const originalMsg = db.prepare(
+    'SELECT * FROM messages WHERE id = ? AND company_id = ?'
+  ).get(message_id, company_id);
+
+  if (!originalMsg) {
+    return res.status(404).json({ error: 'Original message not found' });
+  }
+
+  // Insert Hermes reply as a bot message
+  const replyId = 'bot-' + uuidv4().slice(0, 8);
+  const senderName = hermes_id ? `🤖 ${hermes_id}` : '🤖 Hermes';
+
+  db.prepare(`
+    INSERT INTO messages (id, company_id, sender_id, sender_type, sender_name, content, room_type, room_id)
+    VALUES (?, ?, ?, 'bot', ?, ?, ?, ?)
+  `).run(replyId, company_id, 'hermes', senderName, content, originalMsg.room_type, originalMsg.room_id);
+
+  const botMsg = db.prepare('SELECT * FROM messages WHERE id = ?').get(replyId);
+
+  // Broadcast the reply to all connected clients (including the sender)
+  broadcast({ type: 'message_sent', message: botMsg });
+
+  console.log(`📬 Hermes reply sent: ${replyId} for original message: ${message_id}`);
+
+  res.status(201).json(botMsg);
 });
 
 // ============ SERVE FRONTEND ============
