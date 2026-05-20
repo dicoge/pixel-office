@@ -560,6 +560,131 @@
       flex-wrap: wrap;
     }
 
+    /* ============ DEPT BOARD ============ */
+    .dept-board-container {
+      display: flex;
+      gap: var(--space-4);
+      min-height: 400px;
+    }
+
+    .dept-sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .dept-sidebar-item {
+      background: var(--c-darkblue);
+      border: 3px solid var(--c-purple);
+      padding: var(--space-3);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .dept-sidebar-item:hover {
+      background: var(--c-purple);
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0 var(--c-darkgray);
+    }
+
+    .dept-sidebar-item.active {
+      background: var(--c-purple);
+      border-color: var(--c-yellow);
+      box-shadow: 0 0 8px var(--c-yellow);
+    }
+
+    .dept-board-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .dept-board-header {
+      background: var(--c-darkblue);
+      border: 4px solid var(--c-purple);
+      padding: var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dept-board-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .dept-task-section, .dept-activity-section {
+      background: var(--c-darkblue);
+      border: 3px solid var(--c-gray);
+      padding: var(--space-4);
+    }
+
+    .dept-tasks-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .dept-activity-log {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .activity-item {
+      background: var(--c-black);
+      border-left: 3px solid var(--c-cyan);
+      padding: var(--space-2) var(--space-3);
+      font-size: 7px;
+    }
+
+    .activity-item .activity-time {
+      color: var(--c-gray);
+      font-size: 6px;
+    }
+
+    .activity-item .activity-desc {
+      color: var(--c-white);
+      margin: 4px 0;
+    }
+
+    .activity-item .activity-user {
+      color: var(--c-cyan);
+      font-size: 6px;
+    }
+
+    .dept-sidebar-empty {
+      text-align: center;
+      color: var(--c-gray);
+      font-size: 7px;
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .dept-board-container {
+        flex-direction: column;
+      }
+      .dept-sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+      }
+      .dept-sidebar-item {
+        min-width: 120px;
+      }
+      .dept-board-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .dept-stat {
       font-size: clamp(6px, 1.5vw, 7px);
     }
@@ -1523,6 +1648,7 @@
         <nav class="nav-tabs">
           <button class="nav-tab active" data-panel="dashboard">📊 控制台</button>
           <button class="nav-tab" data-panel="departments">🏢 部門</button>
+          <button class="nav-tab" data-panel="dept-board">📊 部門看板</button>
           <button class="nav-tab" data-panel="tasks">📋 任務</button>
           <button class="nav-tab" data-panel="workers">⚙️ Worker</button>
           <button class="nav-tab" data-panel="audit">📜 稽核</button>
@@ -1538,6 +1664,10 @@
             <button class="bottom-tab" data-panel="departments">
               <span class="tab-icon">🏢</span>
               <span class="tab-label">部門</span>
+            </button>
+            <button class="bottom-tab" data-panel="dept-board">
+              <span class="tab-icon">📊</span>
+              <span class="tab-label">看板</span>
             </button>
             <button class="bottom-tab" data-panel="tasks">
               <span class="tab-icon">📋</span>
@@ -1573,6 +1703,27 @@
               <button onclick="openDeptModal()" style="margin-left:20px;background:var(--c-green);border:3px solid var(--c-white);color:var(--c-white);padding:8px 16px;font-family:'Press Start 2P';font-size:8px;cursor:pointer;">+ 新增部門</button>
             </h2>
             <div class="dept-grid" id="dept-grid"></div>
+          </div>
+
+          <!-- DEPT BOARD (Department Task Board) -->
+          <div id="panel-dept-board" class="panel">
+            <h2 class="section-title">📊 部門任務看板</h2>
+            <div class="dept-board-container">
+              <div class="dept-sidebar" id="dept-sidebar"></div>
+              <div class="dept-board-main">
+                <div class="dept-board-header" id="dept-board-header"></div>
+                <div class="dept-board-content">
+                  <div class="dept-task-section">
+                    <h3 style="font-size:9px;color:var(--c-cyan);margin-bottom:10px;">📋 任務列表</h3>
+                    <div class="dept-tasks-grid" id="dept-tasks-grid"></div>
+                  </div>
+                  <div class="dept-activity-section">
+                    <h3 style="font-size:9px;color:var(--c-cyan);margin-bottom:10px;">📜 活動日誌</h3>
+                    <div class="dept-activity-log" id="dept-activity-log"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- TASKS -->
@@ -1670,6 +1821,12 @@
             <option value="normal" selected>普通</option>
             <option value="high">高</option>
             <option value="critical">緊急</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>負責人</label>
+          <select id="task-assigned">
+            <option value="">未指派</option>
           </select>
         </div>
         <button type="submit" class="pixel-btn">✓ 儲存任務</button>
@@ -1875,6 +2032,7 @@
       
       if (panelName === 'dashboard') loadDashboard();
       if (panelName === 'departments') loadDepartments();
+      if (panelName === 'dept-board') loadDeptBoard();
       if (panelName === 'tasks') loadTasks();
       if (panelName === 'workers') { loadWorkers(); startWorkerAutoRefresh(); }
       else { stopWorkerAutoRefresh(); }
@@ -2052,6 +2210,107 @@
       if (detail) {
         detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
       }
+    }
+
+    // ============ DEPT BOARD ============
+    let selectedBoardDept = null;
+
+    async function loadDeptBoard() {
+      try {
+        departments = await API('/api/departments');
+        renderDeptSidebar();
+        if (selectedBoardDept) {
+          await loadDeptBoardContent(selectedBoardDept);
+        } else if (departments.length > 0) {
+          selectBoardDept(departments[0].id);
+        }
+      } catch (e) { console.error('Dept board error:', e); }
+    }
+
+    function renderDeptSidebar() {
+      const sidebar = document.getElementById('dept-sidebar');
+      if (!sidebar) return;
+      if (departments.length === 0) {
+        sidebar.innerHTML = '<div class="dept-sidebar-empty">尚無部門</div>';
+        return;
+      }
+      sidebar.innerHTML = departments.map(d => `
+        <div class="dept-sidebar-item ${selectedBoardDept === d.id ? 'active' : ''}" onclick="selectBoardDept('${d.id}')">
+          <div style="font-size:14px;">${d.emoji}</div>
+          <div style="font-size:7px;margin-top:4px;">${d.name}</div>
+        </div>
+      `).join('');
+    }
+
+    async function selectBoardDept(deptId) {
+      selectedBoardDept = deptId;
+      renderDeptSidebar();
+      await loadDeptBoardContent(deptId);
+    }
+
+    async function loadDeptBoardContent(deptId) {
+      try {
+        const dept = departments.find(d => d.id === deptId);
+        if (!dept) return;
+
+        // Render header
+        const header = document.getElementById('dept-board-header');
+        header.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:20px;">${dept.emoji}</span>
+            <div>
+              <div style="font-size:10px;color:var(--c-yellow);">${dept.name}</div>
+              <div style="font-size:7px;color:var(--c-silver);">${dept.description || ''}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button onclick="openTaskModalForDept('${deptId}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button>
+          </div>
+        `;
+
+        // Load tasks and activities in parallel
+        const [tasks, activities] = await Promise.all([
+          API(`/api/tasks?department_id=${deptId}`),
+          API(`/api/activities?department_id=${deptId}&limit=20`)
+        ]);
+
+        // Render tasks
+        const tasksGrid = document.getElementById('dept-tasks-grid');
+        if (tasks.length === 0) {
+          tasksGrid.innerHTML = '<div style="font-size:7px;color:var(--c-gray);text-align:center;padding:20px;">尚無任務</div>';
+        } else {
+          const statusLabels = { pending: '⏳ 待處理', in_progress: '🔄 進行中', completed: '✅ 已完成', failed: '✗ 失敗' };
+          const priorityLabels = { low: '🔵 低', normal: '⚪ 普通', high: '🟠 高', critical: '🔴 緊急' };
+          tasksGrid.innerHTML = tasks.map(t => `
+            <div style="background:var(--c-black);border:2px solid var(--c-gray);padding:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:8px;color:var(--c-white);">${t.title}</span>
+                <span style="font-size:6px;${t.status === 'completed' ? 'color:var(--c-lime);' : t.status === 'in_progress' ? 'color:var(--c-yellow);' : ''}">${statusLabels[t.status] || t.status}</span>
+              </div>
+              <div style="font-size:6px;color:var(--c-silver);margin-bottom:6px;">${priorityLabels[t.priority] || '⚪ 普通'}</div>
+              <div style="display:flex;gap:6px;">
+                ${t.status !== 'completed' && t.status !== 'in_progress' ? `<button onclick="updateTask('${t.id}','in_progress')" style="background:var(--c-blue);border:1px solid var(--c-white);color:var(--c-white);padding:4px 8px;font-size:6px;cursor:pointer;">▶ 開始</button>` : ''}
+                ${t.status !== 'completed' ? `<button onclick="updateTask('${t.id}','completed')" style="background:var(--c-lime);border:1px solid var(--c-white);color:var(--c-white);padding:4px 8px;font-size:6px;cursor:pointer;">✓ 完成</button>` : ''}
+                ${t.status !== 'failed' ? `<button onclick="updateTask('${t.id}','failed')" style="background:var(--c-red);border:1px solid var(--c-white);color:var(--c-white);padding:4px 8px;font-size:6px;cursor:pointer;">✗ 失敗</button>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Render activity log
+        const activityLog = document.getElementById('dept-activity-log');
+        if (activities.length === 0) {
+          activityLog.innerHTML = '<div style="font-size:7px;color:var(--c-gray);text-align:center;padding:20px;">尚無活動記錄</div>';
+        } else {
+          activityLog.innerHTML = activities.map(a => `
+            <div class="activity-item">
+              <div class="activity-time">${new Date(a.created_at).toLocaleString()}</div>
+              <div class="activity-desc">${a.description || a.action}</div>
+              <div class="activity-user">👤 ${a.user_name || '系統'}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) { console.error('Dept board content error:', e); }
     }
 
     // ============ TASKS ============

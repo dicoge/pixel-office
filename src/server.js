@@ -191,7 +191,7 @@ function initDatabase() {
   workerStmt.run('worker-6', 'ServerBot', 'idle', null, 'company-a', 'MiniPc');
   workerStmt.run('worker-7', 'AgentSmith', 'idle', null, 'company-a', 'MiniPc');
 
-  // Messages table
+    // Messages table
   db.exec(`
     CREATE TABLE IF NOT EXISTS messages (
       id TEXT PRIMARY KEY,
@@ -205,6 +205,32 @@ function initDatabase() {
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  // Activity logs table (per-department activity tracking)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS activity_logs (
+      id TEXT PRIMARY KEY,
+      department_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      description TEXT,
+      user_id TEXT,
+      user_name TEXT,
+      entity_type TEXT,
+      entity_id TEXT,
+      metadata TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (department_id) REFERENCES departments(id)
+    )
+  `);
+
+  // Seed initial activity logs for demo departments
+  const activityStmt = db.prepare('INSERT OR IGNORE INTO activity_logs (id, department_id, action, description, user_name, entity_type, entity_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
+  activityStmt.run(uuidv4(), 'dept-dungeon', 'created', '部門建立', 'system', 'department', 'dept-dungeon');
+  activityStmt.run(uuidv4(), 'dept-dungeon', 'task_created', '任務「修補遊戲BUG」已建立', 'dicoge', 'task', null);
+  activityStmt.run(uuidv4(), 'dept-dungeon', 'task_completed', '任務「測試戰鬥系統」已完成', 'dicoge', 'task', null);
+  activityStmt.run(uuidv4(), 'dept-stock', 'created', '部門建立', 'system', 'department', 'dept-stock');
+  activityStmt.run(uuidv4(), 'dept-stock', 'task_created', '任務「分析台積電走势」已建立', 'dicoge', 'task', null);
+  activityStmt.run(uuidv4(), 'dept-pixeloffice', 'created', '部門建立', 'system', 'department', 'dept-pixeloffice');
 }
 
 // ============ MIDDLEWARE ============
@@ -776,6 +802,24 @@ app.patch('/api/departments/:id', (req, res) => {
   res.json(dept);
 });
 
+// DELETE Department
+app.delete('/api/departments/:id', (req, res) => {
+  const company_id = getCompanyId(req);
+  const existing = db.prepare('SELECT * FROM departments WHERE id = ? AND company_id = ?').get(req.params.id, company_id);
+  if (!existing) return res.status(404).json({ error: 'Department not found' });
+
+  // Delete related activity logs first
+  db.prepare('DELETE FROM activity_logs WHERE department_id = ?').run(req.params.id);
+  // Delete related tasks
+  db.prepare('DELETE FROM tasks WHERE department_id = ?').run(req.params.id);
+  // Delete the department
+  db.prepare('DELETE FROM departments WHERE id = ?').run(req.params.id);
+
+  logAudit('delete', 'department', req.params.id, req.user.id, { name: existing.name });
+  broadcast({ type: 'department_deleted', department_id: req.params.id });
+  res.json({ success: true });
+});
+
 // Tasks
 app.get('/api/tasks', (req, res) => {
   const company_id = getCompanyId(req);
@@ -791,18 +835,20 @@ app.get('/api/tasks', (req, res) => {
 
 app.post('/api/tasks', (req, res) => {
   const company_id = getCompanyId(req);
-  const { department_id, title, description, priority } = req.body;
+  const { department_id, title, description, priority, assigned_to } = req.body;
   if (!department_id || !title) {
     return res.status(400).json({ error: 'department_id and title required' });
   }
   const id = uuidv4();
   db.prepare(`
-    INSERT INTO tasks (id, department_id, title, description, priority, created_by, company_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(id, department_id, title, description || '', priority || 'normal', req.user.id, company_id);
+    INSERT INTO tasks (id, department_id, title, description, priority, assigned_to, created_by, company_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, department_id, title, description || '', priority || 'normal', assigned_to || null, req.user.id, company_id);
   
   const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
   logAudit('create', 'task', id, req.user.id, { title, department_id, company_id });
+  // Log to activity_logs
+  logActivity(department_id, 'task_created', `任務「${title}」已建立`, req.user.id, req.user.username, 'task', id, { priority, assigned_to });
   broadcast({ type: 'task_created', task });
   res.status(201).json(task);
 });
@@ -835,8 +881,100 @@ app.patch('/api/tasks/:id', (req, res) => {
 
   const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id);
   logAudit('update', 'task', task.id, req.user.id, { changes: req.body });
+
+  // Log status changes to activity_logs
+  if (status !== undefined) {
+    const statusLabels = { pending: '待處理', in_progress: '進行中', completed: '已完成', failed: '失敗' };
+    let actionType = 'status_changed';
+    let desc = `任務「${task.title}」狀態變更為 ${statusLabels[status] || status}`;
+    if (status === 'completed') actionType = 'task_completed';
+    if (status === 'in_progress') actionType = 'task_started';
+    logActivity(task.department_id, actionType, desc, req.user.id, req.user.username, 'task', task.id, { old_status: existing.status, new_status: status });
+  }
+
+  // Log assignment changes
+  if (assigned_to !== undefined && assigned_to !== existing.assigned_to) {
+    const worker = assigned_to ? db.prepare('SELECT name FROM workers WHERE id = ?').get(assigned_to) : null;
+    const workerName = worker ? worker.name : '無';
+    logActivity(task.department_id, 'task_assigned', `任務「${task.title}」已指派給 ${workerName}`, req.user.id, req.user.username, 'task', task.id, { assigned_to });
+  }
+
   broadcast({ type: 'task_updated', task });
   res.json(task);
+});
+
+// DELETE task
+app.delete('/api/tasks/:id', (req, res) => {
+  const company_id = getCompanyId(req);
+  const existing = db.prepare('SELECT * FROM tasks WHERE id = ? AND company_id = ?').get(req.params.id, company_id);
+  if (!existing) return res.status(404).json({ error: 'Task not found' });
+
+  const deptId = existing.department_id;
+  const taskTitle = existing.title;
+  db.prepare('DELETE FROM tasks WHERE id = ?').run(req.params.id);
+  logAudit('delete', 'task', req.params.id, req.user.id, { title: taskTitle });
+  logActivity(deptId, 'task_deleted', `任務「${taskTitle}」已刪除`, req.user.id, req.user.username, 'task', req.params.id);
+  broadcast({ type: 'task_deleted', task_id: req.params.id });
+  res.json({ success: true });
+});
+
+// ============ ACTIVITY LOGS ============
+function logActivity(departmentId, action, description, userId, userName, entityType, entityId, metadata) {
+  const id = uuidv4();
+  db.prepare(`
+    INSERT INTO activity_logs (id, department_id, action, description, user_id, user_name, entity_type, entity_id, metadata)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, departmentId, action, description || '', userId || 'system', userName || 'system', entityType || '', entityId || '', metadata ? JSON.stringify(metadata) : null);
+  return id;
+}
+
+// GET activities (by department or all)
+app.get('/api/activities', (req, res) => {
+  const company_id = getCompanyId(req);
+  const { department_id, limit } = req.query;
+  let query = `
+    SELECT a.*, d.name as department_name, d.emoji as department_emoji
+    FROM activity_logs a
+    JOIN departments d ON a.department_id = d.id
+    WHERE d.company_id = ?
+  `;
+  const params = [company_id];
+  if (department_id) {
+    query += ' AND a.department_id = ?';
+    params.push(department_id);
+  }
+  query += ' ORDER BY a.created_at DESC';
+  if (limit) {
+    query += ` LIMIT ${parseInt(limit, 10)}`;
+  } else {
+    query += ' LIMIT 50';
+  }
+  res.json(db.prepare(query).all(...params));
+});
+
+// POST activity (manual log entry)
+app.post('/api/activities', (req, res) => {
+  const company_id = getCompanyId(req);
+  const { department_id, action, description, entity_type, entity_id, metadata } = req.body;
+  if (!department_id || !action) {
+    return res.status(400).json({ error: 'department_id and action are required' });
+  }
+  // Verify department exists
+  const dept = db.prepare('SELECT * FROM departments WHERE id = ? AND company_id = ?').get(department_id, company_id);
+  if (!dept) return res.status(404).json({ error: 'Department not found' });
+
+  const id = logActivity(department_id, action, description || action, req.user?.id, req.user?.username || 'user', entity_type, entity_id, metadata);
+  const activity = db.prepare('SELECT * FROM activity_logs WHERE id = ?').get(id);
+  broadcast({ type: 'activity_logged', activity });
+  res.status(201).json(activity);
+});
+
+// DELETE activity (cleanup)
+app.delete('/api/activities/:id', (req, res) => {
+  const existing = db.prepare('SELECT * FROM activity_logs WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Activity not found' });
+  db.prepare('DELETE FROM activity_logs WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
 });
 
 // Workers
