@@ -857,8 +857,24 @@ app.post('/api/messages', async (req, res) => {
     // Command matched - execute it
     botResponse = await executeCommand(command, company_id, db);
   } else {
-    // No command matched - still respond with a friendly message
-    botResponse = '收到！我在這裡 🤖\n\n可用指令：\n• 派 [Worker] 去 [任務] — 指派任務\n• 狀態 — 系統概覽\n• worker列表 — 查看所有 Worker\n• 任務列表 — 查看所有任務\n• 開新任務 [名稱] — 建立新任務\n• 查看 [目標] — 查詢狀態';
+    // No command matched - route to Hermes AI
+    try {
+      const hermesRes = await fetch('http://127.0.0.1:8642/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'minimax/minimax-m2.7',
+          messages: [{ role: 'user', content }],
+          max_tokens: 500
+        })
+      });
+      const data = await hermesRes.json();
+      botResponse = data.choices?.[0]?.message?.content || null;
+      if (!botResponse) throw new Error('Empty response');
+    } catch (err) {
+      console.error('Hermes API error:', err);
+      botResponse = '⚠️ Hermes 目前無法回覆，請稍後再試。';
+    }
   }
 
   if (botResponse) {
@@ -866,7 +882,7 @@ app.post('/api/messages', async (req, res) => {
     const botId = 'bot-' + uuidv4().slice(0, 8);
     db.prepare(`
       INSERT INTO messages (id, company_id, sender_id, sender_type, sender_name, content, room_type, room_id)
-      VALUES (?, ?, ?, 'bot', '🤖 PixelBot', ?, ?, ?)
+VALUES (?, ?, 'hermes', 'bot', '🤖 Hermes', ?, ?, ?)
     `).run(botId, company_id, 'bot', botResponse, room_type, room_id);
 
     const botMsg = db.prepare('SELECT * FROM messages WHERE id = ?').get(botId);
