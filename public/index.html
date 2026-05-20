@@ -1740,7 +1740,7 @@
                 <option value="completed">已完成</option>
                 <option value="failed">失敗</option>
               </select>
-              <button class="add-task-btn" onclick="openTaskModal()">+ 新增任務</button>
+              <!-- [HIDDEN] <button class="add-task-btn" onclick="openTaskModal()">+ 新增任務</button> -->
             </div>
             <div class="task-list" id="task-list"></div>
           </div>
@@ -2186,7 +2186,7 @@
               ` : ''}
               <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
                 <button onclick="openChat('department', '${d.id}', '${d.name}')" style="background:var(--c-purple);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">💬 部門聊天室</button>
-                <button onclick="openTaskModalForDept('${d.id}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button>
+                <!-- [HIDDEN] <button onclick="openTaskModalForDept('${d.id}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button -->
               </div>
             </div>
           </div>
@@ -2264,7 +2264,7 @@
             </div>
           </div>
           <div style="display:flex;gap:10px;">
-            <button onclick="openTaskModalForDept('${deptId}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button>
+            <!-- [HIDDEN] <button onclick="openTaskModalForDept('${deptId}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button -->
           </div>
         `;
 
