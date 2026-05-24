@@ -115,6 +115,17 @@ const BUBBLE_TEXTS = {
   cat: ['喵~', '咕嚕咕嚕…', '尾巴搖一搖', '我是這個辦公室的吉祥物']
 };
 
+// ======== Multi-role member definitions ========
+const MEMBERS = [
+  { id: 'hermes',    label: 'Hermes',     spriteKey: 'star_idle_static', area: 'breakroom',   offset: {x: 0, y: 0} },
+  { id: 'gemini',    label: 'Gemini',     spriteKey: 'guest_role_1',     area: 'researching', offset: {x: -25, y: -15} },
+  { id: 'manus',     label: 'Manus',      spriteKey: 'guest_role_2',     area: 'writing',     offset: {x: -30, y: 15} },
+  { id: 'codex',     label: 'Codex',      spriteKey: 'guest_role_3',     area: 'writing',     offset: {x: -15, y: -20} },
+  { id: 'claude',    label: 'Claude Code', spriteKey: 'guest_role_4',    area: 'writing',     offset: {x: 15, y: 10} },
+  { id: 'opencode',  label: 'OpenCode',   spriteKey: 'guest_role_5',     area: 'error',       offset: {x: 25, y: -15} },
+  { id: 'openclaw',  label: 'OpenClaw',   spriteKey: 'guest_role_6',     area: 'serverroom',  offset: {x: 30, y: 15} }
+];
+
 let game, star, sofa, serverroom, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, catBubble = null;
 let isMoving = false;
 let waypoints = [];
@@ -168,6 +179,12 @@ function preload() {
   this.load.spritesheet('star_working', '/star-working-spritesheet-grid.webp', { frameWidth: 230, frameHeight: 144 });
   this.load.spritesheet('sync_anim', '/sync-animation-v3-grid.webp', { frameWidth: 256, frameHeight: 256 });
   this.load.spritesheet('flowers', '/flowers-bloom-v2.webp', { frameWidth: 65, frameHeight: 65 });
+
+  // === Guest role sprites ===
+  for (let i = 1; i <= 6; i++) {
+    this.load.image('guest_role_' + i, '/guest_role_' + i + '.png');
+    this.load.image('guest_anim_' + i, '/guest_anim_' + i + '.webp');
+  }
 }
 
 function create() {
@@ -186,6 +203,42 @@ function create() {
   star = this.add.image(areas.breakroom.x, areas.breakroom.y, 'star_idle_static').setOrigin(0.5);
   star.setDepth(20);
   star.setVisible(false); // Hidden until status is fetched
+
+  // === Multi-role member sprites & labels ===
+  window.memberSprites = {};
+  window.memberLabels = {};
+  window.memberStates = {};
+  window.memberTargets = {};
+  MEMBERS.forEach(m => {
+    if (m.id === 'hermes') {
+      // Hermes IS the star sprite (handled above)
+      window.memberSprites[m.id] = star;
+      window.memberStates[m.id] = 'idle';
+      window.memberTargets[m.id] = { x: areas.breakroom.x, y: areas.breakroom.y };
+    } else {
+      const sprite = game.add.image(areas[m.area].x + m.offset.x, areas[m.area].y + m.offset.y, m.spriteKey).setOrigin(0.5);
+      sprite.setDepth(20);
+      sprite.setVisible(true);
+      window.memberSprites[m.id] = sprite;
+      window.memberStates[m.id] = 'idle';
+      window.memberTargets[m.id] = { x: areas[m.area].x + m.offset.x, y: areas[m.area].y + m.offset.y };
+    }
+    // Name label
+    const label = game.add.text(
+      window.memberTargets[m.id].x,
+      window.memberTargets[m.id].y + 38,
+      m.label,
+      {
+        fontFamily: 'monospace',
+        fontSize: '10px',
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 2
+      }
+    ).setOrigin(0.5);
+    label.setDepth(21);
+    window.memberLabels[m.id] = label;
+  });
 
   // === Plaque ===
   const plaqueX = LAYOUT.plaque.x;
@@ -380,6 +433,31 @@ function update(time) {
     lastTypewriter = time;
   }
 
+  // === Move all member sprites ===
+  if (window.memberSprites) {
+    MEMBERS.forEach(m => {
+      if (m.id === 'hermes') return; // Hermes handled by moveStar below
+      const sprite = window.memberSprites[m.id];
+      const target = window.memberTargets[m.id];
+      if (!sprite || !target) return;
+      const dx = target.x - sprite.x;
+      const dy = target.y - sprite.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const speed = 1.4;
+      const wobble = Math.sin(time / 200 + MEMBERS.indexOf(m)) * 0.8;
+      if (dist > 3) {
+        sprite.x += (dx / dist) * speed;
+        sprite.y += (dy / dist) * speed;
+        sprite.setY(sprite.y + wobble);
+      }
+      // Update name label position
+      const label = window.memberLabels[m.id];
+      if (label) {
+        label.setPosition(sprite.x, sprite.y + 38);
+      }
+    });
+  }
+
   moveStar(time);
 }
 
@@ -396,7 +474,6 @@ function fetchStatus() {
   const token = localStorage.getItem('token');
   if (!token) return;
 
-  // Use workers endpoint to get current worker status
   fetch('/api/workers?t=' + Date.now(), {
     headers: { 'Authorization': 'Bearer ' + token },
     cache: 'no-store'
@@ -404,11 +481,13 @@ function fetchStatus() {
     .then(response => response.json())
     .then(data => {
       if (!Array.isArray(data) || data.length === 0) return;
-      const first = data[0];
-      const nextState = normalizeState(first.status || 'idle');
+
+      // First: update Hermes (star) status for typewriter/bubble
+      const hermesWorker = data.find(w => (w.name || '').toLowerCase() === 'hermes') || data[0];
+      const nextState = normalizeState(hermesWorker.status || 'idle');
       const stateInfo = STATES[nextState] || STATES.idle;
       const changed = (pendingDesiredState === null) && (nextState !== currentState);
-      const detail = first.task_name || first.task_message || '...';
+      const detail = hermesWorker.task_name || hermesWorker.task_message || '...';
       const nextLine = '[' + stateInfo.name + '] ' + detail;
 
       if (changed) {
@@ -435,12 +514,9 @@ function fetchStatus() {
           }
         }
 
-        // Move to target area
-        const targetArea = stateInfo.area;
-        if (areas[targetArea]) {
-          targetX = areas[targetArea].x;
-          targetY = areas[targetArea].y;
-        }
+        // Hermes always stays in breakroom
+        targetX = areas.breakroom.x;
+        targetY = areas.breakroom.y;
       } else {
         if (!typewriterTarget || typewriterTarget !== nextLine) {
           typewriterTarget = nextLine;
@@ -448,6 +524,40 @@ function fetchStatus() {
           typewriterIndex = 0;
         }
       }
+
+      // Second: update all other members based on their worker status
+      data.forEach(worker => {
+        const workerName = (worker.name || '').toLowerCase();
+        // Find matching member
+        let matchedMember = null;
+        let bestScore = 0;
+        MEMBERS.forEach(m => {
+          let score = 0;
+          if (workerName === m.id) score = 3;
+          else if (workerName.includes(m.id)) score = 2;
+          else if (m.id.includes(workerName)) score = 1;
+          if (score > bestScore) {
+            bestScore = score;
+            matchedMember = m;
+          }
+        });
+        if (!matchedMember) return;
+
+        const wState = normalizeState(worker.status || 'idle');
+        window.memberStates[matchedMember.id] = wState;
+
+        let targetArea = (STATES[wState] || STATES.idle).area;
+        // Hermes always stays in breakroom
+        if (matchedMember.id === 'hermes') {
+          targetArea = 'breakroom';
+        }
+        if (areas[targetArea]) {
+          window.memberTargets[matchedMember.id] = {
+            x: areas[targetArea].x + matchedMember.offset.x,
+            y: areas[targetArea].y + matchedMember.offset.y
+          };
+        }
+      });
     })
     .catch(error => {
       typewriterTarget = '連線失敗，正在重試...';
