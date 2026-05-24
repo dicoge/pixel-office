@@ -6,6 +6,12 @@
   <title>Pixel Office</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
   <script>
+  // Auto-hide loading overlay after 2s (before login, game.js isn't loaded yet)
+  setTimeout(function() {
+    var lo = document.getElementById('loading-overlay');
+    if (lo) { lo.style.transition = 'opacity 0.5s ease'; lo.style.opacity = '0';
+      setTimeout(function() { lo.style.display = 'none'; }, 500); }
+  }, 2000);
   // Fallback if Phaser CDN fails (e.g., mobile browser blocks third-party scripts)
   if (typeof Phaser === 'undefined') {
     document.getElementById('loading-overlay').style.display = 'none';
