@@ -68,8 +68,8 @@ const MEMBERS = [
 ];
 
 let game, star, areas={}, currentState='idle', pendingState=null;
-let lastFetch=0, lastBubble=0, lastCatBubble=0, targetX=1225, targetY=340;
-let bubble=null, ttText='', ttTarget='', ttIdx=0, lastTT=0, catSprite=null;
+let lastFetch=0, lastClickFetch=0, lastBubble=0, lastCatBubble=0, targetX=1225, targetY=340;
+let bubble=null, bubbleTimer=null, catBubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0, catSprite=null;
 const FETCH_INT=3000, BUBBLE_INT=8000, CAT_INT=18000, TT_DELAY=50;
 let mainCamera;
 
@@ -99,23 +99,43 @@ function drawRoomLabel(scene, x, text, fontSize) {
 // ===================== ROOM 1: ☕ PANTRY =====================
 function drawPantry(scene) {
   const g = scene.add.graphics();
-  // Wall
+  // Wall with brick texture
   g.fillStyle(0x3e2723,1); g.fillRect(0,0,400,720);
+  // Brick pattern
+  g.lineStyle(1,0x4e342e,0.3);
+  for (let by=0; by<390; by+=8) {
+    const off = (Math.floor(by/8)%2===0) ? 0 : 8;
+    for (let bx=0; bx<400; bx+=16) {
+      g.strokeRect(bx+off, by, 16, 4);
+    }
+  }
   // Checkered floor
   drawFloor(g,0,400,720,0x8d6e63,0xa1887f,400);
   // Baseboard
   g.fillStyle(0x5d4037,1); g.fillRect(0,390,400,10);
 
-  // Window with light
+  // Window with light and curtains
   g.fillStyle(0x1a237e,0.5); g.fillRect(60,50,80,100);
   g.lineStyle(2,0x5d4037,1); g.strokeRect(60,50,80,100);
+  // Curtain panels
+  g.fillStyle(0x6d4c41,0.8); g.fillRect(56,48,8,104);
+  g.fillStyle(0x6d4c41,0.8); g.fillRect(136,48,8,104);
+  // Curtain rod
+  g.fillStyle(0x4e342e,1); g.fillRect(52,46,96,4);
+  // Window pane details
   g.lineStyle(1,0x5d4037,0.5); g.strokeRect(60,100,80,1); g.strokeRect(100,50,1,100);
+  // Curtain folds
+  g.lineStyle(1,0x5d4037,0.3); g.strokeRect(62,52,2,96); g.strokeRect(72,52,2,96);
+  g.lineStyle(1,0x5d4037,0.3); g.strokeRect(130,52,2,96); g.strokeRect(122,52,2,96);
 
-  // Shelf with items
+  // Shelf with items (improved)
   g.fillStyle(0x5d4037,1); g.fillRect(10,120,20,100);
   for (let i=0;i<4;i++) {
     g.fillStyle(0x6d4c41,1); g.fillRect(10,130+i*25,20,3);
     g.fillStyle(0x795548,1); g.fillRect(12,128+i*25,6,4);
+    // Shelf items — cups and books
+    if (i===0||i===3) { g.fillStyle(0xc62828,1); g.fillRect(18,125+i*25,4,5); }
+    if (i===1||i===2) { g.fillStyle(0x1565c0,1); g.fillRect(18,125+i*25,4,5); }
   }
 
   // Small rug at entrance
@@ -150,28 +170,58 @@ function drawOffice(scene) {
 function drawManagerRoom(scene) {
   const g = scene.add.graphics();
   g.fillStyle(0x1a0a2e,1); g.fillRect(2050,0,510,720);
+  // Decorative floor pattern — diamond carpet
   drawFloor(g,2050,510,720,0x4a0072,0x6a1b9a,400);
+  // Carpet border
+  g.lineStyle(2,0xffd700,0.5); g.strokeRect(2070,410,470,290);
+  g.lineStyle(1,0xffd700,0.3); g.strokeRect(2074,414,462,282);
+  // Carpet diamond motif
+  g.fillStyle(0x7b1fa2,0.4); g.fillRect(2250,440,100,80);
+  g.fillStyle(0xffd700,0.15); g.fillRect(2275,460,50,40);
+  g.fillStyle(0x7b1fa2,0.4); g.fillRect(2150,460,60,60);
+  g.fillStyle(0x7b1fa2,0.4); g.fillRect(2420,460,60,60);
+
   g.fillStyle(0x311b92,1); g.fillRect(2050,390,510,10);
 
+  // Crown molding near ceiling
+  g.fillStyle(0xffd700,0.6); g.fillRect(2050,24,510,2);
+  g.fillStyle(0x7b1fa2,0.8); g.fillRect(2050,26,510,6);
+  g.fillStyle(0xffd700,0.4); g.fillRect(2050,32,510,1);
+
+  // Wall paneling (vertical wainscoting)
+  g.fillStyle(0x2a1050,0.5); g.fillRect(2060,36,490,5);
+  g.fillStyle(0x2a1050,0.3); g.fillRect(2060,340,490,2);
+  // Vertical panel lines
+  g.lineStyle(1,0x2a1050,0.25);
+  for (let px=2070; px<2540; px+=40) {
+    g.strokeRect(px,40,2,298);
+  }
+
   // Window with starry view
-  g.fillStyle(0x0d47a1,0.4); g.fillRect(2110,60,80,120);
-  g.lineStyle(2,0x5d4037,1); g.strokeRect(2110,60,80,120);
-  g.lineStyle(1,0x5d4037,0.5); g.strokeRect(2110,120,80,1); g.strokeRect(2150,60,1,120);
+  g.fillStyle(0x0d47a1,0.5); g.fillRect(2110,60,80,120);
+  g.lineStyle(3,0xffd700,0.6); g.strokeRect(2110,60,80,120);
+  g.lineStyle(1,0xffd700,0.3); g.strokeRect(2110,120,80,1); g.strokeRect(2150,60,1,120);
+  // Window sill
+  g.fillStyle(0x4e342e,1); g.fillRect(2106,178,88,6);
   // Glowing stars in window
   for (let i=0;i<6;i++) {
     g.fillStyle(0xffffff,0.2+Math.random()*0.4);
     g.fillRect(2120+Math.random()*60,70+Math.random()*100,3,3);
   }
 
-  // Bookshelf
+  // Bookshelf with more detail
   g.fillStyle(0x4e342e,1); g.fillRect(2480,100,40,120);
+  g.fillStyle(0x3e2723,1); g.fillRect(2478,98,44,4);
   for (let i=0;i<5;i++) {
     g.fillStyle(0x6d4c41,1); g.fillRect(2482,110+i*22,36,4);
     g.fillStyle(Math.random()>0.5?0xc62828:0x1565c0,1); g.fillRect(2484,112+i*22,6,2);
+    g.fillStyle(0xffd700,1); g.fillRect(2492,112+i*22,3,2); // gold book
   }
 
-  // Wall star decoration
-  g.fillStyle(0xffd700,0.7); g.fillRect(2250,80,20,20);
+  // Wall star decoration (enhanced)
+  g.fillStyle(0xffd700,0.8); g.fillRect(2250,80,20,20);
+  g.fillStyle(0xfff176,0.6); g.fillRect(2252,82,16,16);
+  g.fillStyle(0xffd700,0.4); g.fillRect(2255,85,10,10);
 
   drawRoomLabel(scene, 2300, '⭐ 經理室', '13px');
   return g;
@@ -183,14 +233,25 @@ function drawDividers(scene) {
   // Pantry → Office wall
   g.fillStyle(0x4e342e,1); g.fillRect(398,0,4,720);
   g.fillStyle(0x3e2723,1); g.fillRect(398,290,4,100); // doorway
+  // Arched door top
+  g.fillStyle(0x4e342e,1); g.fillRect(396,286,8,8);
+  g.fillStyle(0x3e2723,1); g.fillRect(398,288,4,4);
   g.fillStyle(0x8d6e63,0.6); g.fillRect(370,340,60,6); g.fillRect(370,348,60,6); // door mat
   scene.add.text(365,358,'→ 辦公室',{fontFamily:'monospace',fontSize:'8px',fill:'#ffe0b2',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
 
   // Office → Manager wall
   g.fillStyle(0x311b92,1); g.fillRect(2048,0,4,720);
   g.fillStyle(0x1a0a2e,1); g.fillRect(2048,290,4,100); // doorway
+  // Arched door top
+  g.fillStyle(0x311b92,1); g.fillRect(2046,286,8,8);
+  g.fillStyle(0x1a0a2e,1); g.fillRect(2048,288,4,4);
   g.fillStyle(0x5d4037,0.6); g.fillRect(2020,340,60,6); g.fillRect(2020,348,60,6);
   scene.add.text(2040,358,'→ 經理室',{fontFamily:'monospace',fontSize:'8px',fill:'#e1bee7',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
+
+  // Room name signs above doorways
+  scene.add.text(200, 270, '☕ 茶水間', {fontFamily:'monospace',fontSize:'7px',fill:'#ffd54f',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
+  scene.add.text(1225, 270, '🏢 辦公室', {fontFamily:'monospace',fontSize:'7px',fill:'#90caf9',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
+  scene.add.text(2040, 270, '⭐ 經理室', {fontFamily:'monospace',fontSize:'7px',fill:'#ce93d8',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
 
   g.setDepth(1);
   return g;
@@ -206,18 +267,28 @@ function drawFurniture(scene) {
   rect(f.counter.x, f.counter.y, f.counter.w, f.counter.h, f.counter.color, f.counter.depth);
   rect(f.sink.x, f.sink.y, f.sink.w, f.sink.h, f.sink.color, f.sink.depth);
   rect(f.sink.x+2, f.sink.y-4, 8, 6, 0x90caf9, f.sink.depth+1, 0.4);
+  // Counter shadow
+  rect(f.counter.x-2, f.counter.y+f.counter.h, f.counter.w+4, 3, 0x000000, f.counter.depth-1, 0.2);
 
   // Fridge
   rect(f.fridge.x, f.fridge.y, f.fridge.w, f.fridge.h, f.fridge.color, f.fridge.depth);
   rect(f.fridge.x, f.fridge.y-3, 20, 4, 0xeeeeee, f.fridge.depth+1);
+  // Fridge shadow
+  rect(f.fridge.x-2, f.fridge.y+f.fridge.h, f.fridge.w+4, 3, 0x000000, f.fridge.depth-1, 0.2);
+  // Fridge highlight
+  rect(f.fridge.x+2, f.fridge.y+2, 4, 10, 0xffffff, f.fridge.depth+2, 0.15);
 
   // Pantry table
   rect(f.pantryTable.x, f.pantryTable.y, f.pantryTable.w, f.pantryTable.h, f.pantryTable.color, f.pantryTable.depth);
   rect(f.pantryTable.x, f.pantryTable.y-8, f.pantryTable.w+6, 4, 0x4e342e, f.pantryTable.depth+1);
+  // Table shadow
+  rect(f.pantryTable.x-2, f.pantryTable.y+f.pantryTable.h, f.pantryTable.w+4, 3, 0x000000, f.pantryTable.depth-1, 0.2);
 
   // Pantry sofa
   rect(f.pantrySofa.x, f.pantrySofa.y, f.pantrySofa.w, f.pantrySofa.h, f.pantrySofa.color, f.pantrySofa.depth);
   rect(f.pantrySofa.x-45, f.pantrySofa.y-5, 8, 12, 0x6d4c41, f.pantrySofa.depth+1);
+  // Sofa shadow
+  rect(f.pantrySofa.x-2, f.pantrySofa.y+f.pantrySofa.h, f.pantrySofa.w+4, 3, 0x000000, f.pantrySofa.depth-1, 0.2);
 
   // Pantry lamp
   rect(f.pantryLamp.x, f.pantryLamp.y, f.pantryLamp.w, f.pantryLamp.h, f.pantryLamp.color, f.pantryLamp.depth);
@@ -229,15 +300,25 @@ function drawFurniture(scene) {
   rect(bdl.x, bdl.y, bdl.w, bdl.h, bdl.color, bdl.depth);
   rect(bdl.x, bdl.y-12, bdl.w+8, 6, bdl.accent, bdl.depth+1);
   rect(bdl.x-30, bdl.y-18, 20, 12, 0x212121, bdl.depth+1); // monitor
+  // Desk shadow
+  rect(bdl.x-2, bdl.y+bdl.h/2, bdl.w+4, 3, 0x000000, bdl.depth-1, 0.2);
+  // Monitor screen glow
+  rect(bdl.x-28, bdl.y-16, 16, 8, 0x64b5f6, bdl.depth, 0.3);
 
   rect(bdr.x, bdr.y, bdr.w, bdr.h, bdr.color, bdr.depth);
   rect(bdr.x, bdr.y-12, bdr.w+8, 6, bdr.accent, bdr.depth+1);
   rect(bdr.x+30, bdr.y-18, 20, 12, 0x212121, bdr.depth+1); // monitor
+  // Desk shadow
+  rect(bdr.x-2, bdr.y+bdr.h/2, bdr.w+4, 3, 0x000000, bdr.depth-1, 0.2);
+  // Monitor screen glow
+  rect(bdr.x+32, bdr.y-16, 16, 8, 0xef9a9a, bdr.depth, 0.3);
 
   // Small desks
   [f.smallDeskTL, f.smallDeskTR, f.smallDeskBL, f.smallDeskBR].forEach(d => {
     rect(d.x, d.y, d.w, d.h, d.color, d.depth);
     rect(d.x, d.y-8, d.w+4, 4, 0x121212, d.depth+1);
+    // Desk shadow
+    rect(d.x-2, d.y+d.h/2, d.w+4, 3, 0x000000, d.depth-1, 0.2);
   });
 
   // Server rack
@@ -256,6 +337,11 @@ function drawFurniture(scene) {
   // Manager desk
   rect(f.managerDesk.x, f.managerDesk.y, f.managerDesk.w, f.managerDesk.h, f.managerDesk.color, f.managerDesk.depth);
   rect(f.managerDesk.x, f.managerDesk.y-10, f.managerDesk.w+6, 5, 0x795548, f.managerDesk.depth+1);
+  // Gold trim on manager desk
+  rect(f.managerDesk.x-2, f.managerDesk.y-12, f.managerDesk.w+10, 2, 0xffd700, f.managerDesk.depth+2, 0.7);
+  rect(f.managerDesk.x-2, f.managerDesk.y+14, f.managerDesk.w+10, 2, 0xffd700, f.managerDesk.depth+2, 0.5);
+  // Desk shadow
+  rect(f.managerDesk.x-2, f.managerDesk.y+18, f.managerDesk.w+4, 3, 0x000000, f.managerDesk.depth-1, 0.3);
 
   // Manager chair
   rect(f.managerChair.x, f.managerChair.y, f.managerChair.w, f.managerChair.h, f.managerChair.color, f.managerChair.depth);
@@ -274,7 +360,7 @@ function drawFurniture(scene) {
   // ===== Plants =====
   [f.officePlant1, f.officePlant2].forEach(p => {
     if (scene.textures.exists('plants')) {
-      const pl = scene.add.sprite(p.x, p.y, 'plants', Math.floor(Math.random()*16))
+      const pl = scene.add.sprite(p.x, p.y, 'plants', Math.floor(Math.random() * Math.min(scene.textures.get('plants').frameTotal || 16, 16)))
         .setOrigin(0.5).setDepth(p.depth).setScale(p.scale || 0.3);
     }
   });
@@ -282,14 +368,13 @@ function drawFurniture(scene) {
   // ===== Cat =====
   const cat = f.officeCat;
   if (scene.textures.exists('cats')) {
-    catSprite = scene.add.sprite(cat.x, cat.y, 'cats', Math.floor(Math.random()*16))
+    window.catSprite = scene.add.sprite(cat.x, cat.y, 'cats', Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16)))
       .setOrigin(0.5).setDepth(cat.depth).setScale(cat.scale || 0.3);
-    catSprite.setInteractive({ useHandCursor: true });
-    catSprite.on('pointerdown', () => {
-      catSprite.setFrame(Math.floor(Math.random()*16));
+    window.catSprite.setInteractive({ useHandCursor: true });
+    window.catSprite.on('pointerdown', () => {
+      window.catSprite.setFrame(Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16)));
       showCatBubble(true);
     });
-    window.catSprite = catSprite;
   }
 }
 
@@ -300,6 +385,7 @@ function drawCharacters(scene) {
   window.memberStates = {};
   window.memberTargets = {};
   window.memberBadges = {};
+  window.memberBadgeBgs = {};
 
   MEMBERS.forEach((m) => {
     const area = areas[m.area] || areas.lounge;
@@ -335,13 +421,17 @@ function drawCharacters(scene) {
     window.memberStates[m.id] = 'idle';
     window.memberTargets[m.id] = { x: bx, y: by };
 
-    // Tool icon badge (above character)
-    const tc = LAYOUT.toolColors[m.id] || { icon: '👤', color: '#ccc' };
+    // Tool icon badge (above character) with background color block
+    const tc = LAYOUT.toolColors[m.id] || { icon: '👤', color: '#ccc', colorCode: 0x888888 };
+    const badgeColor = LAYOUT.toolColors[m.id] ? LAYOUT.toolColors[m.id].color : 0x888888;
+    const badgeBg = scene.add.rectangle(bx, by - 22, 18, 18, badgeColor, 0.7)
+      .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x000000, 0.8);
     const badge = scene.add.text(bx, by - 22, tc.icon, {
       fontFamily: 'monospace', fontSize: '12px',
-      stroke: '#000', strokeThickness: 3
+      stroke: '#000', strokeThickness: 2
     }).setOrigin(0.5).setDepth(25);
     window.memberBadges[m.id] = badge;
+    window.memberBadgeBgs[m.id] = badgeBg;
 
     // Name label (below character)
     const label = scene.add.text(bx, by + 18, m.label, {
@@ -384,6 +474,14 @@ function preload() {
   lpText = document.getElementById('loading-text');
   totalAssets = LAYOUT.totalAssets || 10;
   loadedAssets = 0;
+
+  // Inject loading bar pulse animation
+  const pulseStyle = document.createElement('style');
+  pulseStyle.textContent = '@keyframes loadingPulse {' +
+    '0%,100%{box-shadow:0 0 5px #ffd700,0 0 10px #ffd700}' +
+    '50%{box-shadow:0 0 15px #ffd700,0 0 30px #ff8c00}}' +
+    '#loading-progress-bar{transition:width 0.3s ease;animation:loadingPulse 1.5s ease-in-out infinite}';
+  document.head.appendChild(pulseStyle);
   this.load.on('filecomplete', updateLoadingProgress);
   this.load.on('complete', hideLoadingOverlay);
 
@@ -453,12 +551,17 @@ function create() {
   loadDepartments();
   renderMemberStatus();
 
-  // Click anywhere refreshes status
+  // Click anywhere refreshes status (debounced 300ms)
   game.input.on('pointerdown', () => {
+    const now = Date.now();
+    if (now - lastClickFetch < 300) return;
+    lastClickFetch = now;
     fetchStatus();
     fetchDepartments();
   });
 }
+
+let lastStatusRender = 0;
 
 // ===================== UPDATE =====================
 function update(time) {
@@ -468,8 +571,11 @@ function update(time) {
     lastFetch = time;
   }
 
-  // Periodic member status render
-  if (time % 2000 < 50) renderMemberStatus();
+  // Periodic member status render (once per 2s)
+  if (time - lastStatusRender > 2000) {
+    renderMemberStatus();
+    lastStatusRender = time;
+  }
 
   // Bubble display
   if (time - lastBubble > BUBBLE_INT) {
@@ -509,10 +615,15 @@ function update(time) {
 
       // Update badge (tool icon) above character
       const badge = window.memberBadges[m.id];
+      const badgeBg = window.memberBadgeBgs && window.memberBadgeBgs[m.id];
       if (badge) {
         badge.setPosition(sp.x, sp.y - 22);
         // Subtle floating animation
         badge.setY(sp.y - 22 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
+      }
+      if (badgeBg) {
+        badgeBg.setPosition(sp.x, sp.y - 22);
+        badgeBg.setY(sp.y - 22 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
       }
 
       // Update name label below character
@@ -602,6 +713,7 @@ function fetchStatus() {
     ttTarget = '連線失敗';
     ttText = '';
     ttIdx = 0;
+    pendingState = null;
   });
 }
 
@@ -621,6 +733,7 @@ function moveStar(time) {
 
 // ===================== BUBBLES =====================
 function showBubble() {
+  if (bubbleTimer) clearTimeout(bubbleTimer);
   if (bubble) { bubble.destroy(); bubble = null; }
   const texts = BTEXTS[currentState] || BTEXTS.idle;
   const anchorX = star ? star.x : 1225;
@@ -633,13 +746,15 @@ function showBubble() {
     fontFamily: 'monospace', fontSize: '10px', fill: '#000'
   }).setOrigin(0.5);
   bubble = game.add.container(0, 0, [bg, txt]).setDepth(1200);
-  setTimeout(() => {
+  bubbleTimer = setTimeout(() => {
     if (bubble) { bubble.destroy(); bubble = null; }
+    bubbleTimer = null;
   }, 3000);
 }
 
 function showCatBubble(force) {
   if (!window.catSprite) return;
+  if (catBubbleTimer) clearTimeout(catBubbleTimer);
   if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; }
   const texts = BTEXTS.cat || ['喵~'];
   const text = texts[Math.floor(Math.random()*texts.length)];
@@ -651,8 +766,9 @@ function showCatBubble(force) {
     fontFamily: 'monospace', fontSize: '9px', fill: '#8b6914'
   }).setOrigin(0.5);
   window.catBubble = game.add.container(0, 0, [bg, txt]).setDepth(2100);
-  setTimeout(() => {
+  catBubbleTimer = setTimeout(() => {
     if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; }
+    catBubbleTimer = null;
   }, 3000);
 }
 
@@ -683,7 +799,7 @@ function getAreaLabel(target) {
     manager_desk: '⭐ 經理室'
   };
   for (const [n, p] of Object.entries(areas)) {
-    if (Math.abs(p.x - target.x) < 40 && Math.abs(p.y - target.y) < 40) {
+    if (Math.abs(p.x - target.x) < 60 && Math.abs(p.y - target.y) < 60) {
       return labels[n] || n;
     }
   }
@@ -828,7 +944,7 @@ function closeSidebar() {
 }
 
 // ===================== WEB SOCKET =====================
-let hermesWs = null, hermesConnected = false;
+let hermesWs = null, hermesConnected = false, wsReconnectDelay = 1000;
 
 function connectHermes() {
   const tk = localStorage.getItem('token');
@@ -837,11 +953,13 @@ function connectHermes() {
   const url = p+'//'+window.location.host+'/ws?token='+encodeURIComponent(tk);
   try {
     hermesWs = new WebSocket(url);
-    hermesWs.onopen = () => { hermesConnected = true; updateHermesIndicator(true); };
+    hermesWs.onopen = () => { hermesConnected = true; wsReconnectDelay = 1000; updateHermesIndicator(true); };
     hermesWs.onclose = () => {
       hermesConnected = false;
       updateHermesIndicator(false);
-      setTimeout(connectHermes, 5000);
+      const delay = wsReconnectDelay;
+      wsReconnectDelay = Math.min(wsReconnectDelay * 2, 30000);
+      setTimeout(connectHermes, delay);
     };
     hermesWs.onerror = () => {
       hermesConnected = false;
@@ -857,7 +975,9 @@ function connectHermes() {
       } catch(e) {}
     };
   } catch(e) {
-    setTimeout(connectHermes, 5000);
+    const delay = wsReconnectDelay;
+    wsReconnectDelay = Math.min(wsReconnectDelay * 2, 30000);
+    setTimeout(connectHermes, delay);
   }
 }
 
