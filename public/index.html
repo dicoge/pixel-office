@@ -3,92 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎮 Pixel Office — AI Agent 管理系統 v2.0.1</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <title>Pixel Office</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
   <style>
-    /* ============ PIXEL 16-COLOR PALETTE ============ */
-    :root {
-      /* === 基本色 === */
-      --c-black: #1a1a2e;
-      --c-darkblue: #16213e;
-      --c-purple: #4a2c7a;
-      --c-green: #0f9b0f;
-      --c-brown: #8b4513;
-      
-      /* === 灰階 === */
-      --c-darkgray: #2d2d2d;
-      --c-gray: #6b6b6b;
-      --c-silver: #a0a0a0;
-      --c-white: #f0f0f0;
-      
-      /* === 狀態色 === */
-      --c-red: #e74c3c;
-      --c-orange: #e67e22;
-      --c-yellow: #f1c40f;
-      --c-lime: #2ecc71;
-      
-      /* === 裝飾色 === */
-      --c-cyan: #00d4aa;
-      --c-blue: #3498db;
-      --c-pink: #ff69b4;
-      --c-peach: #ffb347;
-      
-      /* === SPACING SYSTEM (4px base) === */
-      --space-1: 4px;
-      --space-2: 8px;
-      --space-3: 12px;
-      --space-4: 16px;
-      --space-5: 24px;
-      --space-6: 32px;
-      
-      /* === PIXEL TRANSITIONS === */
-      --transition-fast: 50ms;
-      --transition-normal: 150ms;
-      
-      /* === PIXEL SHADOW OFFSET === */
-      --shadow-pixel: 4px;
-    }
-
-    /* Pixel font rendering - preserve pixels but improve clarity */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      -webkit-font-smoothing: antialiased !important;
-      -moz-osx-font-smoothing: grayscale !important;
-      text-rendering: optimizeLegibility !important;
-      font-smooth: always;
-    }
-
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; image-rendering: crisp-edges; }
     body {
-      font-family: 'Press Start 2P', monospace;
-      background: var(--c-black);
-      color: var(--c-white);
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
       min-height: 100vh;
-      font-size: 10px;
-      line-height: 1.8;
-      font-weight: 400;
-    }
-
-    /* ============ FONT HIERARCHY WITH CLAMP() ============ */
-    .font-hero    { font-size: clamp(12px, 4vw, 16px); }
-    .font-title   { font-size: clamp(10px, 3vw, 12px); }
-    .font-heading { font-size: clamp(9px, 2.5vw, 10px); }
-    .font-body    { font-size: clamp(8px, 2vw, 9px); }
-    .font-caption { font-size: clamp(7px, 1.8vw, 8px); }
-    .font-micro   { font-size: clamp(6px, 1.5vw, 7px); }
-
-    .pixel-text {
-      text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+      font-family: 'Courier New', monospace;
+      padding: 20px 0;
+      gap: 10px;
+      overflow-x: hidden;
+      color: #f0f0f0;
     }
 
     /* ============ LOGIN SCREEN ============ */
@@ -99,2641 +29,621 @@
       justify-content: center;
       min-height: 100vh;
       padding: 20px;
+      width: 100%;
     }
+    #login-screen.hidden { display: none; }
 
-    .pixel-logo {
-      font-size: 14px;
-      color: var(--c-yellow);
-      text-shadow: 3px 3px 0 var(--c-orange);
-      margin-bottom: 10px;
-      animation: blink 1s step-end infinite;
+    .login-logo {
+      font-size: 28px;
+      color: #ffd700;
+      text-shadow: 3px 3px 0 #e67e22;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
     }
-
-    .pixel-subtitle {
-      font-size: 8px;
-      color: var(--c-cyan);
-      margin-bottom: 40px;
-    }
-
-    @keyframes blink {
-      50% { opacity: 0.8; }
-    }
-
-    .pixel-art-logo {
-      width: 120px;
-      height: 120px;
+    .login-subtitle {
+      font-size: 12px;
+      color: #00d4aa;
       margin-bottom: 30px;
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: repeat(8, 1fr);
-      gap: 2px;
     }
-
-    .pixel-art-logo div {
-      background: var(--c-yellow);
-    }
-
-    .pixel-art-logo div:nth-child(1), .pixel-art-logo div:nth-child(4), .pixel-art-logo div:nth-child(6) { background: var(--c-yellow); }
-    .pixel-art-logo div:nth-child(2), .pixel-art-logo div:nth-child(3) { background: var(--c-orange); }
-    .pixel-art-logo div:nth-child(5) { background: var(--c-red); }
-
     .login-box {
-      background: var(--c-darkblue);
-      border: 4px solid var(--c-white);
+      background: #16213e;
+      border: 4px solid #f0f0f0;
       padding: 30px;
       width: 320px;
       max-width: 100%;
-      box-shadow: 8px 8px 0 var(--c-purple);
+      box-shadow: 8px 8px 0 #4a2c7a;
     }
-
-    .pixel-input {
+    .login-input {
       width: 100%;
       padding: 12px;
       margin: 10px 0;
-      background: var(--c-black);
-      border: 3px solid var(--c-white);
-      color: var(--c-white);
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
+      background: #1a1a2e;
+      border: 3px solid #f0f0f0;
+      color: #f0f0f0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
     }
-
-    .pixel-input:focus {
+    .login-input:focus {
       outline: none;
-      border-color: var(--c-yellow);
-      box-shadow: 4px 4px 0 var(--c-yellow);
+      border-color: #ffd700;
+      box-shadow: 4px 4px 0 #ffd700;
     }
-
-    .pixel-btn {
+    .login-btn {
       width: 100%;
       padding: 14px;
       margin-top: 15px;
-      background: var(--c-green);
-      border: 4px solid var(--c-white);
-      color: var(--c-white);
-      font-family: 'Press Start 2P', monospace;
-      font-size: 10px;
+      background: #0f9b0f;
+      border: 4px solid #f0f0f0;
+      color: #f0f0f0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
       cursor: pointer;
-      box-shadow: 4px 4px 0 var(--c-darkgray);
+      box-shadow: 4px 4px 0 #2d2d2d;
       transition: all 0.1s;
+      font-weight: bold;
     }
-
-    .pixel-btn:hover {
-      background: var(--c-lime);
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 var(--c-darkgray);
-    }
-
-    .pixel-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--c-darkgray);
-    }
-
-    .pixel-btn.secondary {
-      background: var(--c-purple);
-    }
-
-    .pixel-btn.secondary:hover {
-      background: var(--c-pink);
-    }
-
-    .error-msg {
-      color: var(--c-red);
-      font-size: 8px;
-      margin-top: 10px;
-      min-height: 20px;
-    }
+    .login-btn:hover { background: #2ecc71; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #2d2d2d; }
+    .login-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #2d2d2d; }
+    .login-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 20px; text-align: center; }
 
     /* ============ MAIN APP ============ */
-    #app {
-      display: none;
-      flex-direction: column;
-      min-height: 100vh;
+    #app { display: none; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+    #app.visible { display: flex; }
+
+    #main-stage {
+      position: relative;
+      width: 1280px;
+      max-width: 95vw;
+      transition: transform .25s ease;
     }
-/* ============ HEADER ============ */
-    .header {
-      background: linear-gradient(180deg, var(--c-purple) 0%, var(--c-darkblue) 100%);
-      border-bottom: 4px solid var(--c-white);
-      padding: var(--space-3) var(--space-4);
+    body.sidebar-open #main-stage {
+      transform: translateX(calc(-1 * max(0px, (min(320px, 92vw) + 20px) - ((100vw - 1280px) / 2))));
+    }
+
+    #game-container {
+      position: relative;
+      border: 0;
+      image-rendering: pixelated;
+      width: 1280px;
+      height: 720px;
+      max-width: 95vw;
+      max-height: calc(95vw * 720 / 1280);
+      overflow: hidden;
+    }
+    #game-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      image-rendering: pixelated;
+      object-fit: contain;
+      box-shadow: inset 0 0 0 4px #64477d;
+      position: relative;
+      z-index: 10;
+    }
+    #game-skeleton {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      background: radial-gradient(ellipse at center, #2a2a45 0%, #1a1a2e 65%, #151522 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #game-skeleton .hint { color: #cbd5e1; font-size: 16px; }
+
+    /* ============ LOADING OVERLAY ============ */
+    #loading-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100000;
+    }
+    #loading-text { color: #ffd700; font-size: 16px; margin-bottom: 20px; }
+    #loading-progress-container {
+      width: 300px; height: 20px;
+      background: #333;
+      border: 2px solid #555;
+    }
+    #loading-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #e94560, #ffd700);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* ============ STATUS TEXT ============ */
+    #status-text {
+      position: absolute;
+      bottom: 12px; left: 12px;
+      color: #eee;
+      font-size: 14px;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 12px;
+      max-width: calc(100% - 24px);
+      font-family: 'Courier New', monospace;
+      z-index: 30;
+      pointer-events: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ============ BOTTOM PANELS ============ */
+    #bottom-panels {
+      display: flex;
+      gap: 10px;
+      width: 1280px;
+      max-width: 95vw;
+      justify-content: flex-start;
+      margin-top: 10px;
+    }
+
+    /* Memo panel */
+    #memo-panel {
+      position: relative;
+      width: 460px;
+      max-width: 100%;
+      height: 200px;
+      background: #111827;
+      border: 4px solid #0e1119;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+    }
+    #memo-title {
+      color: #ffd700;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    #memo-date {
+      color: #888;
+      font-size: 10px;
+      margin-bottom: 6px;
+      text-align: right;
+    }
+    #memo-content {
+      color: #cbd5e1;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    #memo-placeholder { color: #666; font-style: italic; text-align: center; padding: 20px 0; }
+
+    /* Control bar */
+    #control-bar {
+      position: relative;
+      background: #141722;
+      padding: 10px;
+      border: 4px solid #0e1119;
+      width: 300px;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #control-bar-title {
+      color: #ffd700;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      padding: 4px 0 8px;
+    }
+    #control-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: var(--space-3);
-      min-height: 56px;
+      padding: 4px 8px;
+      background: #1f2937;
+      font-size: 11px;
     }
+    .control-label { color: #9ca3af; }
+    .control-value { color: #f0f0f0; font-weight: bold; }
 
-    .header-left {
+    .hermes-row {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
+      gap: 8px;
+      padding: 6px 8px;
+      background: #1f2937;
+      font-size: 11px;
+      margin-top: 4px;
     }
-
-    .hamburger-btn {
-      display: none;
-      background: var(--c-darkgray);
-      border: 3px solid var(--c-white);
-      color: var(--c-white);
-      width: 40px;
-      height: 40px;
-      font-size: 16px;
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hamburger-btn:hover {
-      background: var(--c-purple);
-    }
-
-    .header-title {
-      font-size: clamp(9px, 2.5vw, 12px);
-      color: var(--c-yellow);
-      text-shadow: 2px 2px 0 var(--c-orange);
-    }
-
-    .header-info {
-      font-size: clamp(6px, 1.5vw, 8px);
-      color: var(--c-silver);
-    }
-
-    .logout-btn {
-      background: var(--c-red);
-      border: 3px solid var(--c-white);
-      color: var(--c-white);
-      padding: var(--space-2) var(--space-3);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.5vw, 7px);
-      cursor: pointer;
-    }
-
-    .logout-btn:hover {
-      background: var(--c-orange);
-    }
-
-    .company-switcher {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-
-    .company-switcher-label {
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-silver);
-    }
-
-    .company-select {
-      padding: var(--space-2) var(--space-3);
-      background: var(--c-black);
-      border: 3px solid var(--c-yellow);
-      color: var(--c-yellow);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.5vw, 8px);
-      cursor: pointer;
-    }
-
-    .company-select:focus {
-      outline: none;
-      box-shadow: 4px 4px 0 var(--c-orange);
-    }
-
-    .company-select option {
-      background: var(--c-darkblue);
-      color: var(--c-white);
-    }
-
-    /* ============ NAV TABS ============ */
-    .nav-tabs {
-      display: flex;
-      background: var(--c-darkgray);
-      border-bottom: 3px solid var(--c-gray);
-      overflow-x: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
-    .nav-tabs::-webkit-scrollbar {
-      display: none;
-    }
-
-    .nav-tab {
-      padding: var(--space-3) var(--space-4);
-      background: var(--c-darkgray);
-      border: none;
-      border-right: 2px solid var(--c-gray);
-      color: var(--c-silver);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.8vw, 8px);
-      cursor: pointer;
-      white-space: nowrap;
+    #hermes-indicator {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #e74c3c;
       flex-shrink: 0;
-      transition: background var(--transition-fast), color var(--transition-fast);
     }
 
-    .nav-tab:hover {
-      background: var(--c-purple);
-      color: var(--c-white);
-    }
-
-    .nav-tab.active {
-      background: var(--c-darkblue);
-      color: var(--c-yellow);
-      border-bottom: 3px solid var(--c-yellow);
-    }
-
-    /* ============ BOTTOM TAB NAV (MOBILE ONLY) ============ */
-    .bottom-tab-nav {
-      display: none;
+    /* ============ SIDEBAR ============ */
+    #sidebar-backdrop {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 56px;
-      background: var(--c-darkblue);
-      border-top: 3px solid var(--c-gray);
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom, 0);
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000005;
+      display: none;
     }
+    #sidebar-backdrop.open { display: block; }
 
-    .bottom-tabs {
+    #sidebar {
+      position: fixed;
+      top: 0;
+      right: -100vw;
+      width: 320px;
+      max-width: 92vw;
+      height: 100vh;
+      background: #111827;
+      border-left: 2px solid #22c55e;
+      box-shadow: -8px 0 24px rgba(0,0,0,0.45);
+      transition: right 0.25s ease;
+      z-index: 1000010;
       display: flex;
-      height: 100%;
+      flex-direction: column;
     }
+    #sidebar.open { right: 0; }
 
-    .bottom-tab {
+    #sidebar-header {
+      color: #ecfdf5;
+      font-size: 14px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(148,163,184,0.22);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0b1220;
+    }
+    #sidebar-header button {
+      cursor: pointer;
+      border: 1px solid rgba(148,163,184,0.24);
+      background: #1f2937;
+      color: #fff;
+      padding: 6px 10px;
+      font-family: 'Courier New', monospace;
+    }
+    #sidebar-body {
+      padding: 10px;
+      overflow: auto;
       flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      background: transparent;
-      border: none;
-      color: var(--c-silver);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(5px, 1.5vw, 6px);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      border-top: 3px solid transparent;
+      gap: 8px;
     }
 
-    .bottom-tab .tab-icon {
-      font-size: clamp(16px, 4vw, 24px);
-    }
-
-    .bottom-tab .tab-label {
-      display: none;
-    }
-
-    .bottom-tab.active {
-      color: var(--c-yellow);
-      border-top: 3px solid var(--c-yellow);
-      background: rgba(241, 196, 15, 0.1);
-    }
-
-    .bottom-tab.active .tab-label {
-      display: block;
-    }
-
-    /* ============ MAIN CONTENT ============ */
-    .main-content {
-      flex: 1;
-      padding: var(--space-4);
-      padding-bottom: calc(var(--space-4) + 56px); /* Space for bottom nav on mobile */
-    }
-
-    .panel {
-      display: none;
-    }
-
-    .panel.active {
-      display: block;
-    }
-
-    .section-title {
-      font-size: clamp(9px, 2.5vw, 11px);
-      color: var(--c-cyan);
-      margin-bottom: var(--space-4);
-      padding-bottom: var(--space-3);
-      border-bottom: 3px solid var(--c-cyan);
-    }
-
-    /* ============ PIXEL BUTTONS ============ */
-    .pixel-btn {
-      width: 100%;
-      padding: 12px 16px;
-      margin-top: var(--space-3);
-      background: var(--c-green);
-      border: 3px solid var(--c-white);
-      border-top-color: var(--c-white);
-      border-right-color: var(--c-white);
-      border-bottom-color: var(--c-darkgray);
-      border-left-color: var(--c-darkgray);
-      color: var(--c-white);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(7px, 2vw, 10px);
-      cursor: pointer;
-      box-shadow: 
-        inset -2px -2px 0 rgba(0,0,0,0.2),
-        4px 4px 0 var(--c-darkgray);
-      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-    }
-
-    .pixel-btn:hover {
-      background: var(--c-lime);
-      transform: translate(-1px, -1px);
-      box-shadow: 
-        inset -2px -2px 0 rgba(0,0,0,0.2),
-        5px 5px 0 var(--c-darkgray);
-    }
-
-    .pixel-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 
-        inset 2px 2px 0 rgba(0,0,0,0.2),
-        none;
-    }
-
-    .pixel-btn.secondary {
-      background: var(--c-purple);
-    }
-
-    .pixel-btn.secondary:hover {
-      background: var(--c-pink);
-    }
-
-    .pixel-btn--danger { background: var(--c-red); }
-    .pixel-btn--warning { background: var(--c-orange); }
-    .pixel-btn--ghost { 
-      background: transparent; 
-      border-color: var(--c-white);
-    }
-
-    /* ============ PIXEL CARD ============ */
-    .pixel-card {
-      background: var(--c-darkblue);
-      border: 3px solid var(--c-gray);
-      padding: var(--space-4);
-      box-shadow: 
-        4px 4px 0 var(--c-black),
-        inset -2px -2px 0 rgba(0,0,0,0.1);
-      transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
-    }
-
-    .pixel-card:hover {
-      border-color: var(--c-cyan);
-      box-shadow: 
-        4px 4px 0 var(--c-cyan),
-        inset -2px -2px 0 rgba(0,0,0,0.1);
-    }
-
-    .pixel-card--outlined {
-      background: transparent;
-      border: 3px solid var(--c-purple);
-    }
-
-    /* ============ DASHBOARD ============ */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: var(--space-4);
-      margin-bottom: var(--space-5);
-    }
-
-    .stat-card {
-      background: var(--c-darkblue);
-      border: 3px solid var(--c-gray);
-      padding: var(--space-4);
-      text-align: center;
-      box-shadow: 4px 4px 0 var(--c-black);
-    }
-
-    .stat-value {
-      font-size: clamp(14px, 4vw, 16px);
-      color: var(--c-yellow);
-      margin: var(--space-2) 0;
-    }
-
-    .stat-label {
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-silver);
-    }
-
-    /* ============ DEPARTMENTS ============ */
-    .dept-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-4);
-    }
-
-    .dept-card {
-      background: var(--c-darkblue);
-      border: 4px solid var(--c-purple);
-      padding: var(--space-4);
-      box-shadow: 4px 4px 0 var(--c-purple);
-    }
-
-    .dept-header {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      margin-bottom: var(--space-3);
-    }
-
-    .dept-emoji {
-      font-size: clamp(18px, 4vw, 24px);
-    }
-
-    .dept-name {
-      font-size: clamp(8px, 2vw, 10px);
-      color: var(--c-yellow);
-    }
-
-    .dept-desc {
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-silver);
-      margin-bottom: var(--space-3);
-    }
-
-    .dept-stats {
-      display: flex;
-      gap: var(--space-3);
-      flex-wrap: wrap;
-    }
-
-    /* ============ DEPT BOARD ============ */
-    .dept-board-container {
-      display: flex;
-      gap: var(--space-4);
-      min-height: 400px;
-    }
-
-    .dept-sidebar {
-      width: 200px;
-      flex-shrink: 0;
+    /* Department list */
+    #department-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-2);
+      gap: 6px;
     }
-
-    .dept-sidebar-item {
-      background: var(--c-darkblue);
-      border: 3px solid var(--c-purple);
-      padding: var(--space-3);
+    .dept-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1f2937;
+      padding: 10px 12px;
+      border: 1px solid #374151;
       cursor: pointer;
       transition: all 0.15s;
     }
-
-    .dept-sidebar-item:hover {
-      background: var(--c-purple);
-      transform: translate(-2px, -2px);
-      box-shadow: 4px 4px 0 var(--c-darkgray);
+    .dept-item:hover { border-color: #22c55e; background: #263548; }
+    .dept-item.active { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,0.4) inset; }
+    .dept-icon { font-size: 18px; flex-shrink: 0; }
+    .dept-name { flex: 1; font-size: 13px; color: #f0f0f0; }
+    .dept-status {
+      font-size: 10px;
+      padding: 2px 6px;
+      color: #2ecc71;
     }
+    .dept-status.inactive { color: #e74c3c; }
 
-    .dept-sidebar-item.active {
-      background: var(--c-purple);
-      border-color: var(--c-yellow);
-      box-shadow: 0 0 8px var(--c-yellow);
-    }
-
-    .dept-board-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-    }
-
-    .dept-board-header {
-      background: var(--c-darkblue);
-      border: 4px solid var(--c-purple);
-      padding: var(--space-4);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .dept-board-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-    }
-
-    .dept-task-section, .dept-activity-section {
-      background: var(--c-darkblue);
-      border: 3px solid var(--c-gray);
-      padding: var(--space-4);
-    }
-
-    .dept-tasks-grid {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .dept-activity-log {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .activity-item {
-      background: var(--c-black);
-      border-left: 3px solid var(--c-cyan);
-      padding: var(--space-2) var(--space-3);
-      font-size: 7px;
-    }
-
-    .activity-item .activity-time {
-      color: var(--c-gray);
-      font-size: 6px;
-    }
-
-    .activity-item .activity-desc {
-      color: var(--c-white);
-      margin: 4px 0;
-    }
-
-    .activity-item .activity-user {
-      color: var(--c-cyan);
-      font-size: 6px;
-    }
-
-    .dept-sidebar-empty {
-      text-align: center;
-      color: var(--c-gray);
-      font-size: 7px;
-      padding: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .dept-board-container {
-        flex-direction: column;
-      }
-      .dept-sidebar {
-        width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
-      }
-      .dept-sidebar-item {
-        min-width: 120px;
-      }
-      .dept-board-content {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .dept-stat {
-      font-size: clamp(6px, 1.5vw, 7px);
-    }
-
-    .dept-stat span {
-      color: var(--c-lime);
-    }
-
-    /* Department edit button */
-    .dept-edit-btn {
-      margin-left: auto;
-      background: var(--c-purple);
-      border: 2px solid var(--c-white);
-      color: var(--c-white);
-      padding: var(--space-1) var(--space-2);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(5px, 1.5vw, 6px);
-      cursor: pointer;
-    }
-
-    .dept-edit-btn:hover {
-      background: var(--c-pink);
-    }
-
-    /* ============ TASKS ============ */
-    .task-controls {
-      display: flex;
-      gap: var(--space-3);
-      margin-bottom: var(--space-4);
-      flex-wrap: wrap;
-    }
-
-    .pixel-select {
-      padding: var(--space-2) var(--space-3);
-      background: var(--c-black);
-      border: 3px solid var(--c-white);
-      color: var(--c-white);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.5vw, 8px);
-    }
-
-    .add-task-btn {
-      background: var(--c-green);
-      border: 3px solid var(--c-white);
-      border-top-color: var(--c-white);
-      border-right-color: var(--c-white);
-      border-bottom-color: var(--c-darkgray);
-      border-left-color: var(--c-darkgray);
-      color: var(--c-white);
-      padding: var(--space-2) var(--space-4);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.5vw, 8px);
-      cursor: pointer;
-      box-shadow: 
-        inset -2px -2px 0 rgba(0,0,0,0.2),
-        3px 3px 0 var(--c-darkgray);
-    }
-
-    .add-task-btn:hover {
-      background: var(--c-lime);
-    }
-
-    .add-task-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: inset 2px 2px 0 rgba(0,0,0,0.2);
-    }
-
-    .task-list {
-      display: grid;
-      gap: var(--space-3);
-    }
-
-    .task-card {
-      background: var(--c-darkblue);
-      border: 3px solid var(--c-gray);
-      padding: var(--space-3);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-
-    .task-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: var(--space-2);
-    }
-
-    .task-title {
-      font-size: clamp(7px, 1.8vw, 9px);
-      color: var(--c-white);
-      flex: 1;
-    }
-
-    .task-status {
-      padding: var(--space-1) var(--space-2);
-      font-size: clamp(5px, 1.5vw, 6px);
-      border: 2px solid;
-    }
-
-    .status-pending { color: var(--c-yellow); border-color: var(--c-yellow); background: rgba(241,196,15,0.1); }
-    .status-in_progress { color: var(--c-blue); border-color: var(--c-blue); background: rgba(52,152,219,0.1); }
-    .status-completed { color: var(--c-lime); border-color: var(--c-lime); background: rgba(46,204,113,0.1); }
-    .status-failed { color: var(--c-red); border-color: var(--c-red); background: rgba(231,76,60,0.1); }
-
-    .task-meta {
-      display: flex;
-      gap: var(--space-3);
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-silver);
-      flex-wrap: wrap;
-    }
-
-    .task-actions {
-      display: flex;
-      gap: var(--space-2);
-      flex-wrap: wrap;
-      margin-top: var(--space-2);
-    }
-
-    .task-btn {
-      padding: var(--space-2) var(--space-3);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(5px, 1.5vw, 6px);
-      cursor: pointer;
-      border: 2px solid var(--c-white);
-      border-top-color: var(--c-white);
-      border-right-color: var(--c-white);
-      border-bottom-color: var(--c-darkgray);
-      border-left-color: var(--c-darkgray);
-      background: var(--c-darkgray);
-      color: var(--c-white);
-      box-shadow: inset -1px -1px 0 rgba(0,0,0,0.2), 2px 2px 0 var(--c-darkgray);
-    }
-
-    .task-btn:hover { background: var(--c-purple); }
-    .task-btn.complete { background: var(--c-green); }
-    .task-btn.failed { background: var(--c-red); }
-    .task-btn:active { transform: translate(1px, 1px); box-shadow: none; }
-
-    /* ============ MODAL ============ */
-    .modal {
+    /* Department detail panel */
+    #dept-detail-panel {
       display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(26, 26, 46, 0.95);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: var(--space-4);
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--c-darkblue);
-      border: 4px solid var(--c-yellow);
-      padding: var(--space-4);
-      width: 90%;
-      max-width: 400px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 
-        8px 8px 0 var(--c-purple),
-        inset -2px -2px 0 rgba(0,0,0,0.2);
-    }
-
-    .modal-title {
-      font-size: clamp(9px, 2.5vw, 11px);
-      color: var(--c-yellow);
-      margin-bottom: var(--space-4);
-    }
-
-    .modal-close {
-      float: right;
-      background: var(--c-red);
-      border: 2px solid var(--c-white);
-      color: var(--c-white);
-      width: 28px;
-      height: 28px;
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(8px, 2vw, 10px);
-      cursor: pointer;
-    }
-
-    .form-group {
-      margin-bottom: var(--space-3);
-    }
-
-    .form-group label {
-      display: block;
-      font-size: clamp(6px, 1.5vw, 8px);
-      color: var(--c-silver);
-      margin-bottom: var(--space-2);
-    }
-
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      padding: var(--space-2) var(--space-3);
-      background: var(--c-black);
-      border: 3px solid var(--c-gray);
-      color: var(--c-white);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.5vw, 8px);
-    }
-
-    .form-group textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    /* ============ WORKERS ============ */
-    .worker-controls {
-      display: flex;
-      gap: var(--space-3);
-      margin-bottom: var(--space-4);
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .worker-toggle {
-      display: flex;
-      gap: var(--space-2);
-    }
-
-    .toggle-btn {
-      padding: var(--space-2) var(--space-3);
-      background: var(--c-darkgray);
-      border: 3px solid var(--c-gray);
-      color: var(--c-silver);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.5vw, 7px);
-      cursor: pointer;
-    }
-
-    .toggle-btn.active {
-      background: var(--c-purple);
-      border-color: var(--c-yellow);
-      color: var(--c-yellow);
-    }
-
-    .machine-group {
-      background: var(--c-darkblue);
-      border: 4px solid var(--c-purple);
-      padding: var(--space-4);
-      margin-bottom: var(--space-4);
-      box-shadow: 4px 4px 0 var(--c-purple);
-    }
-
-    .machine-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--space-3);
-      padding-bottom: var(--space-3);
-      border-bottom: 3px solid var(--c-purple);
-    }
-
-    .machine-name {
-      font-size: clamp(8px, 2vw, 10px);
-      color: var(--c-cyan);
-    }
-
-    .machine-stats {
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-silver);
-    }
-
-    .worker-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: var(--space-3);
-    }
-
-    .worker-card {
-      background: var(--c-darkblue);
-      border: 3px solid var(--c-green);
-      padding: var(--space-3);
-    }
-
-    .worker-card:hover {
-      border-color: var(--c-cyan);
-    }
-
-    .worker-name {
-      font-size: clamp(7px, 1.8vw, 9px);
-      color: var(--c-yellow);
-      margin-bottom: var(--space-2);
-    }
-
-    .worker-status {
-      font-size: clamp(6px, 1.5vw, 7px);
-    }
-
-    .worker-status .dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      margin-right: var(--space-1);
-      border: 2px solid;
-    }
-
-    .worker-active .dot { background: var(--c-lime); border-color: var(--c-lime); }
-    .worker-idle .dot { background: var(--c-yellow); border-color: var(--c-yellow); }
-    .worker-offline .dot { background: var(--c-red); border-color: var(--c-red); }
-
-    /* ============ AUDIT LOGS ============ */
-    .log-list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-
-    .log-entry {
-      background: var(--c-darkblue);
-      border-left: 4px solid var(--c-purple);
-      padding: var(--space-3);
-      font-size: clamp(6px, 1.5vw, 7px);
-    }
-
-    .log-time {
-      color: var(--c-gray);
-      margin-right: var(--space-2);
-    }
-
-    .log-action {
-      color: var(--c-cyan);
-    }
-
-    /* ============ FOOTER ============ */
-    .footer {
-      background: var(--c-purple);
-      border-top: 4px solid var(--c-white);
-      padding: var(--space-3) var(--space-4);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-silver);
-    }
-
-    .footer-status {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      background: var(--c-lime);
-      border: 2px solid var(--c-white);
-      animation: pulse 2s infinite;
-    }
-
-    .ws-status {
-      color: var(--c-lime);
-    }
-
-    /* ============ PIXEL INDICATOR ============ */
-    .pixel-indicator {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border: 2px solid;
-    }
-
-    .pixel-indicator--active {
-      background: var(--c-lime);
-      border-color: var(--c-lime);
-    }
-
-    .pixel-indicator--idle {
-      background: var(--c-yellow);
-      border-color: var(--c-yellow);
-    }
-
-    .pixel-indicator--offline {
-      background: var(--c-red);
-      border-color: var(--c-red);
-    }
-
-    .pixel-indicator--busy {
-      background: var(--c-blue);
-      border-color: var(--c-blue);
-      animation: pulse 1.5s infinite;
-    }
-
-    /* ============ PIXEL BADGE ============ */
-    .pixel-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-1);
-      padding: var(--space-1) var(--space-2);
-      font-size: clamp(5px, 1.5vw, 6px);
-      border: 2px solid;
-    }
-
-    /* ============ EMPTY STATE ============ */
-    .empty-state {
-      text-align: center;
-      padding: var(--space-6);
-      color: var(--c-gray);
-      font-size: clamp(7px, 1.8vw, 9px);
-    }
-
-    .empty-state__icon {
-      font-size: clamp(32px, 8vw, 48px);
-      margin-bottom: var(--space-4);
-      opacity: 0.5;
-    }
-
-    .empty-state__title {
-      font-size: clamp(7px, 1.8vw, 9px);
-      color: var(--c-silver);
-      margin-bottom: var(--space-2);
-    }
-
-    .empty-state__desc {
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-gray);
-    }
-
-    /* ============ PIXEL LOADER ============ */
-    .pixel-loader {
-      display: flex;
-      gap: var(--space-1);
-      justify-content: center;
-    }
-
-    .pixel-loader__block {
-      width: 12px;
-      height: 12px;
-      background: var(--c-yellow);
-      animation: loader-bounce 0.6s infinite;
-    }
-
-    .pixel-loader__block:nth-child(2) { animation-delay: 0.1s; }
-    .pixel-loader__block:nth-child(3) { animation-delay: 0.2s; }
-
-    @keyframes loader-bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-
-    /* ============ CHAT PANEL ============ */
-    .chat-bubble { 
-      max-width: 75%; 
-      padding: var(--space-2) var(--space-3); 
-      font-size: clamp(7px, 1.8vw, 9px); 
-      line-height: 1.6; 
-      word-wrap: break-word; 
-    }
-    .chat-bubble.user { 
-      align-self: flex-end; 
-      background: var(--c-purple); 
-      border: 2px solid var(--c-pink); 
-      color: var(--c-white); 
-    }
-    .chat-bubble.worker { 
-      align-self: flex-start; 
-      background: var(--c-darkgray); 
-      border: 2px solid var(--c-cyan); 
-      color: var(--c-white); 
-    }
-    .chat-meta { 
-      font-size: clamp(6px, 1.5vw, 8px); 
-      color: var(--c-silver); 
-      margin-top: 3px; 
-    }
-
-    /* ============ ANIMATIONS ============ */
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    @keyframes pixel-blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-
-    @keyframes pixel-bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
-
-    /* ============ RESPONSIVE DESIGN ============ */
-    
-    /* === MOBILE (< 768px) === */
-    @media (max-width: 767px) {
-      /* Layout */
-      .header {
-        min-height: 44px;
-        padding: var(--space-2) var(--space-3);
-      }
-
-      .hamburger-btn {
-        display: flex;
-      }
-
-      .header-info {
-        display: none;
-      }
-
-      /* Hide horizontal nav, show bottom tabs */
-      .nav-tabs {
-        display: none;
-      }
-
-      .bottom-tab-nav {
-        display: block;
-      }
-
-      .main-content {
-        padding: var(--space-3);
-        padding-bottom: calc(var(--space-3) + 56px + env(safe-area-inset-bottom, 0px));
-      }
-
-      /* Grid layouts - single column */
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: var(--space-3);
-      }
-
-      .dept-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-3);
-      }
-
-      .stat-card {
-        padding: var(--space-3);
-      }
-
-      .dept-card {
-        box-shadow: 4px 4px 0 var(--c-purple);
-      }
-
-      /* Task list */
-      .task-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .pixel-select, .add-task-btn {
-        width: 100%;
-      }
-
-      .task-actions {
-        flex-direction: column;
-      }
-
-      .task-btn {
-        width: 100%;
-        text-align: center;
-      }
-
-      /* Footer */
-      .footer {
-        display: none;
-      }
-
-      /* Chat panel - mobile popup */
-      #chat-panel {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 56px;
-        top: auto;
-        width: 100%;
-        max-width: 100%;
-        height: 50vh;
-        border-left: none;
-        border-top: 4px solid var(--c-yellow);
-      }
-    }
-
-    /* === TABLET (768px - 1024px) === */
-    @media (min-width: 768px) and (max-width: 1024px) {
-      .stats-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-
-      .dept-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .bottom-tab-nav {
-        display: none;
-      }
-
-      /* Sidebar nav could be added here */
-
-      /* Chat panel - tablet side panel */
-      #chat-panel {
-        width: 380px;
-      }
-    }
-
-    /* === DESKTOP (> 1024px) === */
-    @media (min-width: 1025px) {
-      .stats-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-
-      .dept-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      .bottom-tab-nav {
-        display: none;
-      }
-
-      /* Chat panel - desktop fixed side */
-      #chat-panel {
-        width: 420px;
-      }
-
-      /* Hover effects */
-      .pixel-btn:hover {
-        transform: translate(-1px, -1px);
-      }
-
-      .task-btn:hover {
-        transform: translate(-1px, -1px);
-        box-shadow: inset -1px -1px 0 rgba(0,0,0,0.2), 3px 3px 0 var(--c-darkgray);
-      }
-}
-
-/* === MOBILE (< 768px) === */
-    @media (max-width: 767px) {
-      .header {
-        min-height: 44px;
-        padding: var(--space-2) var(--space-3);
-      }
-
-      .header-title {
-        font-size: clamp(8px, 2vw, 10px);
-      }
-
-      .company-select {
-        font-size: 6px;
-        padding: var(--space-1) var(--space-2);
-      }
-
-      .logout-btn {
-        font-size: 6px;
-        padding: var(--space-1) var(--space-2);
-      }
-
-      .stat-value {
-        font-size: clamp(12px, 3vw, 14px);
-      }
-
-      .pixel-logo {
-        font-size: 11px;
-      }
-
-      .login-box {
-        padding: var(--space-4);
-      }
-
-      .stat-card {
-        padding: var(--space-2);
-      }
-
-      .nav-tabs {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-
-      .nav-tabs::-webkit-scrollbar {
-        display: none;
-      }
-
-      /* App layout fixes for mobile */
-      .app-layout {
-        height: 100dvh;
-      }
-
-      .main-content {
-        padding: var(--space-3);
-        padding-bottom: calc(var(--space-3) + 56px + env(safe-area-inset-bottom, 0px));
-      }
-
-      /* Chat panel mobile adjustments */
-      .chat-container {
-        height: calc(100dvh - 120px);
-      }
-
-      .chat-messages {
-        flex: 1;
-        min-height: 0;
-      }
-
-      /* Footer hidden on mobile */
-      .footer {
-        display: none;
-      }
-}
-  </style>
-  <!-- Nav tabs scroll shadow indicator -->
-  <style>
-    .nav-tabs {
-      position: relative;
-    }
-    .nav-tabs::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: 40px;
-      background: linear-gradient(to right, transparent, var(--c-darkgray));
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .nav-tabs.scroll-active::after {
-      opacity: 1;
-    }
-
-    /* ============ PIXEL TOUCHABLE ============ */
-    .pixel-touchable {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .pixel-touchable::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(255,255,255,0.1);
-      transform: scale(0);
-      transition: transform 100ms;
-    }
-
-    .pixel-touchable:active::after {
-      transform: scale(1);
-    }
-  </style>
-  <style>
-    /* ============ APP LAYOUT (FIXED) ============ */
-    .app-layout {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .main-area {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    .main-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: var(--space-4);
-      padding-bottom: calc(var(--space-4) + 56px + env(safe-area-inset-bottom, 0px));
-    }
-
-    /* ============ EMBEDDED CHAT PANEL ============ */
-    #panel-chat {
-      height: 100%;
-      display: none;
-    }
-
-    #panel-chat.active {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      background: var(--c-darkblue);
-      border: 3px solid var(--c-gray);
-      border-radius: 4px;
-    }
-
-    .chat-header {
-      padding: var(--space-3) var(--space-4);
-      border-bottom: 3px solid var(--c-gray);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: var(--space-3);
-    }
-
-    .chat-room-tabs {
-      display: flex;
-      gap: var(--space-2);
-      flex-wrap: wrap;
-    }
-
-    .chat-room-tab {
-      padding: var(--space-1) var(--space-3);
-      background: var(--c-darkgray);
-      border: 2px solid var(--c-gray);
-      color: var(--c-silver);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(6px, 1.5vw, 7px);
-      cursor: pointer;
-    }
-
-    .chat-room-tab.active {
-      background: var(--c-purple);
-      border-color: var(--c-yellow);
-      color: var(--c-yellow);
-    }
-
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: var(--space-4);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-    }
-
-    .chat-input-area {
-      padding: var(--space-3) var(--space-4);
-      border-top: 3px solid var(--c-gray);
-      display: flex;
-      gap: var(--space-2);
-    }
-
-    .chat-input-area input {
-      flex: 1;
-      padding: var(--space-3);
-      background: var(--c-black);
-      border: 3px solid var(--c-gray);
-      color: var(--c-white);
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(7px, 1.8vw, 9px);
-    }
-
-    .chat-input-area input:focus {
-      outline: none;
-      border-color: var(--c-yellow);
-    }
-
-    .chat-bubble {
-      max-width: 75%;
-      padding: var(--space-2) var(--space-3);
-      font-size: clamp(7px, 1.8vw, 9px);
+      background: #1f2937;
+      border: 1px solid #374151;
+      padding: 12px;
+    }
+    #dept-detail-content {
+      font-size: 12px;
       line-height: 1.6;
-      word-wrap: break-word;
+    }
+    .dept-detail-header {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 6px;
+    }
+    .dept-detail-meta {
+      color: #9ca3af;
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+    .dept-detail-section-title {
+      color: #00d4aa;
+      font-size: 13px;
+      font-weight: bold;
+      margin: 10px 0 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #374151;
+    }
+    .dept-detail-item {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      font-size: 11px;
     }
+    .dept-detail-item:nth-child(odd) { background: rgba(0,0,0,0.1); }
 
-    .chat-bubble.user {
-      align-self: flex-end;
-      background: var(--c-purple);
-      border: 2px solid var(--c-pink);
-      color: var(--c-white);
+    .dept-close-btn {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      background: #e74c3c;
+      border: none;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      cursor: pointer;
     }
+    .dept-close-btn:hover { background: #c0392b; }
 
-    .chat-bubble.worker, .chat-bubble.bot {
-      align-self: flex-start;
-      background: var(--c-darkgray);
-      border: 2px solid var(--c-cyan);
-      color: var(--c-white);
-    }
-
-    .chat-meta {
-      font-size: clamp(6px, 1.5vw, 8px);
-      color: var(--c-silver);
-      margin-top: 3px;
-    }
-
-    /* Footer */
-    .footer {
-      background: var(--c-darkblue);
-      border-top: 4px solid var(--c-gray);
-      padding: var(--space-2) var(--space-4);
+    /* ============ TOP NAV ============ */
+    #top-nav {
+      width: 1280px;
+      max-width: 95vw;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: clamp(6px, 1.5vw, 7px);
-      color: var(--c-silver);
-      flex-wrap: wrap;
-      gap: var(--space-2);
+      padding: 8px 0;
     }
-
-    .footer-status {
+    #top-nav-left {
       display: flex;
       align-items: center;
-      gap: var(--space-2);
+      gap: 12px;
     }
+    #top-nav-title {
+      color: #ffd700;
+      font-size: 14px;
+      font-weight: bold;
+      text-shadow: 2px 2px 0 #e67e22;
+    }
+    #top-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .top-btn {
+      padding: 6px 12px;
+      background: #333;
+      border: 2px solid #555;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .top-btn:hover { border-color: #e94560; background: #444; }
+    .top-btn.logout-btn { background: #5a1818; border-color: #e94560; }
+    .top-btn.logout-btn:hover { background: #6a2828; }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--c-lime);
-      border-radius: 50%;
+    /* ============ COMPANY SELECTOR ============ */
+    #company-select {
+      padding: 4px 8px;
+      background: #1a1a2e;
+      border: 2px solid #ffd700;
+      color: #ffd700;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      cursor: pointer;
     }
-
-    .ws-status {
-      color: var(--c-lime);
-    }
+    #company-select:focus { outline: none; }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <div id="login-screen">
-    <div class="pixel-art-logo">
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-    </div>
-    <div class="pixel-logo">PIXEL OFFICE</div>
-    <div class="pixel-subtitle">AI AGENT 管理系統 v1.0</div>
-    
-    <div class="login-box">
-      <input type="text" id="login-username" class="pixel-input" placeholder="使用者名稱" maxlength="20">
-      <input type="password" id="login-password" class="pixel-input" placeholder="密碼" maxlength="30">
-      <button class="pixel-btn" onclick="doLogin()">▶ 登入</button>
-      <button class="pixel-btn secondary" onclick="doRegister()">✎ 註冊</button>
-      <div class="error-msg" id="login-error"></div>
+  <!-- ===== LOADING OVERLAY ===== -->
+  <div id="loading-overlay">
+    <div id="loading-text">正在載入像素辦公室...</div>
+    <div id="loading-progress-container">
+      <div id="loading-progress-bar"></div>
     </div>
   </div>
 
-  <!-- MAIN APP -->
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div id="login-screen">
+    <div class="login-logo">PIXEL OFFICE</div>
+    <div class="login-subtitle">AI Agent 管理系統</div>
+    <div class="login-box">
+      <input type="text" id="login-username" class="login-input" placeholder="使用者名稱" autocomplete="username">
+      <input type="password" id="login-password" class="login-input" placeholder="密碼" autocomplete="current-password">
+      <button class="login-btn" onclick="handleLogin()">登入</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
   <div id="app">
-    <div class="app-layout">
-      <div class="main-area">
-        <div class="header">
-          <div class="header-left">
-            <button class="hamburger-btn" onclick="toggleMobileMenu()">☰</button>
-            <div>
-              <div class="header-title">🎮 PIXEL OFFICE</div>
-              <div class="header-info" id="user-info"></div>
-            </div>
-          </div>
-          <div class="company-switcher">
-            <span class="company-switcher-label">🏢:</span>
-            <select id="company-select" class="company-select" onchange="switchCompany(this.value)">
-              <!-- Populated dynamically from /api/companies -->
-            </select>
-          </div>
-          <button class="logout-btn" onclick="logout()">登出 [X]</button>
-        </div>
-
-        <nav class="nav-tabs">
-          <button class="nav-tab active" data-panel="dashboard">📊 控制台</button>
-          <button class="nav-tab" data-panel="departments">🏢 部門</button>
-          <button class="nav-tab" data-panel="dept-board">📊 部門看板</button>
-          <button class="nav-tab" data-panel="tasks">📋 任務</button>
-          <button class="nav-tab" data-panel="workers">⚙️ Worker</button>
-          <button class="nav-tab" data-panel="audit">📜 稽核</button>
-        </nav>
-
-        <!-- BOTTOM TAB NAVIGATION (Mobile Only) -->
-        <nav class="bottom-tab-nav">
-          <div class="bottom-tabs">
-            <button class="bottom-tab active" data-panel="dashboard">
-              <span class="tab-icon">📊</span>
-              <span class="tab-label">首頁</span>
-            </button>
-            <button class="bottom-tab" data-panel="departments">
-              <span class="tab-icon">🏢</span>
-              <span class="tab-label">部門</span>
-            </button>
-            <button class="bottom-tab" data-panel="dept-board">
-              <span class="tab-icon">📊</span>
-              <span class="tab-label">看板</span>
-            </button>
-            <button class="bottom-tab" data-panel="tasks">
-              <span class="tab-icon">📋</span>
-              <span class="tab-label">任務</span>
-            </button>
-            <button class="bottom-tab" data-panel="workers">
-              <span class="tab-icon">⚙️</span>
-              <span class="tab-label">Worker</span>
-            </button>
-            <button class="bottom-tab" data-panel="chat">
-              <span class="tab-icon">💬</span>
-              <span class="tab-label">聊天</span>
-            </button>
-            <button class="bottom-tab" data-panel="audit">
-              <span class="tab-icon">📋</span>
-              <span class="tab-label">稽核</span>
-            </button>
-          </div>
-        </nav>
-
-        <main class="main-content">
-          <!-- DASHBOARD -->
-          <div id="panel-dashboard" class="panel active">
-            <h2 class="section-title">📊 全域統計</h2>
-            <div class="stats-grid" id="stats-grid"></div>
-            <h2 class="section-title">📋 最近任務</h2>
-            <div class="task-list" id="recent-tasks"></div>
-          </div>
-
-          <!-- DEPARTMENTS -->
-          <div id="panel-departments" class="panel">
-            <h2 class="section-title">🏢 部門專案
-              <button onclick="openDeptModal()" style="margin-left:20px;background:var(--c-green);border:3px solid var(--c-white);color:var(--c-white);padding:8px 16px;font-family:'Press Start 2P';font-size:8px;cursor:pointer;">+ 新增部門</button>
-            </h2>
-            <div class="dept-grid" id="dept-grid"></div>
-          </div>
-
-          <!-- DEPT BOARD (Department Task Board) -->
-          <div id="panel-dept-board" class="panel">
-            <h2 class="section-title">📊 部門任務看板</h2>
-            <div class="dept-board-container">
-              <div class="dept-sidebar" id="dept-sidebar"></div>
-              <div class="dept-board-main">
-                <div class="dept-board-header" id="dept-board-header"></div>
-                <div class="dept-board-content">
-                  <div class="dept-task-section">
-                    <h3 style="font-size:9px;color:var(--c-cyan);margin-bottom:10px;">📋 任務列表</h3>
-                    <div class="dept-tasks-grid" id="dept-tasks-grid"></div>
-                  </div>
-                  <div class="dept-activity-section">
-                    <h3 style="font-size:9px;color:var(--c-cyan);margin-bottom:10px;">📜 活動日誌</h3>
-                    <div class="dept-activity-log" id="dept-activity-log"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- TASKS -->
-          <div id="panel-tasks" class="panel">
-            <h2 class="section-title">📋 任務管理</h2>
-            <div class="task-controls">
-              <select id="task-filter-dept" class="pixel-select">
-                <option value="">全部部門</option>
-              </select>
-              <select id="task-filter-status" class="pixel-select">
-                <option value="">全部狀態</option>
-                <option value="pending">待處理</option>
-                <option value="in_progress">進行中</option>
-                <option value="completed">已完成</option>
-                <option value="failed">失敗</option>
-              </select>
-              <!-- [HIDDEN] <button class="add-task-btn" onclick="openTaskModal()">+ 新增任務</button> -->
-            </div>
-            <div class="task-list" id="task-list"></div>
-          </div>
-
-          <!-- WORKERS -->
-          <div id="panel-workers" class="panel">
-            <h2 class="section-title">⚙️ Worker 狀態</h2>
-            <div class="worker-controls">
-              <div class="worker-toggle">
-                <button class="toggle-btn active" data-view="all" onclick="setWorkerView('all')">📋 全部</button>
-                <button class="toggle-btn" data-view="machines" onclick="setWorkerView('machines')">🖥️ 雙電腦狀態</button>
-              </div>
-            </div>
-            <div id="worker-content"></div>
-          </div>
-
-          <!-- AUDIT LOG -->
-          <div id="panel-audit" class="panel">
-            <h2 class="section-title">📜 稽核日誌</h2>
-            <div class="log-list" id="audit-log"></div>
-          </div>
-
-          <!-- CHAT PANEL (Embedded) -->
-          <div id="panel-chat" class="panel">
-            <div class="chat-container">
-              <div class="chat-header">
-                <span id="chat-room-title" style="font-size:9px; color:var(--c-yellow);">💬 公開聊天室</span>
-                <div class="chat-room-tabs">
-                  <button class="chat-room-tab active" data-room="general" data-room-name="公開聊天室" onclick="switchChatRoom('general', 'general', '公開聊天室')">公開</button>
-                </div>
-              </div>
-              <div id="chat-messages" class="chat-messages"></div>
-              <div class="chat-input-area">
-                <input id="chat-input" type="text" placeholder="輸入訊息..." onkeydown="if(event.key==='Enter')sendChatMessage()">
-                <button onclick="sendChatMessage()" class="pixel-btn" style="width:auto;margin:0;">送出</button>
-              </div>
-            </div>
-          </div>
-        </main>
-
-        <footer class="footer">
-          <div class="footer-status">
-            <div class="status-dot"></div>
-            <span>系統上線</span>
-          </div>
-          <div>PIXEL OFFICE v1.0 | <span class="ws-status" id="ws-status">● WS 已連線</span></div>
-          <div id="server-time"></div>
-        </footer>
+    <!-- Top Nav -->
+    <div id="top-nav">
+      <div id="top-nav-left">
+        <span id="top-nav-title">Pixel Office</span>
+      </div>
+      <div id="top-nav-right">
+        <select id="company-select">
+          <option value="">所有公司</option>
+          <option value="company-a">Company A</option>
+          <option value="company-b">Company B</option>
+        </select>
+        <button class="top-btn" onclick="toggleSidebar()">☰ 部門</button>
+        <button class="top-btn logout-btn" onclick="handleLogout()">登出</button>
       </div>
     </div>
-  </div>
 
-  
+    <!-- Main stage -->
+    <div id="main-stage">
+      <div id="game-container">
+        <div id="game-skeleton"><div class="hint">正在進入像素辦公室…</div></div>
+        <div id="status-text">載入中...</div>
+      </div>
 
-  <!-- TASK MODAL -->
-  <div class="modal" id="task-modal">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeTaskModal()">X</button>
-      <h3 class="modal-title" id="modal-title">+ 新增任務</h3>
-      <form id="task-form">
-        <input type="hidden" id="task-id">
-        <div class="form-group">
-          <label>部門</label>
-          <select id="task-dept" required></select>
+      <!-- Bottom panels -->
+      <div id="bottom-panels">
+        <!-- Memo -->
+        <div id="memo-panel">
+          <div id="memo-title">📝 即時訊息</div>
+          <div id="memo-date"></div>
+          <div id="memo-content"><div id="memo-placeholder">載入中...</div></div>
         </div>
-        <div class="form-group">
-          <label>標題</label>
-          <input type="text" id="task-title" required maxlength="100">
+        <!-- Control bar -->
+        <div id="control-bar">
+          <div id="control-bar-title">系統狀態</div>
+          <div id="control-info">
+            <div class="control-row">
+              <span class="control-label">Agent 狀態</span>
+              <span class="control-value" id="agent-status-display">待命中</span>
+            </div>
+            <div class="hermes-row">
+              <span id="hermes-indicator"></span>
+              <span id="hermes-text">Hermes 離線</span>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>描述</label>
-          <textarea id="task-desc"></textarea>
-        </div>
-        <div class="form-group">
-          <label>優先權</label>
-          <select id="task-priority">
-            <option value="low">低</option>
-            <option value="normal" selected>普通</option>
-            <option value="high">高</option>
-            <option value="critical">緊急</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>負責人</label>
-          <select id="task-assigned">
-            <option value="">未指派</option>
-          </select>
-        </div>
-        <button type="submit" class="pixel-btn">✓ 儲存任務</button>
-      </form>
+      </div>
     </div>
+
+    <!-- Sidebar backdrop -->
+    <div id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div id="sidebar-header">
+        <span>📂 部門列表</span>
+        <button onclick="closeSidebar()">關閉</button>
+      </div>
+      <div id="sidebar-body">
+        <div id="department-list">
+          <div style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">載入中...</div>
+        </div>
+        <div id="dept-detail-panel">
+          <div id="dept-detail-content"></div>
+          <button class="dept-close-btn" onclick="closeDepartmentView()">關閉檢視</button>
+        </div>
+      </div>
+    </aside>
   </div>
 
-  <!-- DEPARTMENT MODAL (New) -->
-  <div class="modal" id="dept-modal">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeDeptModal()">X</button>
-      <h3 class="modal-title">+ 新增部門</h3>
-      <form id="dept-form">
-        <div class="form-group">
-          <label>名稱</label>
-          <input type="text" id="dept-name" required maxlength="50">
-        </div>
-        <div class="form-group">
-          <label>表情</label>
-          <input type="text" id="dept-emoji" maxlength="10" placeholder="🎮">
-        </div>
-        <div class="form-group">
-          <label>描述</label>
-          <textarea id="dept-desc" placeholder="部門描述..."></textarea>
-        </div>
-        <button type="submit" class="pixel-btn">✓ 新增部門</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- DEPARTMENT EDIT MODAL -->
-  <div class="modal" id="dept-edit-modal">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeDeptEditModal()">X</button>
-      <h3 class="modal-title">✎ 編輯部門</h3>
-      <form id="dept-edit-form">
-        <input type="hidden" id="dept-edit-id">
-        <div class="form-group">
-          <label>名稱</label>
-          <input type="text" id="dept-edit-name" required maxlength="50">
-        </div>
-        <div class="form-group">
-          <label>表情</label>
-          <input type="text" id="dept-edit-emoji" maxlength="10" placeholder="🎮">
-        </div>
-        <button type="submit" class="pixel-btn">✓ 儲存</button>
-      </form>
-    </div>
-  </div>
-
-<script>
-    // ============ STATE ============
-    let token = localStorage.getItem('pixel_token');
-    let user = JSON.parse(localStorage.getItem('pixel_user') || 'null');
-    let ws = null;
-    let departments = [];
-    let currentCompany = sessionStorage.getItem('pixel_company') || 'company-a';
-
-    // ============ API ============
-    const API = async (path, opts = {}) => {
-      const res = await fetch(path, {
-        ...opts,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Company-ID': currentCompany,
-          ...opts.headers
-        }
-      });
-      if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'API Error');
-      return data;
-    };
-
-    // ============ COMPANY SWITCHER ============
-    async function loadCompanies() {
-      try {
-        const data = await API('/api/companies');
-        const select = document.getElementById('company-select');
-        select.innerHTML = data.companies.map(c =>
-          `<option value="${c.id}">${c.emoji} ${c.name}</option>`
-        ).join('');
-      } catch (e) { console.error('Companies error:', e); }
-    }
-
-    function switchCompany(companyId) {
-      currentCompany = companyId;
-      sessionStorage.setItem('pixel_company', companyId);
-      document.getElementById('company-select').value = companyId;
-      // Reload all data for the new company
-      loadDashboard();
-      loadDepartments();
-      loadTasks();
-      loadWorkers();
-    }
-
+  <!-- ===== SCRIPTS ===== -->
+  <script src="/layout.js"></script>
+  <script>
     // ============ AUTH ============
-    async function showApp() {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'flex';
-      document.getElementById('user-info').textContent = `使用者: ${user.username} [${user.role === 'admin' ? '管理員' : '使用者'}]`;
-      // Initialize company switcher from API
-      await loadCompanies();
-      // Initialize company switcher from sessionStorage
-      document.getElementById('company-select').value = currentCompany;
-      connectWS();
-      loadDashboard();
-      loadDepartments();
-    }
+    const TOKEN_KEY = 'token';
+    const USERNAME_KEY = 'username';
 
-    function logout() {
-      localStorage.removeItem('pixel_token');
-      localStorage.removeItem('pixel_user');
-      token = null; user = null;
-      location.reload();
-    }
+    async function handleLogin() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      const errorEl = document.getElementById('login-error');
 
-    async function doLogin() {
-      const u = document.getElementById('login-username').value.trim();
-      const p = document.getElementById('login-password').value;
-      document.getElementById('login-error').textContent = '';
-      if (!u || !p) { document.getElementById('login-error').textContent = '請填寫所有欄位'; return; }
-      try {
-        const res = await fetch('/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: u, password: p })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        token = data.token; user = data.user;
-        localStorage.setItem('pixel_token', token);
-        localStorage.setItem('pixel_user', JSON.stringify(user));
-        showApp();
-      } catch (e) {
-        document.getElementById('login-error').textContent = e.message;
-      }
-    }
-
-    async function doRegister() {
-      const u = document.getElementById('login-username').value.trim();
-      const p = document.getElementById('login-password').value;
-      document.getElementById('login-error').textContent = '';
-      if (!u || !p) { document.getElementById('login-error').textContent = '請填寫所有欄位'; return; }
-      try {
-        const res = await fetch('/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: u, password: p })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        token = data.token; user = data.user;
-        localStorage.setItem('pixel_token', token);
-        localStorage.setItem('pixel_user', JSON.stringify(user));
-        showApp();
-      } catch (e) {
-        document.getElementById('login-error').textContent = e.message;
-      }
-    }
-
-    // ============ WEBSOCKET ============
-    function connectWS() {
-      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      ws = new WebSocket(`${proto}//${location.host}/ws`);
-      ws.onopen = () => { document.getElementById('ws-status').textContent = '● WS CONNECTED'; };
-      ws.onerror = (e) => { console.error('WebSocket error:', e); document.getElementById('ws-status').textContent = '○ WS ERROR'; };
-      ws.onclose = () => {
-        document.getElementById('ws-status').textContent = '○ WS RECONNECTING...';
-        setTimeout(connectWS, 3000);
-      };
-      ws.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          handleBroadcast(data);
-        } catch (err) { console.error('WS message parse error:', err); }
-      };
-    }
-
-    function handleBroadcast(data) {
-      console.log('WS broadcast:', data.type, data);
-      if (data.type === 'task_created' || data.type === 'task_updated') loadDashboard();
-      if (data.type === 'task_created' || data.type === 'task_updated') loadTasks();
-      if (data.type === 'worker_ping' || data.type === 'worker_registered') loadWorkers();
-      if (data.type === 'department_updated') loadDepartments();
-      if (data.type === 'message_sent') loadChatMessages();
-    }
-
-    // ============ NAVIGATION ============
-    function switchPanel(panelName) {
-      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      
-      const topTab = document.querySelector(`.nav-tab[data-panel="${panelName}"]`);
-      const bottomTab = document.querySelector(`.bottom-tab[data-panel="${panelName}"]`);
-      const panel = document.getElementById(`panel-${panelName}`);
-      
-      if (topTab) topTab.classList.add('active');
-      if (bottomTab) bottomTab.classList.add('active');
-      if (panel) panel.classList.add('active');
-      
-      if (panelName === 'dashboard') loadDashboard();
-      if (panelName === 'departments') loadDepartments();
-      if (panelName === 'dept-board') loadDeptBoard();
-      if (panelName === 'tasks') loadTasks();
-      if (panelName === 'workers') { loadWorkers(); startWorkerAutoRefresh(); }
-      else { stopWorkerAutoRefresh(); }
-      if (panelName === 'audit') loadAudit();
-      if (panelName === 'chat') openDefaultChat();
-    }
-
-    // Top nav tabs
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-      tab.addEventListener('click', () => switchPanel(tab.dataset.panel));
-    });
-
-    // Bottom tab navigation
-    document.querySelectorAll('.bottom-tab').forEach(tab => {
-      tab.addEventListener('click', () => switchPanel(tab.dataset.panel));
-    });
-
-    function toggleMobileMenu() {
-      // Toggle sidebar for mobile if needed
-      console.log('Mobile menu toggled');
-    }
-
-    function openDefaultChat() {
-      // Open default chat when chat tab is tapped
-      if (!currentChatRoom) {
-        currentChatRoom = { room_type: 'general', room_id: 'general', room_name: '公開聊天室' };
-        document.getElementById('panel-chat').classList.add('active');
-        loadChatMessages();
-      }
-    }
-
-    // ============ DASHBOARD ============
-    async function loadDashboard() {
-      try {
-        const stats = await API('/api/stats');
-        
-        const totalTasks = (stats.tasks.pending || 0) + (stats.tasks.in_progress || 0) + 
-                          (stats.tasks.completed || 0) + (stats.tasks.failed || 0);
-        const totalWorkers = (stats.workers.active || 0) + (stats.workers.idle || 0) + 
-                            (stats.workers.offline || 0);
-
-        document.getElementById('stats-grid').innerHTML = `
-          <div class="stat-card">
-            <div class="stat-label">總任務數</div>
-            <div class="stat-value">${totalTasks}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">待處理</div>
-            <div class="stat-value" style="color:var(--c-yellow)">${stats.tasks.pending || 0}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">進行中</div>
-            <div class="stat-value" style="color:var(--c-blue)">${stats.tasks.in_progress || 0}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">已完成</div>
-            <div class="stat-value" style="color:var(--c-lime)">${stats.tasks.completed || 0}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Worker 數</div>
-            <div class="stat-value">${totalWorkers}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">活躍中</div>
-            <div class="stat-value" style="color:var(--c-lime)">${stats.workers.active || 0}</div>
-          </div>
-        `;
-
-        if (stats.recent_tasks.length === 0) {
-          document.getElementById('recent-tasks').innerHTML = '<div class="empty-state">尚無任務</div>';
-        } else {
-          document.getElementById('recent-tasks').innerHTML = stats.recent_tasks.map(t => `
-            <div class="task-card">
-              <div class="task-header">
-                <span class="task-title">${t.title}</span>
-                <span class="task-status status-${t.status}">${t.status.toUpperCase()}</span>
-              </div>
-              <div class="task-meta">
-                <span>${t.department_emoji} ${t.department_name}</span>
-                <span>CREATED: ${new Date(t.created_at).toLocaleDateString()}</span>
-              </div>
-            </div>
-          `).join('');
-        }
-      } catch (e) { console.error('Dashboard error:', e); }
-    }
-
-    // ============ DEPARTMENTS ============
-    async function loadDepartments() {
-      try {
-        departments = await API('/api/departments');
-        const workers = await API('/api/workers/status');
-        const tasks = await API('/api/tasks');
-
-        document.getElementById('dept-grid').innerHTML = departments.map(d => {
-          // Get tasks in this department
-          const deptTasks = tasks.filter(t => t.department_id === d.id);
-          const taskStats = {
-            total: deptTasks.length,
-            pending: deptTasks.filter(t => t.status === 'pending').length,
-            in_progress: deptTasks.filter(t => t.status === 'in_progress').length,
-            completed: deptTasks.filter(t => t.status === 'completed').length,
-            failed: deptTasks.filter(t => t.status === 'failed').length
-          };
-
-          return `
-          <div class="dept-card" data-dept-id="${d.id}">
-            <div class="dept-header" onclick="toggleDeptDetail('${d.id}')" style="cursor:pointer;">
-              <span class="dept-emoji">${d.emoji}</span>
-              <span class="dept-name">${d.name}</span>
-              <button class="dept-edit-btn" onclick="event.stopPropagation(); openDeptEditModal('${d.id}')">✎</button>
-            </div>
-            <div class="dept-desc">${d.description}</div>
-            <div class="dept-stats">
-              <div class="dept-stat">📋 總數: <span>${taskStats.total}</span></div>
-              <div class="dept-stat">⏳ 待處理: <span>${taskStats.pending}</span></div>
-              <div class="dept-stat">🔄 進行中: <span>${taskStats.in_progress}</span></div>
-              <div class="dept-stat">✅ 已完成: <span>${taskStats.completed}</span></div>
-            </div>
-            <div id="dept-detail-${d.id}" class="dept-detail" style="display:none; margin-top:15px; padding-top:15px; border-top:2px solid var(--c-gray);">
-              <div style="font-size:8px; color:var(--c-cyan); margin-bottom:10px;">👥 全部 Worker (${workers.length})</div>
-              <div class="worker-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
-                ${workers.length === 0 ? '<div style="font-size:7px;color:var(--c-gray);">尚無 Worker</div>' :
-                  workers.map(w => {
-                    const status = getWorkerStatus(w);
-                    const statusColor = status === 'active' ? 'var(--c-lime)' : status === 'stale' ? 'var(--c-yellow)' : 'var(--c-red)';
-                    const isAssigned = w.department_id === d.id;
-                    return `
-                    <div class="worker-card" style="border-color:${statusColor};cursor:pointer;${isAssigned ? 'box-shadow:0 0 8px var(--c-lime);' : 'opacity:0.7;'}" onclick="openChat('worker', '${w.id}', '${w.name}')">
-                      <div class="worker-name">${w.name} ${isAssigned ? '✓' : ''}</div>
-                      <div class="worker-status worker-${w.status || 'idle'}">
-                        <span class="dot" style="background:${statusColor};border-color:${statusColor};"></span>${(w.status || 'idle').toUpperCase()}
-                      </div>
-                      <div style="font-size:6px;color:var(--c-silver);margin-top:5px;">
-                        <div>⏱ ${formatLastPing(w.last_ping)}</div>
-                      </div>
-                    </div>
-                  `}).join('')
-                }
-              </div>
-              ${deptTasks.filter(t => t.status === 'in_progress' || t.status === 'pending').length > 0 ? `
-              <div style="font-size:8px; color:var(--c-cyan); margin:15px 0 10px;">📋 進行中/待處理任務</div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                ${deptTasks.filter(t => t.status === 'in_progress' || t.status === 'pending').slice(0, 5).map(t => `
-                  <div style="background:var(--c-black);padding:8px;border:2px solid var(--c-gray);font-size:7px;">
-                    <span class="task-status status-${t.status}" style="font-size:6px;">${t.status === 'in_progress' ? '進行中' : '待處理'}</span>
-                    <span style="margin-left:8px;">${t.title}</span>
-                  </div>
-                `).join('')}
-              </div>
-              ` : ''}
-              <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
-                <button onclick="openChat('department', '${d.id}', '${d.name}')" style="background:var(--c-purple);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">💬 部門聊天室</button>
-                <!-- [HIDDEN] <button onclick="openTaskModalForDept('${d.id}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button -->
-              </div>
-            </div>
-          </div>
-        `}).join('');
-
-        // Update task modal dropdown
-        const taskDept = document.getElementById('task-dept');
-        if (taskDept) {
-          taskDept.innerHTML = departments.map(d => `<option value="${d.id}">${d.emoji} ${d.name}</option>`).join('');
-        }
-        const taskFilterDept = document.getElementById('task-filter-dept');
-        if (taskFilterDept) {
-          taskFilterDept.innerHTML = '<option value="">全部部門</option>' + 
-            departments.map(d => `<option value="${d.id}">${d.emoji} ${d.name}</option>`).join('');
-        }
-      } catch (e) { console.error('Departments error:', e); }
-    }
-
-    function toggleDeptDetail(deptId) {
-      const detail = document.getElementById(`dept-detail-${deptId}`);
-      if (detail) {
-        detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
-      }
-    }
-
-    // ============ DEPT BOARD ============
-    let selectedBoardDept = null;
-
-    async function loadDeptBoard() {
-      try {
-        departments = await API('/api/departments');
-        renderDeptSidebar();
-        if (selectedBoardDept) {
-          await loadDeptBoardContent(selectedBoardDept);
-        } else if (departments.length > 0) {
-          selectBoardDept(departments[0].id);
-        }
-      } catch (e) { console.error('Dept board error:', e); }
-    }
-
-    function renderDeptSidebar() {
-      const sidebar = document.getElementById('dept-sidebar');
-      if (!sidebar) return;
-      if (departments.length === 0) {
-        sidebar.innerHTML = '<div class="dept-sidebar-empty">尚無部門</div>';
+      if (!username || !password) {
+        errorEl.textContent = '請輸入使用者名稱和密碼';
         return;
       }
-      sidebar.innerHTML = departments.map(d => `
-        <div class="dept-sidebar-item ${selectedBoardDept === d.id ? 'active' : ''}" onclick="selectBoardDept('${d.id}')">
-          <div style="font-size:14px;">${d.emoji}</div>
-          <div style="font-size:7px;margin-top:4px;">${d.name}</div>
-        </div>
-      `).join('');
-    }
 
-    async function selectBoardDept(deptId) {
-      selectedBoardDept = deptId;
-      renderDeptSidebar();
-      await loadDeptBoardContent(deptId);
-    }
+      errorEl.textContent = '登入中...';
 
-    async function loadDeptBoardContent(deptId) {
       try {
-        const dept = departments.find(d => d.id === deptId);
-        if (!dept) return;
-
-        // Render header
-        const header = document.getElementById('dept-board-header');
-        header.innerHTML = `
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:20px;">${dept.emoji}</span>
-            <div>
-              <div style="font-size:10px;color:var(--c-yellow);">${dept.name}</div>
-              <div style="font-size:7px;color:var(--c-silver);">${dept.description || ''}</div>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <!-- [HIDDEN] <button onclick="openTaskModalForDept('${deptId}')" style="background:var(--c-green);border:2px solid var(--c-white);color:var(--c-white);padding:8px 12px;font-family:'Press Start 2P';font-size:7px;cursor:pointer;">+ 新增任務</button -->
-          </div>
-        `;
-
-        // Load tasks and activities in parallel
-        const [tasks, activities] = await Promise.all([
-          API(`/api/tasks?department_id=${deptId}`),
-          API(`/api/activities?department_id=${deptId}&limit=20`)
-        ]);
-
-        // Render tasks
-        const tasksGrid = document.getElementById('dept-tasks-grid');
-        if (tasks.length === 0) {
-          tasksGrid.innerHTML = '<div style="font-size:7px;color:var(--c-gray);text-align:center;padding:20px;">尚無任務</div>';
-        } else {
-          const statusLabels = { pending: '⏳ 待處理', in_progress: '🔄 進行中', completed: '✅ 已完成', failed: '✗ 失敗' };
-          const priorityLabels = { low: '🔵 低', normal: '⚪ 普通', high: '🟠 高', critical: '🔴 緊急' };
-          tasksGrid.innerHTML = tasks.map(t => `
-            <div style="background:var(--c-black);border:2px solid var(--c-gray);padding:10px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:8px;color:var(--c-white);">${t.title}</span>
-                <span style="font-size:6px;${t.status === 'completed' ? 'color:var(--c-lime);' : t.status === 'in_progress' ? 'color:var(--c-yellow);' : ''}">${statusLabels[t.status] || t.status}</span>
-              </div>
-              <div style="font-size:6px;color:var(--c-silver);margin-bottom:6px;">${priorityLabels[t.priority] || '⚪ 普通'}</div>
-              <div style="display:flex;gap:6px;">
-                ${t.status !== 'completed' && t.status !== 'in_progress' ? `<button onclick="updateTask('${t.id}','in_progress')" style="background:var(--c-blue);border:1px solid var(--c-white);color:var(--c-white);padding:4px 8px;font-size:6px;cursor:pointer;">▶ 開始</button>` : ''}
-                ${t.status !== 'completed' ? `<button onclick="updateTask('${t.id}','completed')" style="background:var(--c-lime);border:1px solid var(--c-white);color:var(--c-white);padding:4px 8px;font-size:6px;cursor:pointer;">✓ 完成</button>` : ''}
-                ${t.status !== 'failed' ? `<button onclick="updateTask('${t.id}','failed')" style="background:var(--c-red);border:1px solid var(--c-white);color:var(--c-white);padding:4px 8px;font-size:6px;cursor:pointer;">✗ 失敗</button>` : ''}
-              </div>
-            </div>
-          `).join('');
-        }
-
-        // Render activity log
-        const activityLog = document.getElementById('dept-activity-log');
-        if (activities.length === 0) {
-          activityLog.innerHTML = '<div style="font-size:7px;color:var(--c-gray);text-align:center;padding:20px;">尚無活動記錄</div>';
-        } else {
-          activityLog.innerHTML = activities.map(a => `
-            <div class="activity-item">
-              <div class="activity-time">${new Date(a.created_at).toLocaleString()}</div>
-              <div class="activity-desc">${a.description || a.action}</div>
-              <div class="activity-user">👤 ${a.user_name || '系統'}</div>
-            </div>
-          `).join('');
-        }
-      } catch (e) { console.error('Dept board content error:', e); }
-    }
-
-    // ============ TASKS ============
-    async function loadTasks() {
-      try {
-        const dept = document.getElementById('task-filter-dept').value;
-        const status = document.getElementById('task-filter-status').value;
-        let url = '/api/tasks?';
-        if (dept) url += `department_id=${dept}&`;
-        if (status) url += `status=${status}&`;
-        const tasks = await API(url);
-        renderTasks(tasks);
-      } catch (e) { console.error('Tasks error:', e); }
-    }
-
-    function renderTasks(tasks) {
-      if (tasks.length === 0) {
-        document.getElementById('task-list').innerHTML = '<div class="empty-state">尚無任務</div>';
-        return;
-      }
-      const statusLabels = { pending: '待處理', in_progress: '進行中', completed: '已完成', failed: '失敗' };
-      const priorityLabels = { low: '低', normal: '普通', high: '高', critical: '緊急' };
-      document.getElementById('task-list').innerHTML = tasks.map(t => `
-        <div class="task-card">
-          <div class="task-header">
-            <span class="task-title">${t.title}</span>
-            <span class="task-status status-${t.status}">${statusLabels[t.status] || t.status}</span>
-          </div>
-          ${t.description ? `<div style="font-size:7px;color:var(--c-silver);margin:5px 0">${t.description}</div>` : ''}
-          <div class="task-meta">
-            <span>優先權: ${priorityLabels[t.priority] || t.priority || '普通'}</span>
-            <span>建立: ${new Date(t.created_at).toLocaleDateString()}</span>
-          </div>
-          <div class="task-actions">
-            ${t.status !== 'completed' ? `<button class="task-btn complete" onclick="updateTask('${t.id}','completed')">✓ 完成</button>` : ''}
-            ${t.status !== 'in_progress' && t.status !== 'completed' ? `<button class="task-btn" onclick="updateTask('${t.id}','in_progress')">▶ 開始</button>` : ''}
-            ${t.status !== 'failed' ? `<button class="task-btn failed" onclick="updateTask('${t.id}','failed')">✗ 失敗</button>` : ''}
-            <button class="task-btn" onclick="openTaskModal('${t.id}')">✎ 編輯</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function openTaskModal(id = null) {
-      document.getElementById('task-form').reset();
-      document.getElementById('task-id').value = '';
-      document.getElementById('modal-title').textContent = '+ 新增任務';
-      if (!departments.length) loadDepartments();
-      if (id) {
-        API(`/api/tasks/${id}`).then(t => {
-          document.getElementById('task-id').value = t.id;
-          document.getElementById('task-dept').value = t.department_id;
-          document.getElementById('task-title').value = t.title;
-          document.getElementById('task-desc').value = t.description || '';
-          document.getElementById('task-priority').value = t.priority || 'normal';
-          document.getElementById('modal-title').textContent = '✎ 編輯任務';
+        const resp = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
         });
-      }
-      document.getElementById('task-modal').classList.add('active');
-    }
 
-    function closeTaskModal() {
-      document.getElementById('task-modal').classList.remove('active');
-    }
+        const data = await resp.json();
 
-    // Open task modal pre-selected with department
-    function openTaskModalForDept(deptId) {
-      document.getElementById('task-form').reset();
-      document.getElementById('task-id').value = '';
-      document.getElementById('modal-title').textContent = '+ 新增任務';
-      if (!departments.length) loadDepartments();
-      document.getElementById('task-dept').value = deptId;
-      document.getElementById('task-modal').classList.add('active');
-    }
-
-    // Department modal (new)
-    function openDeptModal() {
-      document.getElementById('dept-form').reset();
-      document.getElementById('dept-modal').classList.add('active');
-    }
-
-    function closeDeptModal() {
-      document.getElementById('dept-modal').classList.remove('active');
-    }
-
-    // Department form submit
-    document.getElementById('dept-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const data = {
-        name: document.getElementById('dept-name').value,
-        emoji: document.getElementById('dept-emoji').value || '📁',
-        description: document.getElementById('dept-desc').value
-      };
-      try {
-        await API('/api/departments', { method: 'POST', body: JSON.stringify(data) });
-        closeDeptModal();
-        loadDepartments();
-      } catch (err) { alert('新增失敗: ' + err.message); }
-    });
-
-    async function updateTask(id, status) {
-      try {
-        await API(`/api/tasks/${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ status })
-        });
-        loadTasks();
-      } catch (e) { alert('Update failed: ' + e.message); }
-    }
-
-    document.getElementById('task-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('task-id').value;
-      const data = {
-        department_id: document.getElementById('task-dept').value,
-        title: document.getElementById('task-title').value,
-        description: document.getElementById('task-desc').value,
-        priority: document.getElementById('task-priority').value
-      };
-      try {
-        if (id) {
-          await API(`/api/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
-        } else {
-          await API('/api/tasks', { method: 'POST', body: JSON.stringify(data) });
+        if (!resp.ok) {
+          errorEl.textContent = data.error || '登入失敗';
+          return;
         }
-        closeTaskModal();
-        loadTasks();
-      } catch (e) { alert('Save failed: ' + e.message); }
-    });
 
-    document.getElementById('task-filter-dept').addEventListener('change', loadTasks);
-    document.getElementById('task-filter-status').addEventListener('change', loadTasks);
-
-    // ============ WORKERS ============
-    let workerView = 'all';
-    let workerRefreshInterval = null;
-
-    function setWorkerView(view) {
-      workerView = view;
-      document.querySelectorAll('.toggle-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.view === view);
-      });
-      loadWorkers();
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(USERNAME_KEY, username);
+        enterOffice();
+      } catch (e) {
+        errorEl.textContent = '網路錯誤：' + e.message;
+      }
     }
 
-    function getWorkerStatus(w) {
-      if (!w.last_ping) return 'offline';
-      const pingTime = new Date(w.last_ping);
-      const now = new Date();
-      const diffMs = now - pingTime;
-      const diffMin = diffMs / 60000;
-      if (diffMin < 5) return 'active';
-      if (diffMin < 15) return 'stale';
-      return 'offline';
+    function enterOffice() {
+      document.getElementById('login-screen').classList.add('hidden');
+      const app = document.getElementById('app');
+      app.classList.add('visible');
+
+      // Load game (defines connectHermes, initGame)
+      const script = document.createElement('script');
+      script.src = '/game.js?_t=' + Date.now();
+      script.onload = function() {
+        // game.js loaded - initGame will be called by game.js itself
+      };
+      document.body.appendChild(script);
     }
 
-    function formatLastPing(lastPing) {
-      if (!lastPing) return '從未';
-      const pingTime = new Date(lastPing);
-      const now = new Date();
-      const diffMs = now - pingTime;
-      const diffMin = Math.floor(diffMs / 60000);
-      if (diffMin < 1) return '剛剛';
-      if (diffMin < 60) return `${diffMin}分鐘前`;
-      const diffHr = Math.floor(diffMin / 60);
-      if (diffHr < 24) return `${diffHr}小時前`;
-      return pingTime.toLocaleDateString();
+    function handleLogout() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USERNAME_KEY);
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('app').classList.remove('visible');
+      document.getElementById('login-error').textContent = '';
+
+      // Disconnect WS
+      if (window.hermesWs) {
+        try { window.hermesWs.close(); } catch(e) {}
+        window.hermesWs = null;
+      }
     }
 
-    function renderWorkerCard(w) {
-      const status = getWorkerStatus(w);
-      const statusIcon = status === 'active' ? '🟢' : status === 'stale' ? '🟡' : '⚫';
-      const deptInfo = w.department_name ? `${w.department_emoji || ''} ${w.department_name}` : '—';
-      return `
-        <div class="worker-card worker-${status}" data-worker-id="${w.id}">
-          <div class="worker-name">${w.machine_id ? `[${w.machine_id}] ` : ''}${w.name}</div>
-          <div class="worker-status worker-${w.status || 'idle'}">
-            <span class="dot"></span>${w.status.toUpperCase() || 'IDLE'}
-          </div>
-          <div style="font-size:7px;color:var(--c-silver);margin-top:8px;">
-            <div>⏱ ${formatLastPing(w.last_ping)}</div>
-            <div>🏢 ${deptInfo}</div>
-          </div>
-        </div>
-      `;
-    }
+    function getToken() { return localStorage.getItem(TOKEN_KEY); }
 
-    function renderMachineGroup(machineId, machineWorkers) {
-      const activeWorkers = machineWorkers.filter(w => getWorkerStatus(w) === 'active');
-      const lastActivity = machineWorkers
-        .map(w => w.last_ping)
-        .filter(Boolean)
-        .sort()
-        .reverse()[0];
-
-      return `
-        <div class="machine-group">
-          <div class="machine-header">
-            <div class="machine-name">🖥️ ${machineId}</div>
-            <div class="machine-stats">
-              <span style="color:var(--c-lime)">● ${activeWorkers.length}</span> 活躍 / ${machineWorkers.length} 總數
-            </div>
-          </div>
-          <div class="worker-grid">
-            ${machineWorkers.map(w => renderWorkerCard(w)).join('')}
-          </div>
-          <div style="font-size:7px;color:var(--c-gray);margin-top:10px;text-align:right;">
-            最後活動: ${formatLastPing(lastActivity)}
-          </div>
-        </div>
-      `;
-    }
-
-    async function loadWorkers() {
-      try {
-        const workers = await API('/api/workers/status');
-
-        if (workerView === 'all') {
-          // Flat list view
-          if (workers.length === 0) {
-            document.getElementById('worker-content').innerHTML = '<div class="empty-state">尚無 Worker 註冊</div>';
+    // ============ AUTO LOGIN CHECK ============
+    (function autoLogin() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (token) {
+        // Validate token by calling a simple API
+        fetch('/api/stats', {
+          headers: { 'Authorization': 'Bearer ' + token },
+          cache: 'no-store'
+        })
+        .then(resp => {
+          if (resp.ok) {
+            enterOffice();
           } else {
-            document.getElementById('worker-content').innerHTML = `<div class="worker-grid">${workers.map(w => renderWorkerCard(w)).join('')}</div>`;
+            localStorage.removeItem(TOKEN_KEY);
           }
-        } else {
-          // Machine grouped view
-          const machines = {};
-          workers.forEach(w => {
-            const mid = w.machine_id || 'UNKNOWN';
-            if (!machines[mid]) machines[mid] = [];
-            machines[mid].push(w);
-          });
-
-          const sortedMachines = Object.keys(machines).sort();
-          if (sortedMachines.length === 0) {
-            document.getElementById('worker-content').innerHTML = '<div class="empty-state">尚無 Worker 註冊</div>';
-          } else {
-            document.getElementById('worker-content').innerHTML = sortedMachines.map(mid =>
-              renderMachineGroup(mid, machines[mid])
-            ).join('');
-          }
-        }
-
-        // Broadcast worker updates for dashboard stats
-        broadcast({ type: 'workers_loaded', workers });
-        // Make worker cards clickable for chat
-        makeWorkersClickable();
-      } catch (e) { console.error('Workers error:', e); }
-    }
-
-    // Auto-refresh workers every 10 seconds when panel is active
-    function startWorkerAutoRefresh() {
-      stopWorkerAutoRefresh();
-      workerRefreshInterval = setInterval(() => {
-        if (document.getElementById('panel-workers').classList.contains('active')) {
-          loadWorkers();
-        }
-      }, 10000);
-    }
-
-    function stopWorkerAutoRefresh() {
-      if (workerRefreshInterval) {
-        clearInterval(workerRefreshInterval);
-        workerRefreshInterval = null;
-      }
-    }
-
-    // ============ AUDIT LOG ============
-    async function loadAudit() {
-      try {
-        const stats = await API('/api/stats');
-        document.getElementById('audit-log').innerHTML = stats.audit_logs.map(log => {
-          const details = log.details ? JSON.parse(log.details) : {};
-          return `
-            <div class="log-entry">
-              <span class="log-time">${new Date(log.created_at).toLocaleString()}</span>
-              <span class="log-action">[${log.action.toUpperCase()}]</span>
-              ${log.entity_type}: ${log.entity_id} 
-              ${details.username ? `by ${details.username}` : ''}
-              ${details.title ? `- "${details.title}"` : ''}
-            </div>
-          `;
-        }).join('') || '<div class="empty-state">尚無日誌</div>';
-      } catch (e) { console.error('Audit error:', e); }
-    }
-
-    // ============ SERVER TIME ============
-    setInterval(() => {
-      document.getElementById('server-time').textContent = new Date().toLocaleTimeString();
-    }, 1000);
-
-    // ============ CHAT SYSTEM ============
-    let currentChatRoom = null;
-    let chatRefreshInterval = null;
-
-    // Initialize default chat room
-    function initChat() {
-      if (!currentChatRoom) {
-        currentChatRoom = { room_type: 'general', room_id: 'general', room_name: '公開聊天室' };
-      }
-    }
-
-    function switchChatRoom(room_type, room_id, room_name) {
-      currentChatRoom = { room_type, room_id, room_name };
-      document.getElementById('chat-room-title').textContent = '💬 ' + room_name;
-      // Update tab active states
-      document.querySelectorAll('.chat-room-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.room === room_type && tab.dataset.roomId === room_id);
-      });
-      loadChatMessages();
-    }
-
-    function openChat(room_type, room_id, room_name) {
-      // Set the room directly without calling switchPanel (which would call openDefaultChat → recursion)
-      currentChatRoom = { room_type, room_id, room_name };
-      // Switch to chat panel directly
-      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      document.getElementById('panel-chat').classList.add('active');
-      document.getElementById('chat-room-title').textContent = '💬 ' + room_name;
-      loadChatMessages();
-    }
-
-    function loadChatMessages() {
-      if (!currentChatRoom) initChat();
-      const params = new URLSearchParams({ room_type: currentChatRoom.room_type, room_id: currentChatRoom.room_id });
-      fetch('/api/messages?' + params, { headers: { 'Authorization': 'Bearer ' + token, 'X-Company-ID': currentCompany } })
-        .then(r => r.json())
-        .then(msgs => {
-          const container = document.getElementById('chat-messages');
-          if (!container) return;
-          const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
-          container.innerHTML = msgs.map(m => `
-            <div class="chat-bubble ${m.sender_type}">
-              <div style="font-size:6px; color:var(--c-silver); margin-bottom:3px;">${m.sender_name}</div>
-              <div>${m.content}</div>
-              <div class="chat-meta">${new Date(m.created_at).toLocaleTimeString()}</div>
-            </div>
-          `).join('');
-          // Auto-scroll to bottom on new messages
-          container.scrollTop = container.scrollHeight;
+        })
+        .catch(() => {
+          // Network error - still try to show office
+          enterOffice();
         });
-    }
-
-    function sendChatMessage() {
-      const input = document.getElementById('chat-input');
-      if (!input) return;
-      const content = input.value.trim();
-      if (!content || !currentChatRoom) initChat();
-      fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'X-Company-ID': currentCompany },
-        body: JSON.stringify({ sender_id: 'dicoge', sender_type: 'user', sender_name: 'dicoge', content, room_type: currentChatRoom.room_type, room_id: currentChatRoom.room_id })
-      }).then(() => { input.value = ''; loadChatMessages(); });
-    }
-
-    // Make worker cards clickable
-    function makeWorkersClickable() {
-      document.querySelectorAll('.worker-card').forEach(card => {
-        card.style.cursor = 'pointer';
-        card.onclick = () => {
-          const name = card.querySelector('.worker-name')?.textContent || card.textContent;
-          const workerId = card.dataset.workerId;
-          if (workerId) openChat('worker', workerId, name);
-        };
-      });
-    }
-
-    // Make department cards clickable
-    function makeDepartmentsClickable() {
-      document.querySelectorAll('.dept-card').forEach(card => {
-        card.style.cursor = 'pointer';
-        card.onclick = () => {
-          const name = card.querySelector('.dept-name')?.textContent || card.textContent;
-          const deptId = card.dataset.deptId;
-          if (deptId) openChat('department', deptId, name);
-        };
-      });
-    }
-
-    // ============ DEPARTMENT EDIT MODAL ============
-    function openDeptEditModal(id) {
-      const dept = departments.find(d => d.id === id);
-      if (!dept) return;
-
-      document.getElementById('dept-edit-id').value = id;
-      document.getElementById('dept-edit-name').value = dept.name;
-      document.getElementById('dept-edit-emoji').value = dept.emoji;
-      document.getElementById('dept-edit-modal').classList.add('active');
-    }
-
-    function closeDeptEditModal() {
-      document.getElementById('dept-edit-modal').classList.remove('active');
-    }
-
-    // Department edit form submission
-    document.getElementById('dept-edit-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('dept-edit-id').value;
-      const data = {
-        name: document.getElementById('dept-edit-name').value,
-        emoji: document.getElementById('dept-edit-emoji').value
-      };
-
-      try {
-        await API(`/api/departments/${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify(data)
-        });
-        closeDeptEditModal();
-        loadDepartments();
-      } catch (err) {
-        alert('Update failed: ' + err.message);
       }
-    });
-
-    // ============ INIT ============
-    if (token && user) {
-      showApp();
-    } else {
-      document.getElementById('login-screen').style.display = 'flex';
-    }
+    })();
   </script>
 </body>
 </html>
