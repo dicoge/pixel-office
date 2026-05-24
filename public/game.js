@@ -118,12 +118,12 @@ const BUBBLE_TEXTS = {
 // ======== Multi-role member definitions ========
 const MEMBERS = [
   { id: 'hermes',    label: 'Hermes',     spriteKey: 'star_idle_static', area: 'breakroom',   offset: {x: 0, y: 0} },
-  { id: 'gemini',    label: 'Gemini',     spriteKey: 'guest_role_1',     area: 'researching', offset: {x: -25, y: -15} },
-  { id: 'manus',     label: 'Manus',      spriteKey: 'guest_role_2',     area: 'writing',     offset: {x: -30, y: 15} },
-  { id: 'codex',     label: 'Codex',      spriteKey: 'guest_role_3',     area: 'writing',     offset: {x: -15, y: -20} },
-  { id: 'claude',    label: 'Claude Code', spriteKey: 'guest_role_4',    area: 'writing',     offset: {x: 15, y: 10} },
-  { id: 'opencode',  label: 'OpenCode',   spriteKey: 'guest_role_5',     area: 'error',       offset: {x: 25, y: -15} },
-  { id: 'openclaw',  label: 'OpenClaw',   spriteKey: 'guest_role_6',     area: 'serverroom',  offset: {x: 30, y: 15} }
+  { id: 'gemini',    label: 'Gemini',     spriteKey: 'guest_anim_1',     area: 'researching', offset: {x: -25, y: -15} },
+  { id: 'manus',     label: 'Manus',      spriteKey: 'guest_anim_2',     area: 'writing',     offset: {x: -30, y: 15} },
+  { id: 'codex',     label: 'Codex',      spriteKey: 'guest_anim_3',     area: 'writing',     offset: {x: -15, y: -20} },
+  { id: 'claude',    label: 'Claude Code', spriteKey: 'guest_anim_4',    area: 'writing',     offset: {x: 15, y: 10} },
+  { id: 'opencode',  label: 'OpenCode',   spriteKey: 'guest_anim_5',     area: 'error',       offset: {x: 25, y: -15} },
+  { id: 'openclaw',  label: 'OpenClaw',   spriteKey: 'guest_anim_6',     area: 'serverroom',  offset: {x: 30, y: 15} }
 ];
 
 let game, star, sofa, serverroom, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, catBubble = null;
@@ -180,10 +180,9 @@ function preload() {
   this.load.spritesheet('sync_anim', '/sync-animation-v3-grid.webp', { frameWidth: 256, frameHeight: 256 });
   this.load.spritesheet('flowers', '/flowers-bloom-v2.webp', { frameWidth: 65, frameHeight: 65 });
 
-  // === Guest role sprites ===
+  // === Guest role sprites (spritesheets with animation) ===
   for (let i = 1; i <= 6; i++) {
-    this.load.image('guest_role_' + i, '/guest_role_' + i + '.png');
-    this.load.image('guest_anim_' + i, '/guest_anim_' + i + '.webp');
+    this.load.spritesheet('guest_anim_' + i, '/guest_anim_' + i + '.webp', { frameWidth: 32, frameHeight: 32 });
   }
 }
 
@@ -204,6 +203,16 @@ function create() {
   star.setDepth(20);
   star.setVisible(false); // Hidden until status is fetched
 
+  // === Guest character animations ===
+  for (let i = 1; i <= 6; i++) {
+    this.anims.create({
+      key: 'guest_idle_' + i,
+      frames: this.anims.generateFrameNumbers('guest_anim_' + i, { start: 0, end: 5 }),
+      frameRate: 6,
+      repeat: -1
+    });
+  }
+
   // === Multi-role member sprites & labels ===
   window.memberSprites = {};
   window.memberLabels = {};
@@ -216,9 +225,15 @@ function create() {
       window.memberStates[m.id] = 'idle';
       window.memberTargets[m.id] = { x: areas.breakroom.x, y: areas.breakroom.y };
     } else {
-      const sprite = game.add.image(areas[m.area].x + m.offset.x, areas[m.area].y + m.offset.y, m.spriteKey).setOrigin(0.5);
+      const mIdx = MEMBERS.indexOf(m);
+      const sprite = game.add.sprite(areas[m.area].x + m.offset.x, areas[m.area].y + m.offset.y, m.spriteKey).setOrigin(0.5);
+      sprite.setScale(2);
       sprite.setDepth(20);
       sprite.setVisible(true);
+      // Play idle animation (guest anim spritesheets)
+      if (m.id !== 'hermes') {
+        sprite.anims.play('guest_idle_' + (mIdx), true);
+      }
       window.memberSprites[m.id] = sprite;
       window.memberStates[m.id] = 'idle';
       window.memberTargets[m.id] = { x: areas[m.area].x + m.offset.x, y: areas[m.area].y + m.offset.y };

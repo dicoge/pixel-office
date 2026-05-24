@@ -105,5 +105,5 @@ const LAYOUT = {
   },
 
   // === Total assets count ===
-  totalAssets: 27
+  totalAssets: 20
 };
