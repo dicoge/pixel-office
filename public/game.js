@@ -1,5 +1,5 @@
 // Pixel Office - Phaser 3 game logic
-// Adapted from Star Office UI game.js
+// Expanded: 3-room scrollable office (2560x720)
 // Depends on layout.js (must load first)
 
 let supportsWebP = false;
@@ -32,10 +32,14 @@ function getExt(pngFile) {
 
 const config = {
   type: Phaser.CANVAS,
-  width: LAYOUT.game.width,
-  height: LAYOUT.game.height,
+  width: 1280,
+  height: 720,
   parent: 'game-container',
   pixelArt: true,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
   scene: { preload: preload, create: create, update: update }
 };
@@ -44,7 +48,7 @@ let totalAssets = 0;
 let loadedAssets = 0;
 let loadingProgressBar, loadingProgressContainer, loadingOverlay, loadingText;
 
-// Safety timeout: force-hide loading overlay if Phaser takes too long
+// Safety timeout
 let loadingTimeout = setTimeout(() => {
   hideLoadingOverlay();
   const st = document.getElementById('status-text');
@@ -97,16 +101,16 @@ function hideLoadingOverlay() {
 }
 
 const STATES = {
-  idle: { name: '待命', area: 'breakroom' },
+  idle: { name: '待命', area: 'lounge' },
   writing: { name: '整理文檔', area: 'writing' },
   researching: { name: '搜尋資訊', area: 'researching' },
-  executing: { name: '執行任務', area: 'writing' },
-  syncing: { name: '同步備份', area: 'writing' },
+  executing: { name: '執行任務', area: 'dev_area' },
+  syncing: { name: '同步備份', area: 'serverroom' },
   error: { name: '出錯了', area: 'error' }
 };
 
 const BUBBLE_TEXTS = {
-  idle: ['待命中：隨時可以開工', '先把桌面收拾乾淨', '呼——給大腦放個風', '咖啡還熱，靈感也還在'],
+  idle: ['待命中：隨時可以開工', '先去休息區喝杯咖啡', '呼——給大腦放個風', '咖啡還熱，靈感也還在', '沙發好舒服…'],
   writing: ['進入專注模式：勿擾', '先把關鍵路徑跑通', '把 bug 關進籠子裡', '今天的進度，明天的底氣'],
   researching: ['我在挖證據鏈', '找到關鍵在這裏', '先定位，再優化'],
   executing: ['執行中：不要眨眼', '開始跑 pipeline', '讓結果自己說話'],
@@ -121,14 +125,33 @@ const MEMBERS = [
   { id: 'gemini',    label: 'Gemini',     spriteKey: 'guest_anim_1',     area: 'researching', offset: {x: -25, y: -15} },
   { id: 'manus',     label: 'Manus',      spriteKey: 'guest_anim_2',     area: 'writing',     offset: {x: -30, y: 15} },
   { id: 'codex',     label: 'Codex',      spriteKey: 'guest_anim_3',     area: 'writing',     offset: {x: -15, y: -20} },
-  { id: 'claude',    label: 'Claude Code', spriteKey: 'guest_anim_4',    area: 'writing',     offset: {x: 15, y: 10} },
-  { id: 'opencode',  label: 'OpenCode',   spriteKey: 'guest_anim_5',     area: 'error',       offset: {x: 25, y: -15} },
-  { id: 'openclaw',  label: 'OpenClaw',   spriteKey: 'guest_anim_6',     area: 'serverroom',  offset: {x: 30, y: 15} }
+  { id: 'claude',    label: 'Claude Code', spriteKey: 'guest_anim_4',    area: 'dev_area',    offset: {x: 15, y: 10} },
+  { id: 'opencode',  label: 'OpenCode',   spriteKey: 'guest_anim_5',     area: 'qa_testing',  offset: {x: 25, y: -15} },
+  { id: 'openclaw',  label: 'OpenClaw',   spriteKey: 'guest_anim_6',     area: 'qa_testing',  offset: {x: 30, y: 15} }
 ];
 
-let game, star, sofa, serverroom, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, catBubble = null;
+// Room colors for drawn rooms
+const ROOM_COLORS = {
+  break: {
+    wall: 0x3d2b1f,
+    floor1: 0x8d6e63,
+    floor2: 0xa1887f,
+    baseboard: 0x5d4037,
+    window: 0x1a237e
+  },
+  dev: {
+    wall: 0x1a2332,
+    floor1: 0x37474f,
+    floor2: 0x455a64,
+    baseboard: 0x263238,
+    window: 0x0d47a1
+  }
+};
+
+let game, star, sofa, serverroom, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBubble = 0, targetX = 1280, targetY = 360, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, catBubble = null;
 let isMoving = false;
 let waypoints = [];
+let mainCamera;
 const FETCH_INTERVAL = 3000;
 const BUBBLE_INTERVAL = 8000;
 const CAT_BUBBLE_INTERVAL = 18000;
@@ -143,12 +166,252 @@ function authHeaders() {
   return headers;
 }
 
+// ===== Room background drawing =====
+function drawBreakRoom(scene) {
+  const g = scene.add.graphics();
+  const rx = 0, rw = 640, rh = 720;
+  const c = ROOM_COLORS.break;
+
+  // Wall
+  g.fillStyle(c.wall, 1);
+  g.fillRect(rx, 0, rw, rh);
+
+  // Floor (checkered)
+  const tileSize = 32;
+  for (let ty = 400; ty < rh; ty += tileSize) {
+    for (let tx = rx; tx < rw; tx += tileSize) {
+      const isEven = ((tx - rx) / tileSize + (ty - 400) / tileSize) % 2 === 0;
+      g.fillStyle(isEven ? c.floor1 : c.floor2, 1);
+      g.fillRect(tx, ty, tileSize, tileSize);
+    }
+  }
+
+  // Baseboard
+  g.fillStyle(c.baseboard, 1);
+  g.fillRect(rx, 390, rw, 12);
+
+  // Window (top area)
+  g.fillStyle(c.window, 0.6);
+  g.fillRect(rx + 120, 60, 100, 140);
+  // Window frame
+  g.lineStyle(3, 0x5c4033, 1);
+  g.strokeRect(rx + 120, 60, 100, 140);
+  g.strokeRect(rx + 120, 130, 100, 1);
+  g.strokeRect(rx + 170, 60, 1, 140);
+
+  // Second window
+  g.fillStyle(c.window, 0.6);
+  g.fillRect(rx + 420, 60, 100, 140);
+  g.lineStyle(3, 0x5c4033, 1);
+  g.strokeRect(rx + 420, 60, 100, 140);
+  g.strokeRect(rx + 420, 130, 100, 1);
+  g.strokeRect(rx + 470, 60, 1, 140);
+
+  // Shelf on left wall
+  g.fillStyle(0x5d4037, 1);
+  g.fillRect(rx + 10, 170, 20, 140);
+  for (let sy = 180; sy < 310; sy += 40) {
+    g.fillStyle(0x6d4c41, 1);
+    g.fillRect(rx + 10, sy, 20, 4);
+  }
+
+  g.setDepth(0);
+  return g;
+}
+
+function drawDevRoom(scene) {
+  const g = scene.add.graphics();
+  const rx = 1920, rw = 640, rh = 720;
+  const c = ROOM_COLORS.dev;
+
+  // Wall
+  g.fillStyle(c.wall, 1);
+  g.fillRect(rx, 0, rw, rh);
+
+  // Floor
+  const tileSize = 32;
+  for (let ty = 400; ty < rh; ty += tileSize) {
+    for (let tx = rx; tx < rx + rw; tx += tileSize) {
+      const isEven = ((tx - rx) / tileSize + (ty - 400) / tileSize) % 2 === 0;
+      g.fillStyle(isEven ? c.floor1 : c.floor2, 1);
+      g.fillRect(tx, ty, tileSize, tileSize);
+    }
+  }
+
+  // Baseboard
+  g.fillStyle(c.baseboard, 1);
+  g.fillRect(rx, 390, rw, 12);
+
+  // Server rack wall
+  g.fillStyle(0x263238, 1);
+  g.fillRect(rx + 20, 80, 100, 250);
+  // Rack shelves
+  for (let sy = 100; sy < 330; sy += 35) {
+    g.fillStyle(0x37474f, 1);
+    g.fillRect(rx + 25, sy, 90, 6);
+    // Blinking lights
+    for (let lx = 0; lx < 4; lx++) {
+      g.fillStyle(Math.random() > 0.3 ? 0x4caf50 : 0xffeb3b, 1);
+      g.fillRect(rx + 30 + lx * 20, sy - 20, 6, 6);
+    }
+  }
+
+  // Big window on right
+  g.fillStyle(c.window, 0.5);
+  g.fillRect(rx + 460, 50, 150, 200);
+  g.lineStyle(3, 0x37474f, 1);
+  g.strokeRect(rx + 460, 50, 150, 200);
+  g.strokeRect(rx + 460, 150, 150, 1);
+  g.strokeRect(rx + 535, 50, 1, 200);
+
+  // Code on wall (decorative)
+  g.fillStyle(0x4caf50, 0.5);
+  for (let i = 0; i < 5; i++) {
+    g.fillRect(rx + 380, 80 + i * 25, 60 + Math.random() * 30, 8);
+  }
+
+  g.setDepth(0);
+  return g;
+}
+
+// ===== Room divider / transition walls =====
+function drawRoomDividers(scene) {
+  const g = scene.add.graphics();
+
+  // Wall between break room and main office (at x=640)
+  g.fillStyle(0x5d4037, 1);
+  g.fillRect(638, 0, 6, 720);
+  // Door opening
+  g.fillStyle(ROOM_COLORS.break.wall, 1);
+  g.fillRect(638, 300, 6, 140);
+
+  // Wall between main office and dev room (at x=1920)
+  g.fillStyle(0x37474f, 1);
+  g.fillRect(1918, 0, 6, 720);
+  // Door opening
+  g.fillStyle(ROOM_COLORS.dev.wall, 1);
+  g.fillRect(1918, 300, 6, 140);
+
+  // Doorway markers
+  // Break → Main
+  g.fillStyle(0x8d6e63, 1);
+  g.fillRect(610, 360, 60, 8);
+  g.fillRect(610, 368, 60, 8);
+
+  // Main → Dev
+  g.fillStyle(0x546e7a, 1);
+  g.fillRect(1890, 360, 60, 8);
+  g.fillRect(1890, 368, 60, 8);
+
+  g.setDepth(1);
+  return g;
+}
+
+// ===== Furniture drawing for room 1 & 3 =====
+function drawRoomFurniture(scene) {
+  const f = LAYOUT.furniture;
+
+  // --- Room 1: Break room furniture ---
+  function rect(x, y, w, h, color, depth, alpha) {
+    const r = scene.add.rectangle(x, y, w, h, color, alpha || 1);
+    r.setDepth(depth || 10);
+    return r;
+  }
+
+  // Sofa
+  rect(f.breakSofa.x, f.breakSofa.y, f.breakSofa.width, f.breakSofa.height, f.breakSofa.color, f.breakSofa.depth);
+  rect(f.breakSofa.x - 55, f.breakSofa.y - 10, 10, 20, 0x6d4c41, f.breakSofa.depth + 1);
+
+  // Table
+  rect(f.breakTable.x, f.breakTable.y, f.breakTable.width, f.breakTable.height, f.breakTable.color, f.breakTable.depth);
+  rect(f.breakTable.x, f.breakTable.y - 15, f.breakTable.width + 10, 6, 0x4e342e, f.breakTable.depth + 1);
+
+  // Fridge
+  rect(f.breakFridge.x, f.breakFridge.y, f.breakFridge.width, f.breakFridge.height, f.breakFridge.color, f.breakFridge.depth);
+  rect(f.breakFridge.x, f.breakFridge.y - 5, 30, 8, 0xaaaaaa, f.breakFridge.depth + 1);
+
+  // Counter
+  rect(f.breakCounter.x, f.breakCounter.y, f.breakCounter.width, f.breakCounter.height, f.breakCounter.color, f.breakCounter.depth);
+  rect(f.breakCounter.x, f.breakCounter.y - 40, f.breakCounter.width, 40, 0x6d4c41, f.breakCounter.depth - 1);
+
+  // Lamp
+  rect(f.breakLamp.x, f.breakLamp.y, 8, 40, 0x5d4037, f.breakLamp.depth);
+  rect(f.breakLamp.x - 15, f.breakLamp.y - 22, 40, 10, f.breakLamp.color, f.breakLamp.depth + 1, 0.6);
+
+  // Plants
+  f.breakPlants.forEach(p => {
+    scene.add.rectangle(p.x, p.y, 20, 35, p.color, 1).setDepth(p.depth);
+    scene.add.rectangle(p.x, p.y - 20, 24, 10, 0x2e7d32, 1).setDepth(p.depth + 1);
+  });
+
+  // Room label
+  const lbl1 = scene.add.text(640 / 2, 20, '☕ 休息區', {
+    fontFamily: 'monospace', fontSize: '14px', fill: '#ffd700',
+    stroke: '#000', strokeThickness: 3
+  }).setOrigin(0.5).setDepth(10);
+
+  // --- Room 3: Dev room furniture ---
+  // Server rack
+  const rack = rect(f.devRack.x, f.devRack.y, f.devRack.width, f.devRack.height, f.devRack.color, f.devRack.depth);
+  // Rack lights
+  for (let ly = 0; ly < 3; ly++) {
+    for (let lx = 0; lx < 2; lx++) {
+      const light = scene.add.rectangle(
+        f.devRack.x - 20 + lx * 30,
+        f.devRack.y - 30 + ly * 30,
+        8, 8,
+        Math.random() > 0.3 ? 0x4caf50 : 0x2196f3,
+        1
+      ).setDepth(f.devRack.depth + 1);
+    }
+  }
+
+  // Workstations
+  rect(f.devWorkstation.x, f.devWorkstation.y, f.devWorkstation.width, f.devWorkstation.height, f.devWorkstation.color, f.devWorkstation.depth);
+  // Monitor
+  rect(f.devWorkstation.x - 20, f.devWorkstation.y - 20, 40, 20, 0x212121, f.devWorkstation.depth + 1);
+  rect(f.devWorkstation.x - 25, f.devWorkstation.y - 25, 50, 8, 0x1565c0, f.devWorkstation.depth + 2, 0.8);
+
+  // Terminal
+  rect(f.devTerminal.x, f.devTerminal.y, f.devTerminal.width, f.devTerminal.height, f.devTerminal.color, f.devTerminal.depth);
+  rect(f.devTerminal.x - 15, f.devTerminal.y - 18, 30, 18, 0x1b5e20, f.devTerminal.depth + 1, 0.7);
+
+  // Whiteboard
+  rect(f.devWhiteboard.x, f.devWhiteboard.y, f.devWhiteboard.width, f.devWhiteboard.height, f.devWhiteboard.color, f.devWhiteboard.depth);
+  // Writing on whiteboard
+  scene.add.rectangle(f.devWhiteboard.x - 35, f.devWhiteboard.y - 20, 20, 4, 0xe53935, 1).setDepth(f.devWhiteboard.depth + 1);
+  scene.add.rectangle(f.devWhiteboard.x, f.devWhiteboard.y - 10, 30, 4, 0x1e88e5, 1).setDepth(f.devWhiteboard.depth + 1);
+  scene.add.rectangle(f.devWhiteboard.x + 30, f.devWhiteboard.y + 10, 25, 4, 0x43a047, 1).setDepth(f.devWhiteboard.depth + 1);
+
+  // Dev room label
+  const lbl3 = scene.add.text(1920 + 640 / 2, 20, '💻 開發區', {
+    fontFamily: 'monospace', fontSize: '14px', fill: '#ffd700',
+    stroke: '#000', strokeThickness: 3
+  }).setOrigin(0.5).setDepth(10);
+
+  // Main office label (subtle)
+  const lbl2 = scene.add.text(1280, 8, '🏢 主辦公室', {
+    fontFamily: 'monospace', fontSize: '12px', fill: '#ffd700',
+    stroke: '#000', strokeThickness: 2
+  }).setOrigin(0.5).setDepth(4);
+
+  // Room transition signs
+  scene.add.text(560, 370, '休息區 →', {
+    fontFamily: 'monospace', fontSize: '10px', fill: '#ffe0b2',
+    stroke: '#000', strokeThickness: 2
+  }).setOrigin(0.5).setDepth(3);
+
+  scene.add.text(1890, 370, '→ 開發區', {
+    fontFamily: 'monospace', fontSize: '10px', fill: '#90caf9',
+    stroke: '#000', strokeThickness: 2
+  }).setOrigin(0.5).setDepth(3);
+}
+
 async function initGame() {
   try { supportsWebP = await checkWebPSupport(); }
   catch (e) { try { supportsWebP = await checkWebPSupportFallback(); } catch (e2) { supportsWebP = false; } }
   console.log('WebP 支援:', supportsWebP);
   new Phaser.Game(config);
-  // Connect Hermes WebSocket
   setTimeout(connectHermes, 1000);
 }
 
@@ -158,7 +421,7 @@ function preload() {
   loadingText = document.getElementById('loading-text');
   loadingProgressContainer = document.getElementById('loading-progress-container');
 
-  totalAssets = LAYOUT.totalAssets || 15;
+  totalAssets = LAYOUT.totalAssets || 20;
   loadedAssets = 0;
 
   this.load.on('filecomplete', () => { updateLoadingProgress(); });
@@ -180,7 +443,7 @@ function preload() {
   this.load.spritesheet('sync_anim', '/sync-animation-v3-grid.webp', { frameWidth: 256, frameHeight: 256 });
   this.load.spritesheet('flowers', '/flowers-bloom-v2.webp', { frameWidth: 65, frameHeight: 65 });
 
-  // === Guest role sprites (spritesheets with animation) ===
+  // Guest role sprites
   for (let i = 1; i <= 6; i++) {
     this.load.spritesheet('guest_anim_' + i, '/guest_anim_' + i + '.webp', { frameWidth: 32, frameHeight: 32 });
   }
@@ -188,9 +451,21 @@ function preload() {
 
 function create() {
   game = this;
-  this.add.image(640, 360, 'office_bg');
 
-  // === Sofa ===
+  // === Room backgrounds ===
+  drawBreakRoom(this);
+  drawDevRoom(this);
+
+  // Main office background (center)
+  this.add.image(1280, 360, 'office_bg');
+
+  // Room dividers (walls with door openings)
+  drawRoomDividers(this);
+
+  // === Furniture ===
+  drawRoomFurniture(this);
+
+  // === Soja (Main office) ===
   sofa = this.add.sprite(
     LAYOUT.furniture.sofa.x, LAYOUT.furniture.sofa.y, 'sofa_idle'
   ).setOrigin(LAYOUT.furniture.sofa.origin.x, LAYOUT.furniture.sofa.origin.y);
@@ -201,7 +476,8 @@ function create() {
   // === Star idle sprite ===
   star = this.add.image(areas.breakroom.x, areas.breakroom.y, 'star_idle_static').setOrigin(0.5);
   star.setDepth(20);
-  star.setVisible(false); // Hidden until status is fetched
+  star.setVisible(false);
+  star.setScale(0.6);
 
   // === Guest character animations ===
   for (let i = 1; i <= 6; i++) {
@@ -220,17 +496,15 @@ function create() {
   window.memberTargets = {};
   MEMBERS.forEach(m => {
     if (m.id === 'hermes') {
-      // Hermes IS the star sprite (handled above)
       window.memberSprites[m.id] = star;
       window.memberStates[m.id] = 'idle';
       window.memberTargets[m.id] = { x: areas.breakroom.x, y: areas.breakroom.y };
     } else {
       const mIdx = MEMBERS.indexOf(m);
       const sprite = game.add.sprite(areas[m.area].x + m.offset.x, areas[m.area].y + m.offset.y, m.spriteKey).setOrigin(0.5);
-      sprite.setScale(2);
+      sprite.setScale(1.4);
       sprite.setDepth(20);
       sprite.setVisible(true);
-      // Play idle animation (guest anim spritesheets)
       if (m.id !== 'hermes') {
         sprite.anims.play('guest_idle_' + (mIdx), true);
       }
@@ -241,11 +515,11 @@ function create() {
     // Name label
     const label = game.add.text(
       window.memberTargets[m.id].x,
-      window.memberTargets[m.id].y + 38,
+      window.memberTargets[m.id].y + 30,
       m.label,
       {
         fontFamily: 'monospace',
-        fontSize: '10px',
+        fontSize: '9px',
         fill: '#ffffff',
         stroke: '#000000',
         strokeThickness: 2
@@ -260,6 +534,7 @@ function create() {
   const plaqueY = LAYOUT.plaque.y;
   const plaqueBg = game.add.rectangle(plaqueX, plaqueY, LAYOUT.plaque.width, LAYOUT.plaque.height, 0x5d4037);
   plaqueBg.setStrokeStyle(3, 0x3e2723);
+  plaqueBg.setDepth(30);
   const plaqueText = game.add.text(plaqueX, plaqueY, 'Pixel Office', {
     fontFamily: 'monospace',
     fontSize: '18px',
@@ -267,11 +542,11 @@ function create() {
     fontWeight: 'bold',
     stroke: '#000',
     strokeThickness: 2
-  }).setOrigin(0.5);
-  game.add.text(plaqueX - 190, plaqueY, '⭐', { fontFamily: 'monospace', fontSize: '20px' }).setOrigin(0.5);
-  game.add.text(plaqueX + 190, plaqueY, '⭐', { fontFamily: 'monospace', fontSize: '20px' }).setOrigin(0.5);
+  }).setOrigin(0.5).setDepth(31);
+  game.add.text(plaqueX - 190, plaqueY, '⭐', { fontFamily: 'monospace', fontSize: '20px' }).setOrigin(0.5).setDepth(31);
+  game.add.text(plaqueX + 190, plaqueY, '⭐', { fontFamily: 'monospace', fontSize: '20px' }).setOrigin(0.5).setDepth(31);
 
-  // === Plants ===
+  // === Plants (Main office) ===
   for (let i = 0; i < LAYOUT.furniture.plants.length; i++) {
     const p = LAYOUT.furniture.plants[i];
     const plant = game.add.sprite(p.x, p.y, 'plants', Math.floor(Math.random() * 16)).setOrigin(0.5);
@@ -377,13 +652,17 @@ function create() {
   window.starSprite = star;
   statusText = document.getElementById('status-text');
 
+  // === Camera Setup ===
+  mainCamera = this.cameras.main;
+  mainCamera.setBounds(0, 0, LAYOUT.game.width, LAYOUT.game.height);
+  mainCamera.startFollow(star, false, LAYOUT.camera.lerp, LAYOUT.camera.lerp);
+
   loadMemo();
   fetchStatus();
   loadDepartments();
 
-  // Track mouse for delayed click refresh
+  // Refresh on click
   game.input.on('pointerdown', () => {
-    // Refresh data on click
     fetchStatus();
     fetchDepartments();
   });
@@ -451,24 +730,23 @@ function update(time) {
   // === Move all member sprites ===
   if (window.memberSprites) {
     MEMBERS.forEach(m => {
-      if (m.id === 'hermes') return; // Hermes handled by moveStar below
+      if (m.id === 'hermes') return;
       const sprite = window.memberSprites[m.id];
       const target = window.memberTargets[m.id];
       if (!sprite || !target) return;
       const dx = target.x - sprite.x;
       const dy = target.y - sprite.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const speed = 1.4;
+      const speed = 1.6;
       const wobble = Math.sin(time / 200 + MEMBERS.indexOf(m)) * 0.8;
       if (dist > 3) {
         sprite.x += (dx / dist) * speed;
         sprite.y += (dy / dist) * speed;
         sprite.setY(sprite.y + wobble);
       }
-      // Update name label position
       const label = window.memberLabels[m.id];
       if (label) {
-        label.setPosition(sprite.x, sprite.y + 38);
+        label.setPosition(sprite.x, sprite.y + 30);
       }
     });
   }
@@ -497,7 +775,6 @@ function fetchStatus() {
     .then(data => {
       if (!Array.isArray(data) || data.length === 0) return;
 
-      // First: update Hermes (star) status for typewriter/bubble
       const hermesWorker = data.find(w => (w.name || '').toLowerCase() === 'hermes') || data[0];
       const nextState = normalizeState(hermesWorker.status || 'idle');
       const stateInfo = STATES[nextState] || STATES.idle;
@@ -529,9 +806,8 @@ function fetchStatus() {
           }
         }
 
-        // Hermes always stays in breakroom
-        targetX = areas.breakroom.x;
-        targetY = areas.breakroom.y;
+        targetX = areas[stateInfo.area].x;
+        targetY = areas[stateInfo.area].y;
       } else {
         if (!typewriterTarget || typewriterTarget !== nextLine) {
           typewriterTarget = nextLine;
@@ -540,10 +816,9 @@ function fetchStatus() {
         }
       }
 
-      // Second: update all other members based on their worker status
+      // Update all other members
       data.forEach(worker => {
         const workerName = (worker.name || '').toLowerCase();
-        // Find matching member
         let matchedMember = null;
         let bestScore = 0;
         MEMBERS.forEach(m => {
@@ -562,7 +837,6 @@ function fetchStatus() {
         window.memberStates[matchedMember.id] = wState;
 
         let targetArea = (STATES[wState] || STATES.idle).area;
-        // Hermes always stays in breakroom
         if (matchedMember.id === 'hermes') {
           targetArea = 'breakroom';
         }
@@ -584,12 +858,11 @@ function fetchStatus() {
 function moveStar(time) {
   const effectiveState = pendingDesiredState || currentState;
   const stateInfo = STATES[effectiveState] || STATES.idle;
-  const baseTarget = areas[stateInfo.area] || areas.breakroom;
 
   const dx = targetX - star.x;
   const dy = targetY - star.y;
   const dist = Math.sqrt(dx * dx + dy * dy);
-  const speed = 1.4;
+  const speed = 1.8;
   const wobble = Math.sin(time / 200) * 0.8;
 
   if (dist > 3) {
@@ -626,7 +899,6 @@ function moveStar(time) {
 function updateStateVisuals() {
   if (currentState === 'idle') {
     star.setVisible(true);
-    star.setText('✦');
     if (window.starWorking) { window.starWorking.setVisible(false); window.starWorking.anims.stop(); }
   } else {
     star.setVisible(false);
@@ -680,7 +952,6 @@ function showCatBubble() {
 }
 
 // ============ DEPARTMENT / TASKS / WORKERS SIDEBAR ============
-
 let departments = [];
 let workers = [];
 let tasks = [];
@@ -809,7 +1080,6 @@ function closeDepartmentView() {
 }
 
 // ============ SIDEBAR TOGGLE ============
-
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const backdrop = document.getElementById('sidebar-backdrop');
@@ -827,7 +1097,6 @@ function closeSidebar() {
 }
 
 // ============ HERMES WS ============
-
 let hermesWs = null;
 let hermesConnected = false;
 
