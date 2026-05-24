@@ -1,211 +1,106 @@
-// Pixel Office - Layout & depth configuration
-// Expanded: 3-room scrollable office
-// Room 1 (x:0-640) = Break/Café | Room 2 (x:640-1920) = Main Office | Room 3 (x:1920-2560) = Dev/Server
+// Pixel Office v2 — 完全重構佈局
+// 茶水間(0-400) | 辦公室(400-2050) | 經理室(2050-2560)
+// 縮小比例：全域家具尺度降低40%
 
 const LAYOUT = {
-  // === Game canvas ===
-  game: {
-    width: 2560,
-    height: 720
+  game: { width: 2560, height: 720 },
+
+  // 角色外觀配色（對應各 tool logo）
+  toolColors: {
+    hermes:   { color: 0xffd700, icon: '⭐', name: 'Hermes',     spriteIdx: 0 },
+    gemini:   { color: 0x9c27b0, icon: '🔮', name: 'Gemini',     spriteIdx: 4 },
+    manus:    { color: 0xff6b35, icon: '✍️', name: 'Manus',      spriteIdx: 1 },
+    codex:    { color: 0x2196f3, icon: '📘', name: 'Codex',      spriteIdx: 3 },
+    claude:   { color: 0x4caf50, icon: '🟢', name: 'Claude Code', spriteIdx: 2 },
+    opencode: { color: 0xffeb3b, icon: '🔧', name: 'OpenCode',   spriteIdx: 5 },
+    openclaw: { color: 0xf44336, icon: '🦞', name: 'OpenClaw',   spriteIdx: 6 }
   },
 
-  // Room definitions
   rooms: {
-    break:   { x: 0,    width: 640,  label: '☕ 休息區', bgColor: 0x3d2b1f },
-    main:    { x: 640,  width: 1280, label: '🏢 主辦公室', bgFile: 'office_bg.webp' },
-    dev:     { x: 1920, width: 640,  label: '💻 開發區', bgColor: 0x1a2332 }
+    pantry:  { x: 0,    width: 400,  label: '☕ 茶水間',  bgColor: 0x3e2723 },
+    office:  { x: 400,  width: 1650, label: '🏢 辦公室',  bgFile: 'office_bg.webp' },
+    manager: { x: 2050, width: 510,  label: '⭐ 經理室',  bgColor: 0x1a0a2e }
   },
 
-  // === Area coordinates (states → position) ===
+  // === 區域座標 ===
   areas: {
-    // Room 1 - Break/Café (x:0-640)
-    lounge:      { x: 320, y: 280 },
-    cafeteria:   { x: 180, y: 420 },
+    // 茶水間
+    lounge:    { x: 200, y: 340 },
+    pantry_table: { x: 120, y: 420 },
 
-    // Room 2 - Main Office (x:640-1920)
-    writing:     { x: 960,  y: 360 },
-    researching: { x: 960,  y: 360 },
-    breakroom:   { x: 1280, y: 360 },
-    error:       { x: 1706, y: 160 },
-    serverroom:  { x: 1661, y: 280 },
+    // 辦公室
+    // 大桌區：中間左右各一
+    desk_big_left:  { x: 800,  y: 340 },  // Codex
+    desk_big_right: { x: 1200, y: 340 },  // OpenClaw
+    // 小桌區：四角
+    desk_small_1: { x: 600,  y: 200 },  // Gemini
+    desk_small_2: { x: 1400, y: 200 },  // Manus
+    desk_small_3: { x: 600,  y: 480 },  // Claude Code
+    desk_small_4: { x: 1400, y: 480 },  // OpenCode
+    // 其他
+    serverroom:  { x: 1800, y: 280 },
+    breakroom:   { x: 1200, y: 520 },
 
-    // Room 3 - Dev/Server (x:1920-2560)
-    dev_area:    { x: 2240, y: 280 },
-    qa_testing:  { x: 2080, y: 420 },
-    meeting:     { x: 2400, y: 400 }
+    // 經理室
+    manager_desk: { x: 2300, y: 340 }
   },
 
-  // === Furniture & decorations ===
+  // === 家具（全部縮小比例） ===
   furniture: {
-    // --- Room 1: Break/Café furniture ---
-    breakSofa: {
-      x: 250, y: 200,
-      width: 120, height: 40,
-      depth: 10,
-      color: 0x8b5e3c
-    },
-    breakTable: {
-      x: 350, y: 260,
-      width: 80, height: 30,
-      depth: 10,
-      color: 0x5d4037
-    },
-    breakFridge: {
-      x: 100, y: 450,
-      width: 50, height: 70,
-      depth: 5,
-      color: 0xcccccc
-    },
-    breakCounter: {
-      x: 180, y: 480,
-      width: 120, height: 20,
-      depth: 5,
-      color: 0x8d6e63
-    },
-    breakPlants: [
-      { x: 60, y: 250, depth: 5, color: 0x4caf50 },
-      { x: 580, y: 200, depth: 5, color: 0x388e3c }
-    ],
-    breakLamp: {
-      x: 450, y: 190,
-      depth: 5,
-      color: 0xffd54f
-    },
+    // 茶水間家具
+    counter:    { x: 80,  y: 450, w: 80,  h: 15, depth: 5, color: 0x8d6e63 },
+    sink:       { x: 80,  y: 440, w: 30,  h: 8,  depth: 6, color: 0xbdbdbd },
+    fridge:     { x: 330, y: 440, w: 35,  h: 50, depth: 5, color: 0xe0e0e0 },
+    pantryTable:{ x: 200, y: 370, w: 60,  h: 25, depth: 5, color: 0x6d4c41 },
+    pantrySofa: { x: 250, y: 270, w: 90,  h: 30, depth: 5, color: 0x8b5e3c },
+    pantryLamp: { x: 160, y: 250, w: 6,   h: 25, depth: 5, color: 0xffd54f },
 
-    // --- Room 2: Main Office furniture (offset +640x from original) ---
-    sofa: {
-      x: 1310,
-      y: 144,
-      origin: { x: 0, y: 0 },
-      depth: 10
-    },
-    desk: {
-      x: 858,
-      y: 417,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 1000
-    },
-    flower: {
-      x: 950,
-      y: 390,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 1100,
-      scale: 0.8
-    },
-    starWorking: {
-      x: 857,
-      y: 333,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 900,
-      scale: 1.0
-    },
-    plants: [
-      { x: 1205, y: 178, depth: 5 },
-      { x: 870,  y: 185, depth: 5 },
-      { x: 1617, y: 496, depth: 5 }
-    ],
-    poster: {
-      x: 892,
-      y: 66,
-      depth: 4
-    },
+    // 辦公室大桌（Codex & OpenClaw）
+    bigDeskLeft:  { x: 800, y: 340, w: 90, h: 35, depth: 100, color: 0x1565c0, accent: 0x1976d2 },
+    bigDeskRight: { x: 1200, y: 340, w: 90, h: 35, depth: 100, color: 0xc62828, accent: 0xd32f2f },
+
+    // 小桌
+    smallDeskTL: { x: 600, y: 200, w: 50, h: 25, depth: 50, color: 0x6a1b9a },  // Gemini
+    smallDeskTR: { x: 1400, y: 200, w: 50, h: 25, depth: 50, color: 0xe65100 },  // Manus
+    smallDeskBL: { x: 600, y: 480, w: 50, h: 25, depth: 50, color: 0x2e7d32 },  // Claude
+    smallDeskBR: { x: 1400, y: 480, w: 50, h: 25, depth: 50, color: 0xf9a825 },  // OpenCode
+
+    // 辦公室其他
+    serverRack: { x: 1770, y: 210, w: 50, h: 80, depth: 5, color: 0x37474f },
     coffeeMachine: {
-      x: 1299,
-      y: 397,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 99
+      x: 1600, y: 490, origin: { x: 0.5, y: 0.5 }, depth: 99, scale: 0.5
     },
-    serverroom: {
-      x: 1661,
-      y: 142,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 2
-    },
-    errorBug: {
-      x: 1647,
-      y: 201,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 50,
-      scale: 0.7,
-      pingPong: { leftX: 1647, rightX: 1751, speed: 0.6 }
-    },
-    syncAnim: {
-      x: 1797,
-      y: 592,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 40
-    },
-    cat: {
-      x: 734,
-      y: 557,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 2000
-    },
+    officeSofa: { x: 1100, y: 500, w: 100, h: 25, depth: 5, color: 0x6d4c41 },
+    officePlant1: { x: 1750, y: 100, depth: 5 },
+    officePlant2: { x: 550, y: 100, depth: 5 },
+    officeCat: { x: 1150, y: 550, depth: 2000 },
 
-    // --- Room 3: Dev/Server furniture ---
-    devRack: {
-      x: 2040, y: 200,
-      width: 80, height: 120,
-      depth: 10,
-      color: 0x37474f
-    },
-    devWorkstation: {
-      x: 2120, y: 380,
-      width: 100, height: 50,
-      depth: 10,
-      color: 0x455a64
-    },
-    devTerminal: {
-      x: 2200, y: 380,
-      width: 80, height: 40,
-      depth: 10,
-      color: 0x546e7a
-    },
-    devWhiteboard: {
-      x: 2380, y: 120,
-      width: 120, height: 80,
-      depth: 5,
-      color: 0xffffff
-    },
-    devPlants: [
-      { x: 1970, y: 250, depth: 5, color: 0x66bb6a },
-      { x: 2510, y: 180, depth: 5, color: 0x43a047 }
-    ],
-    devLight: {
-      x: 2240, y: 60,
-      depth: 2,
-      color: 0x90caf9
-    }
+    // 經理室
+    managerDesk:  { x: 2300, y: 340, w: 70,  h: 30, depth: 100, color: 0x5d4037 },
+    managerChair: { x: 2220, y: 350, w: 25,  h: 30, depth: 50,  color: 0x3e2723 },
+    managerBookshelf: { x: 2480, y: 200, w: 40, h: 100, depth: 5, color: 0x4e342e },
+    managerWindow: { x: 2100, y: 100, w: 60, h: 80, depth: 2, color: 0x1a237e },
+    managerLamp:  { x: 2450, y: 320, w: 8,  h: 30, depth: 5, color: 0xffd700 }
   },
 
-  // === Plaque ===
-  plaque: {
-    x: 1280,
-    y: 720 - 36,
-    width: 420,
-    height: 44
-  },
+  // === 角色初始站位 ===
+  members: [
+    { id: 'hermes',   area: 'manager_desk',  offset: {x: 0, y: 10},  spriteIdx: 0 },
+    { id: 'codex',    area: 'desk_big_left',  offset: {x: -10, y: -5} },
+    { id: 'openclaw', area: 'desk_big_right', offset: {x: 10, y: -5} },
+    { id: 'gemini',   area: 'desk_small_1',   offset: {x: -5, y: -5} },
+    { id: 'manus',    area: 'desk_small_2',   offset: {x: 5, y: -5} },
+    { id: 'claude',   area: 'desk_small_3',   offset: {x: -5, y: 5} },
+    { id: 'opencode', area: 'desk_small_4',   offset: {x: 5, y: 5} }
+  ],
 
-  // === Resource loading rules ===
-  forcePng: {
-    desk_v2: true
-  },
+  // === 名牌 ===
+  plaque: { x: 1225, y: 720 - 36, width: 300, height: 36 },
 
-  // === Total assets count ===
+  // === 資源 ===
   totalAssets: 20,
 
-  // === Camera ===
-  camera: {
-    startX: 640,
-    startY: 360,
-    maxX: 2560,
-    maxY: 720,
-    lerp: 0.08
-  },
+  forcePng: { desk_v2: true },
 
-  // === Room transition markers (visual doorways) ===
-  transitions: [
-    { from: 'break',  to: 'main',  x: 640,  y: 360, label: '→ 主辦公室' },
-    { from: 'main',   to: 'dev',   x: 1920, y: 360, label: '→ 開發區' }
-  ]
+  camera: { lerp: 0.08 }
 };
