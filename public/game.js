@@ -660,6 +660,7 @@ function create() {
   loadMemo();
   fetchStatus();
   loadDepartments();
+  renderMemberStatus();
 
   // Refresh on click
   game.input.on('pointerdown', () => {
@@ -670,6 +671,9 @@ function create() {
 
 function update(time) {
   if (time - lastFetch > FETCH_INTERVAL) { fetchStatus(); lastFetch = time; }
+
+  // Update member status panel periodically
+  if (time % 2000 < 50) { renderMemberStatus(); }
 
   const effectiveState = pendingDesiredState || currentState;
 
@@ -847,6 +851,7 @@ function fetchStatus() {
           };
         }
       });
+      renderMemberStatus();
     })
     .catch(error => {
       typewriterTarget = '連線失敗，正在重試...';
@@ -956,6 +961,67 @@ let departments = [];
 let workers = [];
 let tasks = [];
 let currentDepartmentView = null;
+
+// ============ MEMBER STATUS PANEL ============
+const MEMBER_ICONS = {
+  hermes: '⭐', gemini: '🔮', manus: '✍️',
+  codex: '📐', claude: '🟦', opencode: '🔧', openclaw: '🦞'
+};
+
+function getMemberStatusColor(memberId) {
+  const state = window.memberStates?.[memberId] || 'idle';
+  switch (state) {
+    case 'error': return '#e74c3c';
+    case 'writing': case 'researching': case 'executing': return '#f1c40f';
+    case 'syncing': return '#3498db';
+    default: return '#2ecc71';
+  }
+}
+
+function renderMemberStatus() {
+  const list = document.getElementById('member-status-list');
+  if (!list) return;
+  
+  let html = '';
+  MEMBERS.forEach(m => {
+    const state = window.memberStates?.[m.id] || 'idle';
+    const target = window.memberTargets?.[m.id];
+    const areaName = target ? getAreaName(target) : '';
+    const color = getMemberStatusColor(m.id);
+    const icon = MEMBER_ICONS[m.id] || '👤';
+    html += `<div class="member-status-row">
+      <span class="member-status-dot" style="background:${color}"></span>
+      <span class="member-status-name">${icon} ${m.label}</span>
+      <span class="member-status-area">${areaName}</span>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function getAreaName(target) {
+  if (!target) return '⋯';
+  const areas = LAYOUT.areas;
+  for (const [name, pos] of Object.entries(areas)) {
+    const dx = Math.abs(pos.x - target.x);
+    const dy = Math.abs(pos.y - target.y);
+    if (dx < 50 && dy < 50) {
+      const AREA_LABELS = {
+        lounge: '☕ 休息區',
+        cafeteria: '🍴 咖啡廳',
+        writing: '💻 寫程式',
+        researching: '🔍 研究',
+        breakroom: '🏢 辦公室',
+        error: '🐛 除錯中',
+        serverroom: '🖥️ 伺服器',
+        dev_area: '💻 開發區',
+        qa_testing: '🧪 測試區',
+        meeting: '🤝 會議室'
+      };
+      return AREA_LABELS[name] || name;
+    }
+  }
+  return '🚶 移動中';
+}
 
 async function loadDepartments() {
   const token = localStorage.getItem('token');
