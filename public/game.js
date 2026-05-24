@@ -549,7 +549,7 @@ async function loadDepartments() {
   const tk=localStorage.getItem('token');
   if(!tk)return;
   try{const r=await fetch('/api/departments?t='+Date.now(),{headers:{'Authorization':'Bearer '+tk},cache:'no-store'});
-  if(!r.ok)return;departments=Array.isArray(await r.json())?await r.json():[];renderDepartmentSidebar();
+  if(!r.ok)return;const d=await r.json();departments=Array.isArray(d)?d:[];renderDepartmentSidebar();
   }catch(e){console.error(e);}
 }
 async function fetchDepartments(){await loadDepartments();}
