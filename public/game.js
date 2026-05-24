@@ -31,7 +31,7 @@ function getExt(pngFile) {
 }
 
 const config = {
-  type: Phaser.AUTO,
+  type: Phaser.CANVAS,
   width: LAYOUT.game.width,
   height: LAYOUT.game.height,
   parent: 'game-container',
@@ -43,6 +43,13 @@ const config = {
 let totalAssets = 0;
 let loadedAssets = 0;
 let loadingProgressBar, loadingProgressContainer, loadingOverlay, loadingText;
+
+// Safety timeout: force-hide loading overlay if Phaser takes too long
+let loadingTimeout = setTimeout(() => {
+  hideLoadingOverlay();
+  const st = document.getElementById('status-text');
+  if (st) st.textContent = '[載入完成] 辦公室已就緒';
+}, 15000);
 
 async function loadMemo() {
   const memoDate = document.getElementById('memo-date');
@@ -79,6 +86,7 @@ function updateLoadingProgress() {
 }
 
 function hideLoadingOverlay() {
+  clearTimeout(loadingTimeout);
   setTimeout(() => {
     if (loadingOverlay) {
       loadingOverlay.style.transition = 'opacity 0.5s ease';

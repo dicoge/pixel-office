@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pixel Office</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <script>
+  // Fallback if Phaser CDN fails (e.g., mobile browser blocks third-party scripts)
+  if (typeof Phaser === 'undefined') {
+    document.getElementById('loading-overlay').style.display = 'none';
+    console.warn('Phaser CDN failed to load');
+  }
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; image-rendering: crisp-edges; }
     body {
@@ -22,67 +29,69 @@
     }
 
     /* ============ LOGIN SCREEN ============ */
-    #login-screen {
+#login-screen {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      min-height: 100dvh;
       padding: 20px;
       width: 100%;
     }
     #login-screen.hidden { display: none; }
 
     .login-logo {
-      font-size: 28px;
+      font-size: clamp(20px, 6vw, 28px);
       color: #ffd700;
       text-shadow: 3px 3px 0 #e67e22;
       margin-bottom: 8px;
       letter-spacing: 2px;
     }
     .login-subtitle {
-      font-size: 12px;
+      font-size: clamp(10px, 3vw, 12px);
       color: #00d4aa;
-      margin-bottom: 30px;
+      margin-bottom: clamp(20px, 5vw, 30px);
     }
     .login-box {
       background: #16213e;
       border: 4px solid #f0f0f0;
-      padding: 30px;
-      width: 320px;
-      max-width: 100%;
+      padding: clamp(20px, 4vw, 30px);
+      width: min(320px, 88vw);
       box-shadow: 8px 8px 0 #4a2c7a;
     }
     .login-input {
       width: 100%;
-      padding: 12px;
+      padding: clamp(10px, 2.5vw, 12px);
       margin: 10px 0;
       background: #1a1a2e;
       border: 3px solid #f0f0f0;
       color: #f0f0f0;
       font-family: 'Courier New', monospace;
-      font-size: 14px;
-    }
-    .login-input:focus {
-      outline: none;
-      border-color: #ffd700;
-      box-shadow: 4px 4px 0 #ffd700;
+      font-size: clamp(13px, 3.5vw, 14px);
+      -webkit-appearance: none;
+      appearance: none;
+      border-radius: 0;
     }
     .login-btn {
       width: 100%;
-      padding: 14px;
+      padding: clamp(12px, 3vw, 14px);
       margin-top: 15px;
       background: #0f9b0f;
       border: 4px solid #f0f0f0;
       color: #f0f0f0;
       font-family: 'Courier New', monospace;
-      font-size: 14px;
+      font-size: clamp(13px, 3.5vw, 14px);
       cursor: pointer;
       box-shadow: 4px 4px 0 #2d2d2d;
       transition: all 0.1s;
       font-weight: bold;
+      -webkit-appearance: none;
+      appearance: none;
+      border-radius: 0;
+      touch-action: manipulation;
     }
-    .login-btn:hover { background: #2ecc71; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #2d2d2d; }
+      .login-btn:hover { background: #2ecc71; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #2d2d2d; }
     .login-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #2d2d2d; }
     .login-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 20px; text-align: center; }
 
@@ -104,10 +113,9 @@
       position: relative;
       border: 0;
       image-rendering: pixelated;
-      width: 1280px;
-      height: 720px;
-      max-width: 95vw;
-      max-height: calc(95vw * 720 / 1280);
+      width: 100%;
+      max-width: 1280px;
+      aspect-ratio: 16/9;
       overflow: hidden;
     }
     #game-container canvas {
@@ -116,7 +124,9 @@
       image-rendering: pixelated;
       object-fit: contain;
       box-shadow: inset 0 0 0 4px #64477d;
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
       z-index: 10;
     }
     #game-skeleton {
@@ -177,10 +187,11 @@
     #bottom-panels {
       display: flex;
       gap: 10px;
-      width: 1280px;
-      max-width: 95vw;
+      width: 100%;
+      max-width: 1280px;
       justify-content: flex-start;
       margin-top: 10px;
+      flex-wrap: wrap;
     }
 
     /* Memo panel */
@@ -408,12 +419,14 @@
 
     /* ============ TOP NAV ============ */
     #top-nav {
-      width: 1280px;
-      max-width: 95vw;
+      width: 100%;
+      max-width: 1280px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0;
+      padding: 8px 12px;
+      flex-wrap: wrap;
+      gap: 6px;
     }
     #top-nav-left {
       display: flex;
@@ -474,8 +487,8 @@
     <div class="login-subtitle">AI Agent 管理系統</div>
     <div class="login-box">
       <input type="text" id="login-username" class="login-input" placeholder="使用者名稱" autocomplete="username">
-      <input type="password" id="login-password" class="login-input" placeholder="密碼" autocomplete="current-password">
-      <button class="login-btn" onclick="handleLogin()">登入</button>
+      <input type="password" id="login-password" class="login-input" placeholder="密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
+      <button class="login-btn" onclick="handleLogin()" id="login-btn">登入</button>
       <div class="login-error" id="login-error"></div>
     </div>
   </div>
