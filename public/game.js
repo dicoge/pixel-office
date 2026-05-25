@@ -577,3 +577,7 @@ async function loadMemo() {
 function connectHermes() {
   // WebSocket connection stub — kept for future integration
 }
+
+// ===== BOOTSTRAP =====
+// Start the game when this script loads
+initGame();
