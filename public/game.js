@@ -87,7 +87,7 @@ function placeCharacters(scene) {
     const bx = area.x + m.offset.x;
     const by = area.y + m.offset.y;
     const tc = LAYOUT.toolColors[m.id] || { color: 0x888888, icon: '👤' };
-    let sprite;
+    let sprite, badge, badgeBg;
 
     if (m.id === 'hermes') {
       // Hermes is the big star — static image overlay
@@ -96,9 +96,9 @@ function placeCharacters(scene) {
       sprite.setDepth(20);
       star = sprite;
       // Gold glow badge for Hermes
-      const badgeBg = scene.add.rectangle(bx, by-24, 20, 20, 0xffd700, 0.9)
+      badgeBg = scene.add.rectangle(bx, by-24, 20, 20, 0xffd700, 0.9)
         .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x5d4037, 1);
-      const badge = scene.add.text(bx, by-24, '⭐', {
+      badge = scene.add.text(bx, by-24, '⭐', {
         fontFamily: 'monospace', fontSize: '13px',
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(25);
@@ -119,9 +119,9 @@ function placeCharacters(scene) {
         sprite = scene.add.rectangle(bx, by, 12, 20, tc.color).setOrigin(0.5).setDepth(20);
       }
       // Colored badge for each agent
-      const badgeBg = scene.add.rectangle(bx, by-22, 18, 18, tc.color, 0.8)
+      badgeBg = scene.add.rectangle(bx, by-22, 18, 18, tc.color, 0.8)
         .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x000000, 0.8);
-      const badge = scene.add.text(bx, by-22, tc.icon, {
+      badge = scene.add.text(bx, by-22, tc.icon, {
         fontFamily: 'monospace', fontSize: '11px',
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(25);
