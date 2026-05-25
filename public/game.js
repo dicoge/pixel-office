@@ -1,7 +1,6 @@
-// Pixel Office v3 — Complete Refactor
-// Three rooms: ☕Pantry(0-400) | 🏢Office(400-2050) | ⭐Manager(2050-2560)
-// Camera follows Hermes star. Tool badges above all characters.
-// Proportional scaling: guest sprites 32px@1.2, furniture sized relative.
+// Star Office — Transform Pixel Office to Central Perk Style
+// Single room scene (1280x720), no scrolling, Hermes star doesn't follow camera.
+// Characters visible in one fixed view with cozy coffee shop theme.
 
 let supportsWebP = false;
 function checkWebPSupport() {
@@ -68,7 +67,7 @@ const MEMBERS = [
 ];
 
 let game, star, areas={}, currentState='idle', pendingState=null;
-let lastFetch=0, lastClickFetch=0, lastBubble=0, lastCatBubble=0, targetX=1225, targetY=340;
+let lastFetch=0, lastClickFetch=0, lastBubble=0, lastCatBubble=0, targetX=640, targetY=360;
 let bubble=null, bubbleTimer=null, catBubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0, catSprite=null;
 const FETCH_INT=3000, BUBBLE_INT=8000, CAT_INT=18000, TT_DELAY=50;
 let mainCamera;
@@ -89,172 +88,117 @@ function drawFloor(g, rx, rw, rh, c1, c2, fy) {
   }
 }
 
-function drawRoomLabel(scene, x, text, fontSize) {
-  return scene.add.text(x, 8, text, {
-    fontFamily: 'monospace', fontSize: fontSize || '14px',
-    fill: '#ffd700', stroke: '#000', strokeThickness: 3
-  }).setOrigin(0.5).setDepth(10);
-}
-
-// ===================== ROOM 1: ☕ PANTRY =====================
-function drawPantry(scene) {
+function drawCozyRoomBackground(scene) {
   const g = scene.add.graphics();
-  // Wall with brick texture
-  g.fillStyle(0x3e2723,1); g.fillRect(0,0,400,720);
-  // Brick pattern
-  g.lineStyle(1,0x4e342e,0.3);
-  for (let by=0; by<390; by+=8) {
-    const off = (Math.floor(by/8)%2===0) ? 0 : 8;
-    for (let bx=0; bx<400; bx+=16) {
-      g.strokeRect(bx+off, by, 16, 4);
-    }
-  }
-  // Checkered floor
-  drawFloor(g,0,400,720,0x8d6e63,0xa1887f,400);
-  // Baseboard
-  g.fillStyle(0x5d4037,1); g.fillRect(0,390,400,10);
 
-  // Window with light and curtains
-  g.fillStyle(0x1a237e,0.5); g.fillRect(60,50,80,100);
-  g.lineStyle(2,0x5d4037,1); g.strokeRect(60,50,80,100);
-  // Curtain panels
-  g.fillStyle(0x6d4c41,0.8); g.fillRect(56,48,8,104);
-  g.fillStyle(0x6d4c41,0.8); g.fillRect(136,48,8,104);
-  // Curtain rod
-  g.fillStyle(0x4e342e,1); g.fillRect(52,46,96,4);
-  // Window pane details
-  g.lineStyle(1,0x5d4037,0.5); g.strokeRect(60,100,80,1); g.strokeRect(100,50,1,100);
-  // Curtain folds
-  g.lineStyle(1,0x5d4037,0.3); g.strokeRect(62,52,2,96); g.strokeRect(72,52,2,96);
-  g.lineStyle(1,0x5d4037,0.3); g.strokeRect(130,52,2,96); g.strokeRect(122,52,2,96);
+  // Room dimensions:
+  // Width: 1280px, Height: 720px
 
-  // Shelf with items (improved)
-  g.fillStyle(0x5d4037,1); g.fillRect(10,120,20,100);
-  for (let i=0;i<4;i++) {
-    g.fillStyle(0x6d4c41,1); g.fillRect(10,130+i*25,20,3);
-    g.fillStyle(0x795548,1); g.fillRect(12,128+i*25,6,4);
-    // Shelf items — cups and books
-    if (i===0||i===3) { g.fillStyle(0xc62828,1); g.fillRect(18,125+i*25,4,5); }
-    if (i===1||i===2) { g.fillStyle(0x1565c0,1); g.fillRect(18,125+i*25,4,5); }
-  }
+  // WALLS: Warm beige (exact color from specs)
+  g.fillStyle(0xd4a574,1);
+  g.fillRect(0, 0, 1280, 720);
 
-  // Small rug at entrance
-  g.fillStyle(0x8d6e63,0.6); g.fillRect(360,340,40,30);
+  // CEILING TRIM: Dark brown
+  g.fillStyle(0x5d4037, 1);
+  g.fillRect(0, 0, 1280, 20);
 
-  drawRoomLabel(scene, 200, '☕ 茶水間', '13px');
+  // BASEBOARD: Dark brown
+  g.fillStyle(0x5d4037, 1);
+  g.fillRect(0, 700, 1280, 20);
+
   return g;
 }
 
-// ===================== ROOM 2: 🏢 OFFICE =====================
-function drawOffice(scene) {
-  const g = scene.add.graphics();
-  g.setDepth(0);
+// ===================== STAR OFFICE SINGLE ROOM =====================
+function drawStarOfficeRoom(scene) {
+  drawCozyRoomBackground(scene);
 
-  // Background image — center at (1225, 360)
-  scene.add.image(1225, 360, 'office_bg').setDepth(0);
+  // Draw checkered floor pattern (light/dark brown tiles)
+  drawFloor(scene.add.graphics(), 0, 1280, 720, 0x956541, 0x6b3b20, 40);
 
-  // Desk name labels above each desk
-  const labelStyle = { fontFamily: 'monospace', fontSize: '10px', fill: '#fff', stroke: '#000', strokeThickness: 2 };
-  scene.add.text(800, 298, '📐 Codex 架構', { ...labelStyle, fill: '#90caf9' }).setOrigin(0.5).setDepth(200);
-  scene.add.text(1200, 298, '🧪 OpenClaw 測試', { ...labelStyle, fill: '#ef9a9a' }).setOrigin(0.5).setDepth(200);
-  scene.add.text(600, 175, '🔍 Gemini', { ...labelStyle, fill: '#ce93d8', fontSize: '9px' }).setOrigin(0.5).setDepth(100);
-  scene.add.text(1400, 175, '🎨 Manus', { ...labelStyle, fill: '#ffab91', fontSize: '9px' }).setOrigin(0.5).setDepth(100);
-  scene.add.text(600, 455, '💻 Claude Code', { ...labelStyle, fill: '#a5d6a7', fontSize: '9px' }).setOrigin(0.5).setDepth(100);
-  scene.add.text(1400, 455, '🔧 OpenCode', { ...labelStyle, fill: '#ffe082', fontSize: '9px' }).setOrigin(0.5).setDepth(100);
+  // Create central furniture grouping
+  const centerX = 640;
+  const centerY = 360;
 
-  drawRoomLabel(scene, 1225, '🏢 辦公室', '14px');
-  return g;
-}
+  // ===================== FURNITURE =====================
 
-// ===================== ROOM 3: ⭐ MANAGER =====================
-function drawManagerRoom(scene) {
-  const g = scene.add.graphics();
-  g.fillStyle(0x1a0a2e,1); g.fillRect(2050,0,510,720);
-  // Decorative floor pattern — diamond carpet
-  drawFloor(g,2050,510,720,0x4a0072,0x6a1b9a,400);
-  // Carpet border
-  g.lineStyle(2,0xffd700,0.5); g.strokeRect(2070,410,470,290);
-  g.lineStyle(1,0xffd700,0.3); g.strokeRect(2074,414,462,282);
-  // Carpet diamond motif
-  g.fillStyle(0x7b1fa2,0.4); g.fillRect(2250,440,100,80);
-  g.fillStyle(0xffd700,0.15); g.fillRect(2275,460,50,40);
-  g.fillStyle(0x7b1fa2,0.4); g.fillRect(2150,460,60,60);
-  g.fillStyle(0x7b1fa2,0.4); g.fillRect(2420,460,60,60);
+  // ===== Office area (left-center) - desks for team members =====
 
-  g.fillStyle(0x311b92,1); g.fillRect(2050,390,510,10);
+  // Big desks (Codex and OpenClaw)
+  // Codex desk (left side)
+  scene.add.rectangle(300, 200, 200, 60, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
 
-  // Crown molding near ceiling
-  g.fillStyle(0xffd700,0.6); g.fillRect(2050,24,510,2);
-  g.fillStyle(0x7b1fa2,0.8); g.fillRect(2050,26,510,6);
-  g.fillStyle(0xffd700,0.4); g.fillRect(2050,32,510,1);
+  // OpenClaw desk (right side)
+  scene.add.rectangle(900, 200, 200, 60, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
 
-  // Wall paneling (vertical wainscoting)
-  g.fillStyle(0x2a1050,0.5); g.fillRect(2060,36,490,5);
-  g.fillStyle(0x2a1050,0.3); g.fillRect(2060,340,490,2);
-  // Vertical panel lines
-  g.lineStyle(1,0x2a1050,0.25);
-  for (let px=2070; px<2540; px+=40) {
-    g.strokeRect(px,40,2,298);
+  // Small desks (Gemini, Manus, Claude Code, OpenCode)
+  // Gemini desk (top left)
+  scene.add.rectangle(200, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
+
+  // Manus desk (bottom left)
+  scene.add.rectangle(350, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
+
+  // Claude Code desk (top right)
+  scene.add.rectangle(1050, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
+
+  // OpenCode desk (bottom right)
+  scene.add.rectangle(1200, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
+
+  // ===== Manager area (center-right) - Hermes desk =====
+  scene.add.rectangle(1000, 100, 200, 80, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
+
+  // ===== Sofa area =====
+  // Red sofa with cushions
+  scene.add.rectangle(500, 600, 300, 80, 0xd32f2f, 0.9).setDepth(1).setStrokeStyle(1, 0x8b0000);
+
+  // Couch cushions
+  scene.add.rectangle(520, 580, 80, 20, 0xf44336, 0.9).setDepth(2);
+  scene.add.rectangle(600, 580, 80, 20, 0xf44336, 0.9).setDepth(2);
+  scene.add.rectangle(680, 580, 80, 20, 0xf44336, 0.9).setDepth(2);
+
+  // ===== Bookshelf on the wall =====
+  scene.add.rectangle(200, 50, 30, 100, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
+  scene.add.rectangle(200, 50, 30, 100, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
+
+  // Bookshelf books - using various colors
+  for (let i = 0; i < 5; i++) {
+    scene.add.rectangle(195, 55 + i * 20, 20, 10, Math.random() > 0.5 ? 0x1565c0 : 0xc62828, 1).setDepth(2);
   }
 
-  // Window with starry view
-  g.fillStyle(0x0d47a1,0.5); g.fillRect(2110,60,80,120);
-  g.lineStyle(3,0xffd700,0.6); g.strokeRect(2110,60,80,120);
-  g.lineStyle(1,0xffd700,0.3); g.strokeRect(2110,120,80,1); g.strokeRect(2150,60,1,120);
-  // Window sill
-  g.fillStyle(0x4e342e,1); g.fillRect(2106,178,88,6);
-  // Glowing stars in window
-  for (let i=0;i<6;i++) {
-    g.fillStyle(0xffffff,0.2+Math.random()*0.4);
-    g.fillRect(2120+Math.random()*60,70+Math.random()*100,3,3);
+  // ===== Coffee machine =====
+  const cm = scene.add.sprite(250, 300, 'coffee_machine', 0)
+    .setOrigin(0.5).setDepth(5).setScale(0.5);
+  if (scene.anims.exists('cf_machine')) cm.play('cf_machine', true);
+
+  // ===== Lamp =====
+  scene.add.rectangle(700, 100, 20, 60, 0x5d4037, 1).setDepth(2);
+  scene.add.rectangle(690, 90, 40, 10, 0x5d4037, 1).setDepth(2);
+
+  // ===== Plant =====
+  if (scene.textures.exists('plants')) {
+    const plant = scene.add.sprite(1040, 200, 'plants', Math.floor(Math.random() * Math.min(scene.textures.get('plants').frameTotal || 16, 16)))
+      .setOrigin(0.5).setDepth(6).setScale(0.6);
   }
 
-  // Bookshelf with more detail
-  g.fillStyle(0x4e342e,1); g.fillRect(2480,100,40,120);
-  g.fillStyle(0x3e2723,1); g.fillRect(2478,98,44,4);
-  for (let i=0;i<5;i++) {
-    g.fillStyle(0x6d4c41,1); g.fillRect(2482,110+i*22,36,4);
-    g.fillStyle(Math.random()>0.5?0xc62828:0x1565c0,1); g.fillRect(2484,112+i*22,6,2);
-    g.fillStyle(0xffd700,1); g.fillRect(2492,112+i*22,3,2); // gold book
+  // ===== Central Perk Posters =====
+  scene.add.rectangle(700, 50, 200, 40, 0x6d4c41, 0.9).setDepth(1).setStrokeStyle(1, 0x4e342e);
+  scene.add.text(800, 70, 'CENTRAL PERK', {
+    fontFamily: 'monospace', fontSize: '12px',
+    fill: '#ffd700', stroke: '#000', strokeThickness: 1
+  }).setOrigin(0.5).setDepth(2);
+
+  // ===== Cat sprite =====
+  if (scene.textures.exists('cats')) {
+    window.catSprite = scene.add.sprite(200, 600, 'cats', Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16)))
+      .setOrigin(0.5).setDepth(10).setScale(0.5);
+    window.catSprite.setInteractive({ useHandCursor: true });
+    window.catSprite.on('pointerdown', () => {
+      window.catSprite.setFrame(Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16)));
+      showCatBubble(true);
+    });
   }
 
-  // Wall star decoration (enhanced)
-  g.fillStyle(0xffd700,0.8); g.fillRect(2250,80,20,20);
-  g.fillStyle(0xfff176,0.6); g.fillRect(2252,82,16,16);
-  g.fillStyle(0xffd700,0.4); g.fillRect(2255,85,10,10);
-
-  drawRoomLabel(scene, 2300, '⭐ 經理室', '13px');
-  return g;
-}
-
-// ===================== ROOM DIVIDERS =====================
-function drawDividers(scene) {
-  const g = scene.add.graphics();
-  // Pantry → Office wall
-  g.fillStyle(0x4e342e,1); g.fillRect(398,0,4,720);
-  g.fillStyle(0x3e2723,1); g.fillRect(398,290,4,100); // doorway
-  // Arched door top
-  g.fillStyle(0x4e342e,1); g.fillRect(396,286,8,8);
-  g.fillStyle(0x3e2723,1); g.fillRect(398,288,4,4);
-  g.fillStyle(0x8d6e63,0.6); g.fillRect(370,340,60,6); g.fillRect(370,348,60,6); // door mat
-  scene.add.text(365,358,'→ 辦公室',{fontFamily:'monospace',fontSize:'8px',fill:'#ffe0b2',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
-
-  // Office → Manager wall
-  g.fillStyle(0x311b92,1); g.fillRect(2048,0,4,720);
-  g.fillStyle(0x1a0a2e,1); g.fillRect(2048,290,4,100); // doorway
-  // Arched door top
-  g.fillStyle(0x311b92,1); g.fillRect(2046,286,8,8);
-  g.fillStyle(0x1a0a2e,1); g.fillRect(2048,288,4,4);
-  g.fillStyle(0x5d4037,0.6); g.fillRect(2020,340,60,6); g.fillRect(2020,348,60,6);
-  scene.add.text(2040,358,'→ 經理室',{fontFamily:'monospace',fontSize:'8px',fill:'#e1bee7',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
-
-  // Room name signs above doorways
-  scene.add.text(200, 270, '☕ 茶水間', {fontFamily:'monospace',fontSize:'7px',fill:'#ffd54f',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
-  scene.add.text(1225, 270, '🏢 辦公室', {fontFamily:'monospace',fontSize:'7px',fill:'#90caf9',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
-  scene.add.text(2040, 270, '⭐ 經理室', {fontFamily:'monospace',fontSize:'7px',fill:'#ce93d8',stroke:'#000',strokeThickness:1}).setOrigin(0.5).setDepth(3);
-
-  g.setDepth(1);
-  return g;
+  return scene.add.graphics().setDepth(0);
 }
 
 // ===================== FURNITURE =====================
@@ -503,11 +447,8 @@ function create() {
   game = this;
   areas = LAYOUT.areas;
 
-  // Draw rooms — order matters for depth
-  drawPantry(this);       // Room 1: background + floor
-  drawOffice(this);       // Room 2: office background image
-  drawManagerRoom(this);  // Room 3: background + floor
-  drawDividers(this);     // Wall separators between rooms
+  // Draw single Star Office room (1280x720) - no rooms or dividers
+  drawStarOfficeRoom(this);
 
   // ===== Create animations =====
   if (!this.anims.exists('cf_machine')) {
@@ -529,9 +470,6 @@ function create() {
     }
   }
 
-  // Draw furniture
-  drawFurniture(this);
-
   // Draw characters
   drawCharacters(this);
 
@@ -540,10 +478,10 @@ function create() {
 
   // ===== Camera setup =====
   mainCamera = this.cameras.main;
-  mainCamera.setBounds(0, 0, LAYOUT.game.width, LAYOUT.game.height);
-  if (star) {
-    mainCamera.startFollow(star, false, LAYOUT.camera.lerp, LAYOUT.camera.lerp);
-  }
+  mainCamera.setBounds(0, 0, 1280, 720); // Single room, no scrolling
+
+  // Hermes star is no longer followed by camera in single room layout
+  // Camera stays centered on the scene with no movement
 
   // ===== Load remote data =====
   loadMemo();
@@ -718,17 +656,11 @@ function fetchStatus() {
 }
 
 function moveStar(time) {
-  const es = pendingState || currentState;
-  const si = STATES[es] || STATES.idle;
-  const dx = targetX - star.x;
-  const dy = targetY - star.y;
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  if (dist > 3) {
-    star.x += (dx/dist) * 1.6;
-    star.y += (dy/dist) * 1.6;
+  // In Star Office layout, Hermes star is static in the manager area
+  // No movement needed - we simply ensure it remains visible
+  if (star) {
+    star.setVisible(true);
   }
-  // Gentle floating animation
-  star.setY(star.y + Math.sin(time/200)*0.6);
 }
 
 // ===================== BUBBLES =====================
@@ -736,8 +668,8 @@ function showBubble() {
   if (bubbleTimer) clearTimeout(bubbleTimer);
   if (bubble) { bubble.destroy(); bubble = null; }
   const texts = BTEXTS[currentState] || BTEXTS.idle;
-  const anchorX = star ? star.x : 1225;
-  const anchorY = star ? star.y - 50 : 300;
+  const anchorX = 640; // Center of single room
+  const anchorY = 360 - 50; // Above center
   const text = texts[Math.floor(Math.random()*texts.length)];
   const by = anchorY - 40;
   const bg = game.add.rectangle(anchorX, by, text.length*8+16, 22, 0xffffff, 0.95)
@@ -791,12 +723,12 @@ function getStatusColor(mid) {
 function getAreaLabel(target) {
   if (!target) return '⋯';
   const labels = {
-    lounge: '☕ 茶水間', pantry_table: '🍴 茶水間',
+    lounge: '☕ 沙發區',
     desk_big_left: '📐 大桌', desk_big_right: '🧪 大桌',
     desk_small_1: '🔍 小桌', desk_small_2: '🎨 小桌',
     desk_small_3: '💻 小桌', desk_small_4: '🔧 小桌',
-    serverroom: '🖥️ 伺服器', breakroom: '🏢 辦公室',
-    manager_desk: '⭐ 經理室'
+    breakroom: '🏢 辦公室',
+    manager_desk: '⭐ 經理位'
   };
   for (const [n, p] of Object.entries(areas)) {
     if (Math.abs(p.x - target.x) < 60 && Math.abs(p.y - target.y) < 60) {
