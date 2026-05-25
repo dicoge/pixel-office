@@ -22,34 +22,24 @@ const LAYOUT = {
 
   // === Area coordinates (where characters go) ===
   areas: {
-    // Single room areas
-    lounge:       { x: 200, y: 580 },     // sofa area
-    desk_big_left:  { x: 300,  y: 200 },  // Codex
-    desk_big_right: { x: 900, y: 200 },   // OpenClaw
-    desk_small_1: { x: 200,  y: 440 },     // Gemini
-    desk_small_2: { x: 350, y: 440 },     // Manus
-    desk_small_3: { x: 1050, y: 440 },    // Claude Code
-    desk_small_4: { x: 1200, y: 440 },    // OpenCode
-    serverroom:  { x: 1800, y: 280 },
-    breakroom:   { x: 600, y: 600 },
-    manager_desk: { x: 1000, y: 100 }
+    // Single room areas — matching office_bg furniture positions
+    lounge:       { x: 650, y: 530 },     // sofa area (center-left of room)
+    desk_big_left:  { x: 830,  y: 350 },  // Codex - main desk right side
+    desk_big_right: { x: 950, y: 350 },   // OpenClaw - main desk right side
+    desk_small_1: { x: 330,  y: 360 },     // Gemini - left desk
+    desk_small_2: { x: 450, y: 360 },     // Manus - left desk
+    desk_small_3: { x: 1050, y: 300 },    // Claude Code - far right desk
+    desk_small_4: { x: 1150, y: 300 },    // OpenCode - far right desk
+    breakroom:   { x: 650, y: 530 },
+    manager_desk: { x: 900, y: 400 }
   },
 
-  // === Furniture (proportionally scaled — characters ~38px tall, furniture sized relative) ===
+  // === Furniture (minimal — background has most furniture) ===
   furniture: {
-    // Star Office single room furniture
-    bigDeskLeft:  { x: 300,  y: 200, w: 100, h: 30, depth: 100, color: 0x4e3523, accent: 0x795548 },
-    bigDeskRight: { x: 900, y: 200, w: 100, h: 30, depth: 100, color: 0x4e3523, accent: 0x795548 },
-    smallDeskTL: { x: 200,  y: 440, w: 50, h: 20, depth: 50, color: 0x4e3523 },  // Gemini
-    smallDeskTR: { x: 350, y: 440, w: 50, h: 20, depth: 50, color: 0x4e3523 },  // Manus
-    smallDeskBL: { x: 1050,  y: 440, w: 50, h: 20, depth: 50, color: 0x4e3523 },  // Claude
-    smallDeskBR: { x: 1200, y: 440, w: 50, h: 20, depth: 50, color: 0x4e3523 },  // OpenCode
-    managerDesk:  { x: 1000, y: 100, w: 100, h: 40, depth: 100, color: 0x5d4037 },
-    managerChair: { x: 1060, y: 130, w: 25,  h: 30, depth: 50,  color: 0x3e2723 },
+    // Animated/interactive elements only (rest is in office_bg)
     coffeeMachine: { x: 250, y: 300, origin: { x: 0.5, y: 0.5 }, depth: 99, scale: 0.5 },
-    officeSofa: { x: 500, y: 600, w: 150, h: 40, depth: 5, color: 0xd32f2f },
-    officePlant1: { x: 1040, y: 200, depth: 5, scale: 0.6 },
-    officeCat: { x: 200, y: 600, depth: 2000, scale: 0.5 }
+    officeCat: { x: 1060, y: 475, depth: 10, scale: 0.5 },
+    officePlant1: { x: 1060, y: 200, depth: 5, scale: 0.5 }
   },
 
   // === Character initial positions ===

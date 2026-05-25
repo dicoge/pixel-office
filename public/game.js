@@ -88,112 +88,23 @@ function drawFloor(g, rx, rw, rh, c1, c2, fy) {
   }
 }
 
-function drawCozyRoomBackground(scene) {
-  const g = scene.add.graphics();
+// ===================== STAR OFFICE SCENE =====================
+// Use the pre-rendered office_bg as the main room background
+// Only overlay animated elements + character sprites on top
 
-  // Room dimensions:
-  // Width: 1280px, Height: 720px
+function drawOfficeScene(scene) {
+  // Background: the pre-rendered office room image (1280x720)
+  scene.add.image(640, 360, 'office_bg').setDepth(0);
 
-  // WALLS: Warm tan/beige
-  g.fillStyle(0xc9956e,1);
-  g.fillRect(0, 0, 1280, 720);
-
-  // CEILING TRIM: Dark brown
-  g.fillStyle(0x3e2723, 1);
-  g.fillRect(0, 0, 1280, 16);
-  // Crown moulding
-  g.fillStyle(0x4e342e, 1);
-  g.fillRect(0, 16, 1280, 4);
-
-  // BASEBOARD: Dark brown
-  g.fillStyle(0x3e2723, 1);
-  g.fillRect(0, 690, 1280, 30);
-
-  return g;
-}
-
-// ===================== STAR OFFICE SINGLE ROOM =====================
-function drawStarOfficeRoom(scene) {
-  drawCozyRoomBackground(scene);
-
-  // Draw checkered floor pattern (light/dark brown tiles)
-  drawFloor(scene.add.graphics(), 0, 1280, 720, 0x956541, 0x6b3b20, 380);
-
-  // Create central furniture grouping
-  const centerX = 640;
-  const centerY = 360;
-
-  // ===================== FURNITURE =====================
-
-  // ===== Office area (left-center) - desks for team members =====
-
-  // Big desks (Codex and OpenClaw)
-  // Codex desk (left side)
-  scene.add.rectangle(300, 200, 200, 60, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // OpenClaw desk (right side)
-  scene.add.rectangle(900, 200, 200, 60, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // Small desks (Gemini, Manus, Claude Code, OpenCode)
-  // Gemini desk (top left)
-  scene.add.rectangle(200, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // Manus desk (bottom left)
-  scene.add.rectangle(350, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // Claude Code desk (top right)
-  scene.add.rectangle(1050, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // OpenCode desk (bottom right)
-  scene.add.rectangle(1200, 450, 100, 40, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // ===== Manager area (center-right) - Hermes desk =====
-  scene.add.rectangle(1000, 100, 200, 80, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // ===== Sofa area =====
-  // Red sofa with cushions
-  scene.add.rectangle(500, 600, 300, 80, 0xd32f2f, 0.9).setDepth(1).setStrokeStyle(1, 0x8b0000);
-
-  // Couch cushions
-  scene.add.rectangle(520, 580, 80, 20, 0xf44336, 0.9).setDepth(2);
-  scene.add.rectangle(600, 580, 80, 20, 0xf44336, 0.9).setDepth(2);
-  scene.add.rectangle(680, 580, 80, 20, 0xf44336, 0.9).setDepth(2);
-
-  // ===== Bookshelf on the wall =====
-  scene.add.rectangle(200, 50, 30, 100, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-  scene.add.rectangle(200, 50, 30, 100, 0x4e3523, 1).setDepth(1).setStrokeStyle(1, 0x3e2a1c);
-
-  // Bookshelf books - using various colors
-  for (let i = 0; i < 5; i++) {
-    scene.add.rectangle(195, 55 + i * 20, 20, 10, Math.random() > 0.5 ? 0x1565c0 : 0xc62828, 1).setDepth(2);
-  }
-
-  // ===== Coffee machine =====
+  // Coffee machine (animated spritesheet)
   const cm = scene.add.sprite(250, 300, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.5);
   if (scene.anims.exists('cf_machine')) cm.play('cf_machine', true);
 
-  // ===== Lamp =====
-  scene.add.rectangle(700, 100, 20, 60, 0x5d4037, 1).setDepth(2);
-  scene.add.rectangle(690, 90, 40, 10, 0x5d4037, 1).setDepth(2);
-
-  // ===== Plant =====
-  if (scene.textures.exists('plants')) {
-    const plant = scene.add.sprite(1040, 200, 'plants', Math.floor(Math.random() * Math.min(scene.textures.get('plants').frameTotal || 16, 16)))
-      .setOrigin(0.5).setDepth(6).setScale(0.6);
-  }
-
-// ===== Central Perk Posters =====
-  // Central Perk sign board on wall
-  scene.add.rectangle(700, 55, 160, 30, 0x6d4c41, 0.9).setDepth(1).setStrokeStyle(2, 0x4e342e);
-  scene.add.text(700, 55, 'CENTRAL PERK', {
-    fontFamily: 'monospace', fontSize: '11px',
-    fill: '#ffd700', stroke: '#000', strokeThickness: 2
-  }).setOrigin(0.5).setDepth(2);
-
-  // ===== Cat sprite =====
+  // Single cat mascot — ONE sprite, represents the office pet
   if (scene.textures.exists('cats')) {
-    window.catSprite = scene.add.sprite(200, 630, 'cats', Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16)))
+    const catFrame = Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16));
+    window.catSprite = scene.add.sprite(1060, 475, 'cats', catFrame)
       .setOrigin(0.5).setDepth(10).setScale(0.5);
     window.catSprite.setInteractive({ useHandCursor: true });
     window.catSprite.on('pointerdown', () => {
@@ -202,7 +113,12 @@ function drawStarOfficeRoom(scene) {
     });
   }
 
-  return scene.add.graphics().setDepth(0);
+  // Plant (interactive)
+  if (scene.textures.exists('plants')) {
+    const plant = scene.add.sprite(1060, 200, 'plants',
+      Math.floor(Math.random() * Math.min(scene.textures.get('plants').frameTotal || 16, 16)))
+      .setOrigin(0.5).setDepth(6).setScale(0.5);
+  }
 }
 
 // ===================== FURNITURE =====================
@@ -434,7 +350,8 @@ function preload() {
   this.load.on('complete', hideLoadingOverlay);
 
   // Load all assets
-  // office_bg no longer needed in Star Office layout
+  // Load office background (pre-rendered room scene)
+  this.load.image('office_bg', '/office_bg.webp');
   this.load.image('star_idle_static', '/star-idle-v5.png');
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
@@ -451,8 +368,8 @@ function create() {
   game = this;
   areas = LAYOUT.areas;
 
-  // Draw single Star Office room (1280x720) - no rooms or dividers
-  drawStarOfficeRoom(this);
+  // Draw single Star Office room (1280x720) using background image
+  drawOfficeScene(this);
 
   // ===== Create animations =====
   if (!this.anims.exists('cf_machine')) {
