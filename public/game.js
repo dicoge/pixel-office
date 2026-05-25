@@ -94,17 +94,20 @@ function drawCozyRoomBackground(scene) {
   // Room dimensions:
   // Width: 1280px, Height: 720px
 
-  // WALLS: Warm beige (exact color from specs)
-  g.fillStyle(0xd4a574,1);
+  // WALLS: Warm tan/beige
+  g.fillStyle(0xc9956e,1);
   g.fillRect(0, 0, 1280, 720);
 
   // CEILING TRIM: Dark brown
-  g.fillStyle(0x5d4037, 1);
-  g.fillRect(0, 0, 1280, 20);
+  g.fillStyle(0x3e2723, 1);
+  g.fillRect(0, 0, 1280, 16);
+  // Crown moulding
+  g.fillStyle(0x4e342e, 1);
+  g.fillRect(0, 16, 1280, 4);
 
   // BASEBOARD: Dark brown
-  g.fillStyle(0x5d4037, 1);
-  g.fillRect(0, 700, 1280, 20);
+  g.fillStyle(0x3e2723, 1);
+  g.fillRect(0, 690, 1280, 30);
 
   return g;
 }
@@ -114,7 +117,7 @@ function drawStarOfficeRoom(scene) {
   drawCozyRoomBackground(scene);
 
   // Draw checkered floor pattern (light/dark brown tiles)
-  drawFloor(scene.add.graphics(), 0, 1280, 720, 0x956541, 0x6b3b20, 40);
+  drawFloor(scene.add.graphics(), 0, 1280, 720, 0x956541, 0x6b3b20, 380);
 
   // Create central furniture grouping
   const centerX = 640;
@@ -180,16 +183,17 @@ function drawStarOfficeRoom(scene) {
       .setOrigin(0.5).setDepth(6).setScale(0.6);
   }
 
-  // ===== Central Perk Posters =====
-  scene.add.rectangle(700, 50, 200, 40, 0x6d4c41, 0.9).setDepth(1).setStrokeStyle(1, 0x4e342e);
-  scene.add.text(800, 70, 'CENTRAL PERK', {
-    fontFamily: 'monospace', fontSize: '12px',
-    fill: '#ffd700', stroke: '#000', strokeThickness: 1
+// ===== Central Perk Posters =====
+  // Central Perk sign board on wall
+  scene.add.rectangle(700, 55, 160, 30, 0x6d4c41, 0.9).setDepth(1).setStrokeStyle(2, 0x4e342e);
+  scene.add.text(700, 55, 'CENTRAL PERK', {
+    fontFamily: 'monospace', fontSize: '11px',
+    fill: '#ffd700', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(2);
 
   // ===== Cat sprite =====
   if (scene.textures.exists('cats')) {
-    window.catSprite = scene.add.sprite(200, 600, 'cats', Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16)))
+    window.catSprite = scene.add.sprite(200, 630, 'cats', Math.floor(Math.random() * Math.min(scene.textures.get('cats').frameTotal || 16, 16)))
       .setOrigin(0.5).setDepth(10).setScale(0.5);
     window.catSprite.setInteractive({ useHandCursor: true });
     window.catSprite.on('pointerdown', () => {
@@ -430,7 +434,7 @@ function preload() {
   this.load.on('complete', hideLoadingOverlay);
 
   // Load all assets
-  this.load.image('office_bg', '/office_bg.webp');
+  // office_bg no longer needed in Star Office layout
   this.load.image('star_idle_static', '/star-idle-v5.png');
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
