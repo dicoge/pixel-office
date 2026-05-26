@@ -35,10 +35,10 @@ function hideLoadingOverlay() {
 
 const STATES = {
   idle: { name:'待命', area:'center' },
-  writing: { name:'整理文檔', area:'left_top' },
-  researching: { name:'搜尋資訊', area:'left_mid' },
-  executing: { name:'執行任務', area:'right_top' },
-  syncing: { name:'同步備份', area:'right_mid' },
+  writing: { name:'整理文檔', area:'col1_top' },
+  researching: { name:'搜尋資訊', area:'col1_mid' },
+  executing: { name:'執行任務', area:'col2_top' },
+  syncing: { name:'同步備份', area:'col2_mid' },
   error: { name:'出錯了', area:'center' }
 };
 const BTEXTS = {
@@ -52,12 +52,12 @@ const BTEXTS = {
 
 const MEMBERS = [
   { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:0,y:0} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'left_top',      offset:{x:-60,y:0} },
-  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'left_mid',      offset:{x:0,y:0} },
-  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'left_bot',      offset:{x:0,y:0} },
-  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'right_top',     offset:{x:0,y:0} },
-  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'right_mid',     offset:{x:0,y:0} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'right_bot',     offset:{x:60,y:0} }
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-60,y:0} },
+  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'col1_mid',      offset:{x:0,y:0} },
+  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'col1_bot',      offset:{x:0,y:0} },
+  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'col2_top',      offset:{x:0,y:0} },
+  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'col2_mid',      offset:{x:0,y:0} },
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_bot',      offset:{x:60,y:0} }
 ];
 
 const TOOL_COLORS = {
@@ -81,14 +81,14 @@ const GUEST_SPRITE_INDEX = {
 };
 
 const AREAS = {
-  left_top:    { x: 240, y: 280 },
-  left_mid:    { x: 240, y: 410 },
-  left_bot:    { x: 240, y: 540 },
-  right_top:   { x: 1040, y: 280 },
-  right_mid:   { x: 1040, y: 410 },
-  right_bot:   { x: 1040, y: 540 },
-  center:      { x: 640, y: 360 },
-  lounge:      { x: 640, y: 360 },
+  col1_top: { x: 240, y: 280 },
+  col1_mid: { x: 240, y: 410 },
+  col1_bot: { x: 240, y: 540 },
+  col2_top: { x: 380, y: 280 },
+  col2_mid: { x: 380, y: 410 },
+  col2_bot: { x: 380, y: 540 },
+  center:  { x: 640, y: 360 },
+  lounge:  { x: 640, y: 360 },
 };
 
 let game, star, areas={}, currentState='idle', pendingState=null;
@@ -179,14 +179,16 @@ function drawRoom(scene) {
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
 
-  // === 6 desks (3 left facing right, 3 right facing left) ===
+  // === 6 desks (2 columns x 3 rows, all facing right) ===
   if (scene.textures.exists('desk')) {
+    // Column 1
     scene.add.image(240, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
     scene.add.image(240, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
     scene.add.image(240, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(1040, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(1040, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(1040, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    // Column 2
+    scene.add.image(380, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(380, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(380, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
@@ -624,8 +626,8 @@ function getStatusColor(mid) {
 function getAreaLabel(target) {
   if (!target) return '⋯';
   const labels = {
-    left_top: '📐 左列上', left_mid: '🔍 左列中', left_bot: '🎨 左列下',
-    right_top: '💻 右列上', right_mid: '🟢 右列中', right_bot: '🔧 右列下',
+    col1_top: '📐 左1上', col1_mid: '🔍 左1中', col1_bot: '🎨 左1下',
+    col2_top: '💻 左2上', col2_mid: '🟢 左2中', col2_bot: '🔧 左2下',
     center: '⭐ 中央',
     lounge: '☕ 中央'
   };
