@@ -107,86 +107,233 @@ function drawRoom(scene) {
     scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0);
   }
 
+  // === WARM LIGHTING OVERLAY (depth 1) ===
+  const lightG = scene.add.graphics().setDepth(1);
+  // Warm gradient from top-left (simulating a lamp)
+  lightG.fillStyle(0xffcc66, 0.06);
+  lightG.fillCircle(80, 60, 350);
+  lightG.fillStyle(0xffdd88, 0.04);
+  lightG.fillCircle(80, 60, 500);
+  // Second warm light from right side (floor lamp)
+  lightG.fillStyle(0xffbb44, 0.05);
+  lightG.fillCircle(1200, 100, 300);
+  // Subtle overall warm wash
+  lightG.fillStyle(0xffcc88, 0.03);
+  lightG.fillRect(0, 0, 1280, 720);
+
+  // === FLOOR (depth 2) - checkerboard with wood tones ===
+  const floorG = scene.add.graphics().setDepth(2);
+  const tileW = 40, tileH = 30;
+  for (let row = 0; row < 24; row++) {
+    for (let col = 0; col < 32; col++) {
+      const isLight = (row + col) % 2 === 0;
+      floorG.fillStyle(isLight ? 0xb8845c : 0x9e6d46, 0.35);
+      floorG.fillRect(col * tileW, 545 + row * tileH, tileW, tileH);
+    }
+  }
+  // Floor shine/gradient
+  floorG.fillStyle(0xffffff, 0.03);
+  floorG.fillRect(0, 545, 1280, 720 - 545);
+
   // === FURNITURE (depth 3~5) ===
 
-  // Red sofa (center-left area) — depth 3
+  // Red sofa (center-left area) — depth 3 — enhanced
   const sofaG = scene.add.graphics().setDepth(3);
+  // Sofa shadow on floor
+  sofaG.fillStyle(0x000000, 0.2);
+  sofaG.fillEllipse(340, 532, 290, 24);
   // Sofa back
-  sofaG.fillStyle(0xb71c1c, 1);
-  sofaG.fillRect(200, 470, 280, 18);
-  // Sofa seat
+  sofaG.fillStyle(0x9e1a1a, 1);
+  sofaG.fillRect(200, 468, 280, 20);
+  // Sofa back top highlight
   sofaG.fillStyle(0xc62828, 1);
-  sofaG.fillRect(200, 488, 280, 40);
-  // Cushions
+  sofaG.fillRect(200, 468, 280, 4);
+  // Sofa seat base
+  sofaG.fillStyle(0xa02020, 1);
+  sofaG.fillRect(200, 488, 280, 42);
+  // Seat highlight
+  sofaG.fillStyle(0xc62828, 0.6);
+  sofaG.fillRect(200, 488, 280, 8);
+  // Cushions with depth
   sofaG.fillStyle(0xd32f2f, 1);
   sofaG.fillRect(210, 492, 80, 16);
   sofaG.fillRect(300, 492, 80, 16);
   sofaG.fillRect(390, 492, 80, 16);
+  // Cushion highlights
+  sofaG.fillStyle(0xe57373, 0.3);
+  sofaG.fillRect(212, 494, 76, 4);
+  sofaG.fillRect(302, 494, 76, 4);
+  sofaG.fillRect(392, 494, 76, 4);
+  // Cushion shadows
+  sofaG.fillStyle(0x000000, 0.1);
+  sofaG.fillRect(210, 506, 80, 4);
+  sofaG.fillRect(300, 506, 80, 4);
+  sofaG.fillRect(390, 506, 80, 4);
+  // Pillow details (small decorative pillows)
+  sofaG.fillStyle(0x8e24aa, 0.7);
+  sofaG.fillRect(215, 474, 20, 14);
+  sofaG.fillStyle(0xab47bc, 0.5);
+  sofaG.fillRect(217, 476, 16, 4);
+  sofaG.fillStyle(0x00897b, 0.7);
+  sofaG.fillRect(445, 474, 20, 14);
+  sofaG.fillStyle(0x26a69a, 0.5);
+  sofaG.fillRect(447, 476, 16, 4);
   // Sofa arms
-  sofaG.fillStyle(0xb71c1c, 1);
-  sofaG.fillRect(195, 470, 10, 58);
-  sofaG.fillRect(475, 470, 10, 58);
-  // Sofa shadow
-  sofaG.fillStyle(0x000000, 0.15);
-  sofaG.fillRect(200, 528, 280, 8);
+  sofaG.fillStyle(0x8b1a1a, 1);
+  sofaG.fillRect(195, 468, 10, 62);
+  sofaG.fillRect(475, 468, 10, 62);
+  // Arm highlights
+  sofaG.fillStyle(0xb71c1c, 0.5);
+  sofaG.fillRect(195, 468, 3, 62);
+  sofaG.fillRect(482, 468, 3, 62);
 
-  // Bookshelf (left wall) — depth 3
+  // Warm rug under sofa
+  const rugG = scene.add.graphics().setDepth(2);
+  rugG.fillStyle(0x5d4037, 0.25);
+  rugG.fillEllipse(340, 520, 320, 50);
+  rugG.lineStyle(1, 0x8d6e63, 0.2);
+  rugG.strokeEllipse(340, 520, 318, 48);
+
+  // Bookshelf (left wall) — depth 3 — enhanced
   const shelfG = scene.add.graphics().setDepth(3);
-  shelfG.fillStyle(0x4e342e, 1);
-  shelfG.fillRect(25, 140, 30, 200);
-  const shelfColors = [0xc62828, 0x1565c0, 0x2e7d32, 0xf9a825, 0x6a1b9a, 0x00897b];
+  // Shelf shadow on wall
+  shelfG.fillStyle(0x000000, 0.15);
+  shelfG.fillRect(27, 142, 28, 200);
+  // Shelf frame
+  shelfG.fillStyle(0x3e2723, 1);
+  shelfG.fillRect(24, 138, 32, 206);
+  // Shelf inner
+  shelfG.fillStyle(0x5d4037, 1);
+  shelfG.fillRect(26, 140, 28, 202);
+  const shelfColors = [0xc62828, 0x1565c0, 0x2e7d32, 0xf9a825, 0x6a1b9a, 0x00897b, 0xe65100, 0x37474f];
   for (let i = 0; i < 6; i++) {
     const sy = 150 + i * 30;
+    // Shelf plank
     shelfG.fillStyle(0x6d4c41, 1);
-    shelfG.fillRect(28, sy, 24, 3);
+    shelfG.fillRect(26, sy, 28, 3);
+    shelfG.fillStyle(0x8d6e63, 0.4);
+    shelfG.fillRect(26, sy, 28, 1);
+    // Books - more variety
+    const bookH = 10 + Math.floor(Math.random() * 6);
     shelfG.fillStyle(shelfColors[i % shelfColors.length], 1);
-    shelfG.fillRect(31, sy - 12, 6, 12);
-    shelfG.fillStyle(shelfColors[(i+2) % shelfColors.length], 1);
-    shelfG.fillRect(40, sy - 10, 5, 10);
-    shelfG.fillStyle(shelfColors[(i+4) % shelfColors.length], 1);
-    shelfG.fillRect(48, sy - 8, 4, 8);
+    shelfG.fillRect(29, sy - bookH, 5, bookH);
+    shelfG.fillStyle(shelfColors[(i+1) % shelfColors.length], 1);
+    shelfG.fillRect(36, sy - bookH + 2, 4, bookH - 2);
+    shelfG.fillStyle(shelfColors[(i+3) % shelfColors.length], 1);
+    shelfG.fillRect(42, sy - bookH + 1, 4, bookH - 1);
+    shelfG.fillStyle(shelfColors[(i+5) % shelfColors.length], 1);
+    shelfG.fillRect(48, sy - bookH + 3, 3, bookH - 3);
+    // Book spine highlight
+    shelfG.fillStyle(0xffffff, 0.1);
+    shelfG.fillRect(29, sy - bookH, 2, bookH);
   }
+  // Small decorations on shelf
+  // Tiny clock
+  shelfG.fillStyle(0xffd700, 0.8);
+  shelfG.fillCircle(42, 162, 4);
+  shelfG.lineStyle(1, 0x5d4037, 0.8);
+  shelfG.strokeCircle(42, 162, 4);
+  // Small photo frame
+  shelfG.fillStyle(0x8d6e63, 0.8);
+  shelfG.fillRect(36, 192, 10, 12);
+  shelfG.fillStyle(0xc8e6c9, 0.4);
+  shelfG.fillRect(38, 194, 6, 8);
+  // Tiny plant on top shelf
+  shelfG.fillStyle(0x4caf50, 0.7);
+  shelfG.fillCircle(46, 155, 3);
+  shelfG.fillStyle(0x388e3c, 0.6);
+  shelfG.fillCircle(44, 153, 2);
 
-  // CENTRAL PERK sign — depth 3
+  // CENTRAL PERK sign — depth 3 — enhanced
   const signG = scene.add.graphics().setDepth(3);
-  signG.fillStyle(0x5d4037, 0.9);
+  // Sign shadow
+  signG.fillStyle(0x000000, 0.2);
+  signG.fillRect(542, 57, 200, 30);
+  // Sign board
+  signG.fillStyle(0x3e2723, 1);
   signG.fillRect(540, 55, 200, 30);
-  signG.lineStyle(2, 0x3e2723);
-  signG.strokeRect(540, 55, 200, 30);
+  signG.fillStyle(0x5d4037, 0.9);
+  signG.fillRect(542, 57, 196, 26);
   signG.fillStyle(0x4e342e, 0.7);
   signG.fillRect(544, 59, 192, 22);
+  // Sign gold border
+  signG.lineStyle(2, 0xffd700, 0.6);
+  signG.strokeRect(542, 57, 196, 26);
+  // Sign screws
+  signG.fillStyle(0xffd700, 0.8);
+  signG.fillCircle(550, 62, 2);
+  signG.fillCircle(730, 62, 2);
+  signG.fillCircle(550, 78, 2);
+  signG.fillCircle(730, 78, 2);
   scene.add.text(640, 70, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '14px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(4);
 
-  // Small desk 1 (left) — Gemini — depth 3
-  scene.add.rectangle(120, 395, 80, 8, 0x5d4037).setDepth(3);
-  scene.add.rectangle(120, 391, 80, 4, 0x6d4c41).setDepth(4);
+  // === DESKS with legs and details ===
+  function drawDesk(scene, dx, dy, w) {
+    const d = scene.add.graphics().setDepth(3);
+    // Desk legs
+    d.fillStyle(0x3e2723, 1);
+    d.fillRect(dx - w/2 + 4, dy + 3, 5, 16);
+    d.fillRect(dx + w/2 - 9, dy + 3, 5, 16);
+    // Desk shadow
+    d.fillStyle(0x000000, 0.15);
+    d.fillRect(dx - w/2 - 2, dy + 4, w + 4, 6);
+    // Desk top
+    d.fillStyle(0x5d4037, 1);
+    d.fillRect(dx - w/2, dy, w, 8);
+    // Desk top highlight
+    d.fillStyle(0x6d4c41, 1);
+    d.fillRect(dx - w/2 + 2, dy, w - 4, 4);
+    // Desk surface shine
+    d.fillStyle(0xffcc88, 0.08);
+    d.fillRect(dx - w/2 + 4, dy + 1, w - 8, 2);
+  }
 
-  // Small desk 2 (left) — Manus — depth 3
-  scene.add.rectangle(250, 395, 80, 8, 0x5d4037).setDepth(3);
-  scene.add.rectangle(250, 391, 80, 4, 0x6d4c41).setDepth(4);
-
-  // Small desk 3 (right) — Claude Code — depth 3
-  scene.add.rectangle(1050, 475, 80, 8, 0x5d4037).setDepth(3);
-  scene.add.rectangle(1050, 471, 80, 4, 0x6d4c41).setDepth(4);
-
-  // Small desk 4 (right) — reserved — depth 3
-  scene.add.rectangle(1150, 475, 80, 8, 0x5d4037).setDepth(3);
-  scene.add.rectangle(1150, 471, 80, 4, 0x6d4c41).setDepth(4);
+  drawDesk(scene, 120, 395, 80);  // Gemini
+  drawDesk(scene, 250, 395, 80);  // Manus
+  drawDesk(scene, 1050, 475, 80); // Claude
+  drawDesk(scene, 1150, 475, 80); // Reserved
 
   // Coffee machine (left side, above bookshelf) — depth 5
   const coffeeCompat = scene.add.sprite(120, 220, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.4);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
-  // Plant (right side) — depth 5
+  // Coffee table in lounge
+  const ctG = scene.add.graphics().setDepth(3);
+  ctG.fillStyle(0x4e342e, 1);
+  ctG.fillEllipse(340, 510, 60, 16);
+  ctG.fillStyle(0x5d4037, 1);
+  ctG.fillEllipse(340, 508, 56, 12);
+  ctG.fillStyle(0xffcc88, 0.06);
+  ctG.fillEllipse(340, 507, 40, 6);
+
+  // Plant (right side) — depth 5 — with pot shadow
   if (scene.textures.exists('plants')) {
+    // Plant pot shadow
+    const pG = scene.add.graphics().setDepth(4);
+    pG.fillStyle(0x000000, 0.15);
+    pG.fillEllipse(1210, 215, 40, 10);
     scene.add.sprite(1210, 200, 'plants',
       Math.floor(Math.random() * 16))
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
+
+  // === WARM VIGNETTE OVERLAY (depth 50) ===
+  const vigG = scene.add.graphics().setDepth(50);
+  // Top-left warm glow
+  vigG.fillStyle(0xffcc66, 0.04);
+  vigG.fillCircle(100, 80, 400);
+  // Warm floor lamp on right
+  vigG.fillStyle(0xffbb44, 0.03);
+  vigG.fillCircle(1240, 120, 250);
+  // Subtle vignette corners
+  vigG.fillStyle(0x000000, 0.06);
+  vigG.fillRect(0, 0, 40, 720);
+  vigG.fillRect(1240, 0, 40, 720);
+  vigG.fillRect(0, 700, 1280, 20);
 }
 
 // ===================== CHARACTERS =====================
@@ -198,6 +345,7 @@ function placeCharacters(scene) {
   window.memberTargets = {};
   window.memberBadges = {};
   window.memberBadgeBgs = {};
+  window.memberShadows = {};
   window.guestSprites = {};
 
   MEMBERS.forEach((m) => {
@@ -206,6 +354,19 @@ function placeCharacters(scene) {
     const by = area.y + m.offset.y;
     const tc = TOOL_COLORS[m.id] || { color: 0x888888, icon: '👤' };
     let sprite, badge, badgeBg;
+
+    // === Shadow beneath character ===
+    const shadowG = scene.add.graphics().setDepth(9);
+    shadowG.fillStyle(0x000000, 0.18);
+    if (m.id === 'hermes') {
+      shadowG.fillEllipse(0, 0, 40, 12);
+      shadowG.setPosition(bx, by + 38);
+    } else {
+      const sw = m.area === 'lounge' ? 28 : 22;
+      shadowG.fillEllipse(0, 0, sw, 8);
+      shadowG.setPosition(bx, by + 24);
+    }
+    window.memberShadows[m.id] = shadowG;
 
     if (m.id === 'hermes') {
       // Hermes uses star-idle-v5 spritesheet (2048x1536, 256x256 frames)
@@ -216,11 +377,20 @@ function placeCharacters(scene) {
         sprite.play('star_idle_anim', true);
       }
       star = sprite;
-      // Gold star badge above
-      badgeBg = scene.add.rectangle(bx, by - 22, 20, 20, 0xffd700, 0.9)
-        .setOrigin(0.5).setDepth(12).setStrokeStyle(1, 0x5d4037, 1);
+
+      // Glow aura behind Hermes badge
+      const glowG = scene.add.graphics().setDepth(11);
+      glowG.fillStyle(0xffd700, 0.15);
+      glowG.fillCircle(bx, by - 22, 18);
+      glowG.fillStyle(0xffd700, 0.08);
+      glowG.fillCircle(bx, by - 22, 26);
+      window.hermesGlow = glowG;
+
+      // Gold star badge above — enhanced
+      badgeBg = scene.add.rectangle(bx, by - 22, 22, 22, 0xffd700, 0.95)
+        .setOrigin(0.5).setDepth(12).setStrokeStyle(2, 0xffaa00, 1);
       badge = scene.add.text(bx, by - 22, '⭐', {
-        fontFamily: 'monospace', fontSize: '12px',
+        fontFamily: 'monospace', fontSize: '13px',
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(12);
     } else {
@@ -241,11 +411,11 @@ function placeCharacters(scene) {
       // Store reference for animation restart on re-create
       window.guestSprites[m.id] = sprite;
 
-      // Colored badge
-      badgeBg = scene.add.rectangle(bx, by - 20, 16, 16, tc.color, 0.8)
-        .setOrigin(0.5).setDepth(12).setStrokeStyle(1, 0x000000, 0.8);
+      // Colored badge — enhanced with glow
+      badgeBg = scene.add.rectangle(bx, by - 20, 18, 18, tc.color, 0.85)
+        .setOrigin(0.5).setDepth(12).setStrokeStyle(2, 0x000000, 0.6);
       badge = scene.add.text(bx, by - 20, tc.icon, {
-        fontFamily: 'monospace', fontSize: '10px',
+        fontFamily: 'monospace', fontSize: '11px',
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(12);
     }
@@ -256,9 +426,23 @@ function placeCharacters(scene) {
     window.memberStates[m.id] = 'idle';
     window.memberTargets[m.id] = { x: bx, y: by };
 
+    // Name label — enhanced with pointer arrow
+    const labelBg = scene.add.rectangle(bx, by + 18, m.label.length * 6 + 10, 14, 0x000000, 0.5)
+      .setOrigin(0.5).setDepth(11).setStrokeStyle(1, 0xffd700, 0.3);
+    // Small arrow pointing up to character
+    const arrowG = scene.add.graphics().setDepth(11);
+    arrowG.fillStyle(0x000000, 0.4);
+    arrowG.fillTriangle(-3, 0, 3, 0, 0, 3);
+    arrowG.setPosition(bx, by + 11);
+    window.memberLabelBgs = window.memberLabelBgs || {};
+    window.memberLabelBgs[m.id] = labelBg;
+    window.memberArrows = window.memberArrows || {};
+    window.memberArrows[m.id] = arrowG;
+
     const label = scene.add.text(bx, by + 18, m.label, {
-      fontFamily: 'monospace', fontSize: '7px', fill: '#fff',
-      stroke: '#000', strokeThickness: 2
+      fontFamily: 'monospace', fontSize: '8px', fill: '#fff',
+      fontStyle: 'bold',
+      stroke: '#000', strokeThickness: 1
     }).setOrigin(0.5).setDepth(12);
     window.memberLabels[m.id] = label;
     spriteData[m.id] = { badge, label };
@@ -267,14 +451,21 @@ function placeCharacters(scene) {
 }
 
 function drawPlaque(scene) {
-  const p = scene.add.rectangle(640, 700, 260, 26, 0x5d4037, 0.92).setDepth(30);
-  p.setStrokeStyle(2, 0x3e2723);
-  scene.add.text(640, 700, 'Pixel Office', {
+  // Shadow
+  const pShadow = scene.add.rectangle(642, 702, 266, 30, 0x000000, 0.2).setDepth(30);
+  const p = scene.add.rectangle(640, 700, 260, 28, 0x3e2723, 0.95).setDepth(30);
+  p.setStrokeStyle(2, 0xffd700, 0.5);
+  // Inner border
+  const pInner = scene.add.rectangle(640, 700, 252, 20, 0x5d4037, 0.6).setDepth(30);
+  scene.add.text(640, 700, '☕ Pixel Office — Central Perk', {
     fontFamily: 'monospace', fontSize: '13px', fill: '#ffd700',
     fontWeight: 'bold', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(31);
-  scene.add.text(530, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(750, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(525, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(755, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  // Small dots
+  scene.add.text(565, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(715, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
 }
 
 // ===================== INIT =====================
@@ -406,6 +597,22 @@ function update(time) {
       const dist = Math.sqrt(dx*dx + dy*dy);
       if (dist > 3) { sp.x += (dx/dist) * 1.2; sp.y += (dy/dist) * 1.2; }
 
+      // Update shadow to follow sprite
+      const shadow = window.memberShadows && window.memberShadows[m.id];
+      if (shadow) {
+        const sy = m.id === 'hermes' ? sp.y + 38 : sp.y + 24;
+        shadow.setPosition(sp.x, sy);
+      }
+
+      // Update label background to follow sprite
+      const lblBg = window.memberLabelBgs && window.memberLabelBgs[m.id];
+      if (lblBg) lblBg.setPosition(sp.x, sp.y + 18);
+      // Update arrow to follow sprite
+      const arr = window.memberArrows && window.memberArrows[m.id];
+      if (arr) {
+        arr.setPosition(sp.x, sp.y + 11);
+      }
+
       // Update badge position to follow sprite
       const badge = window.memberBadges[m.id];
       if (badge) {
@@ -422,6 +629,25 @@ function update(time) {
     });
   }
   if (star) moveStar(time);
+
+  // Animate Hermes glow
+  if (window.hermesGlow && star) {
+    const pulse = 0.12 + Math.sin(time/600) * 0.06;
+    window.hermesGlow.clear();
+    window.hermesGlow.fillStyle(0xffd700, pulse);
+    window.hermesGlow.fillCircle(star.x, star.y - 22, 18);
+    window.hermesGlow.fillStyle(0xffd700, pulse * 0.6);
+    window.hermesGlow.fillCircle(star.x, star.y - 22, 26);
+  }
+
+  // Animate badge glows (pulse effect)
+  MEMBERS.forEach(m => {
+    const bbg = window.memberBadgeBgs && window.memberBadgeBgs[m.id];
+    if (bbg) {
+      const pulse = 0.7 + Math.sin(time/500 + parseFloat('0.'+m.id.charCodeAt(0)))*0.15;
+      bbg.setAlpha(pulse);
+    }
+  });
 }
 
 // ===================== STATE =====================
@@ -494,9 +720,23 @@ function showBubble() {
   const texts = BTEXTS[currentState] || BTEXTS.idle;
   const text = texts[Math.floor(Math.random()*texts.length)];
   const by = 280;
-  const bg = game.add.rectangle(640, by, text.length*8+16, 22, 0xffffff, 0.95).setStrokeStyle(2, 0x000);
-  const txt = game.add.text(640, by, text, { fontFamily: 'monospace', fontSize: '10px', fill: '#000' }).setOrigin(0.5);
-  bubble = game.add.container(0, 0, [bg, txt]).setDepth(1200);
+  const tw = text.length * 8 + 20;
+  // Speech bubble with tail
+  const bg = game.add.graphics();
+  bg.fillStyle(0xffffff, 0.95);
+  bg.fillRoundedRect(-tw/2, -11, tw, 22, 4);
+  bg.fillStyle(0xffd700, 0.3);
+  bg.fillRoundedRect(-tw/2, -11, tw/3, 22, 4);
+  bg.lineStyle(2, 0x000000, 0.8);
+  bg.strokeRoundedRect(-tw/2, -11, tw, 22, 4);
+  // Bubble tail (triangle pointing down)
+  bg.fillStyle(0xffffff, 0.95);
+  bg.fillTriangle(-4, 11, 4, 11, 0, 16);
+  const txt = game.add.text(0, 0, text, {
+    fontFamily: 'monospace', fontSize: '11px', fill: '#1a1a2e',
+    fontStyle: 'bold'
+  }).setOrigin(0.5);
+  bubble = game.add.container(640, by, [bg, txt]).setDepth(1200);
   bubbleTimer = setTimeout(() => { if (bubble) { bubble.destroy(); bubble = null; } bubbleTimer = null; }, 3000);
 }
 
