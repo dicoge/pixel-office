@@ -185,48 +185,6 @@ function drawRoom(scene) {
   rugG.lineStyle(1, 0x8d6e63, 0.2);
   rugG.strokeEllipse(340, 520, 318, 48);
 
-  // Bookshelf (left wall) — depth 3
-  const shelfG = scene.add.graphics().setDepth(3);
-  // Shelf shadow on wall
-  shelfG.fillStyle(0x000000, 0.10);
-  shelfG.fillRect(27, 142, 28, 200);
-  // Shelf frame
-  shelfG.fillStyle(0x3e2723, 1);
-  shelfG.fillRect(24, 138, 32, 206);
-  // Shelf inner
-  shelfG.fillStyle(0x5d4037, 1);
-  shelfG.fillRect(26, 140, 28, 202);
-  const shelfColors = [0xc62828, 0x1565c0, 0x2e7d32, 0xf9a825, 0x6a1b9a, 0x00897b, 0xe65100, 0x37474f];
-  for (let i = 0; i < 6; i++) {
-    const sy = 150 + i * 30;
-    // Shelf plank
-    shelfG.fillStyle(0x6d4c41, 1);
-    shelfG.fillRect(26, sy, 28, 3);
-// Books
-    const bookH = 10 + Math.floor(Math.random() * 6);
-    shelfG.fillStyle(shelfColors[i % shelfColors.length], 1);
-    shelfG.fillRect(29, sy - bookH, 5, bookH);
-    shelfG.fillStyle(shelfColors[(i+1) % shelfColors.length], 1);
-    shelfG.fillRect(36, sy - bookH + 2, 4, bookH - 2);
-    shelfG.fillStyle(shelfColors[(i+3) % shelfColors.length], 1);
-    shelfG.fillRect(42, sy - bookH + 1, 4, bookH - 1);
-    shelfG.fillStyle(shelfColors[(i+5) % shelfColors.length], 1);
-    shelfG.fillRect(48, sy - bookH + 3, 3, bookH - 3);
-    // Book spine highlights
-    shelfG.fillStyle(0xffffff, 0.15);
-    shelfG.fillRect(29, sy - bookH, 1, bookH);
-    shelfG.fillRect(36, sy - bookH + 2, 1, bookH - 2);
-    shelfG.fillRect(42, sy - bookH + 1, 1, bookH - 1);
-    shelfG.fillRect(48, sy - bookH + 3, 1, bookH - 3);
-  }
-  // Subtle decorations — gold clock, photo frame, mini plant
-  shelfG.fillStyle(0xffd700, 1);
-  shelfG.fillCircle(42, 162, 4);
-  shelfG.fillStyle(0x6d4c41, 0.7);
-  shelfG.fillRect(32, 208, 16, 12); // photo frame
-  shelfG.fillStyle(0x4caf50, 0.6);
-  shelfG.fillRect(40, 235, 6, 10);  // mini plant
-  
   // CENTRAL PERK sign — depth 3 — wall-mounted plaque
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
