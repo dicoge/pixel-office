@@ -148,18 +148,18 @@ function drawRoom(scene) {
   sofaG.fillStyle(0x000000, 0.15);
   sofaG.fillEllipse(340, 530, 280, 20);
   // Sofa back
-  sofaG.fillStyle(0x9e1a1a, 1);
+  sofaG.fillStyle(0x5d4037, 1);
   sofaG.fillRect(200, 468, 280, 20);
   // Sofa seat base
-  sofaG.fillStyle(0xa02020, 1);
+  sofaG.fillStyle(0x4e342e, 1);
   sofaG.fillRect(200, 488, 280, 42);
   // Cushions
-  sofaG.fillStyle(0xd32f2f, 1);
+  sofaG.fillStyle(0x6d4c41, 1);
   sofaG.fillRect(210, 492, 80, 16);
   sofaG.fillRect(300, 492, 80, 16);
   sofaG.fillRect(390, 492, 80, 16);
   // Cushion highlights
-  sofaG.fillStyle(0xe57373, 0.20);
+  sofaG.fillStyle(0x8d6e63, 0.20);
   sofaG.fillRect(212, 494, 76, 4);
   sofaG.fillRect(302, 494, 76, 4);
   sofaG.fillRect(392, 494, 76, 4);
@@ -174,7 +174,7 @@ function drawRoom(scene) {
   sofaG.fillStyle(0x00897b, 1);
   sofaG.fillRect(445, 474, 20, 14);
   // Sofa arms
-  sofaG.fillStyle(0x8b1a1a, 1);
+  sofaG.fillStyle(0x5c4033, 1);
   sofaG.fillRect(195, 468, 10, 62);
   sofaG.fillRect(475, 468, 10, 62);
 
