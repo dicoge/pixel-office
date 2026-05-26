@@ -6,16 +6,15 @@
   <title>Pixel Office</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
   <script>
-  // Auto-hide loading overlay after 2s (before login, game.js isn't loaded yet)
+  // Auto-hide loading overlay after 2s
   setTimeout(function() {
     var lo = document.getElementById('loading-overlay');
     if (lo) { lo.style.transition = 'opacity 0.5s ease'; lo.style.opacity = '0';
       setTimeout(function() { lo.style.display = 'none'; }, 500); }
   }, 2000);
-  // Fallback if Phaser CDN fails (e.g., mobile browser blocks third-party scripts)
   if (typeof Phaser === 'undefined') {
     document.getElementById('loading-overlay').style.display = 'none';
-    console.warn('Phaser CDN failed to load');
+    console.warn('Phaser CDN failed');
   }
   </script>
   <style>
@@ -23,534 +22,114 @@
     body {
       background: #1a1a2e;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
+      justify-content: center;
       min-height: 100vh;
       font-family: 'Courier New', monospace;
-      padding: 20px 0;
-      gap: 10px;
-      overflow-x: hidden;
       color: #f0f0f0;
     }
 
-    /* ============ GLOBAL ANIMATIONS ============ */
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.85); }
-    }
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 5px currentColor; }
-      50% { box-shadow: 0 0 15px currentColor, 0 0 30px currentColor; }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes star-rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes blink-cursor {
-      0%, 100% { border-color: transparent; }
-      50% { border-color: #ffd700; }
-    }
-
-    /* ============ LOGIN SCREEN ============ */
-#login-screen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      min-height: 100dvh;
-      padding: 20px;
-      width: 100%;
+    /* ===== LOGIN ===== */
+    #login-screen {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; min-height: 100dvh; padding: 20px; width: 100%;
     }
     #login-screen.hidden { display: none; }
-
     .login-logo {
-      font-size: clamp(20px, 6vw, 28px);
-      color: #ffd700;
+      font-size: 28px; color: #ffd700;
       text-shadow: 3px 3px 0 #e67e22, 0 0 20px rgba(255,215,0,0.3);
-      margin-bottom: 8px;
-      letter-spacing: 2px;
-      animation: fadeInUp 0.6s ease;
+      margin-bottom: 8px; letter-spacing: 2px;
     }
     .login-subtitle {
-      font-size: clamp(10px, 3vw, 12px);
-      color: #00d4aa;
-      margin-bottom: clamp(20px, 5vw, 30px);
-      text-shadow: 0 0 10px rgba(0,212,170,0.3);
-      animation: fadeInUp 0.8s ease;
+      font-size: 12px; color: #00d4aa;
+      margin-bottom: 30px; text-shadow: 0 0 10px rgba(0,212,170,0.3);
     }
     .login-box {
       background: rgba(22, 33, 62, 0.9);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       border: 2px solid rgba(255, 215, 0, 0.3);
-      padding: clamp(20px, 4vw, 30px);
-      width: min(320px, 88vw);
+      padding: 30px; width: 320px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,215,0,0.1);
-      animation: fadeInUp 1s ease;
     }
     .login-input {
-      width: 100%;
-      padding: clamp(10px, 2.5vw, 12px);
-      margin: 10px 0;
+      width: 100%; padding: 12px; margin: 10px 0;
       background: rgba(26, 26, 46, 0.8);
       border: 2px solid rgba(240, 240, 240, 0.2);
-      color: #f0f0f0;
-      font-family: 'Courier New', monospace;
-      font-size: clamp(13px, 3.5vw, 14px);
-      -webkit-appearance: none;
-      appearance: none;
+      color: #f0f0f0; font-family: 'Courier New', monospace; font-size: 14px;
       border-radius: 4px;
-      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .login-input:focus {
-      outline: none;
-      border-color: #ffd700;
-      box-shadow: 0 0 10px rgba(255,215,0,0.2);
-    }
+    .login-input:focus { outline: none; border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
     .login-btn {
-      width: 100%;
-      padding: clamp(12px, 3vw, 14px);
-      margin-top: 15px;
+      width: 100%; padding: 14px; margin-top: 15px;
       background: linear-gradient(135deg, #0f9b0f, #1db81d);
       border: 2px solid rgba(255, 215, 0, 0.3);
-      color: #f0f0f0;
-      font-family: 'Courier New', monospace;
-      font-size: clamp(13px, 3.5vw, 14px);
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(15, 155, 15, 0.3);
-      transition: all 0.2s;
-      font-weight: bold;
-      -webkit-appearance: none;
-      appearance: none;
-      border-radius: 4px;
-      touch-action: manipulation;
-      position: relative;
-      overflow: hidden;
+      color: #f0f0f0; font-family: 'Courier New', monospace; font-size: 14px;
+      cursor: pointer; font-weight: bold; border-radius: 4px;
     }
-    .login-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      transition: left 0.5s;
-    }
-    .login-btn:hover::before { left: 100%; }
-      .login-btn:hover { background: linear-gradient(135deg, #2ecc71, #3ddc84); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(15, 155, 15, 0.5), 0 0 15px rgba(255,215,0,0.2); }
-    .login-btn:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(15, 155, 15, 0.3); }
-    .login-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 20px; text-align: center; animation: fadeInUp 0.3s ease; }
+    .login-btn:hover { background: linear-gradient(135deg, #2ecc71, #3ddc84); }
+    .login-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 20px; text-align: center; }
 
-    /* ============ MAIN APP ============ */
-    #app { display: none; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
-    #app.visible { display: flex; }
+    /* ===== APP ===== */
+    #app { display: none; }
+    #app.visible { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 
-    #main-stage {
-      position: relative;
-      width: 1280px;
-      max-width: 95vw;
-      transition: transform .25s ease;
-    }
-    body.sidebar-open #main-stage {
-      transform: translateX(calc(-1 * max(0px, (min(320px, 92vw) + 20px) - ((100vw - 1280px) / 2))));
-    }
+    #main-stage { position: relative; }
 
     #game-container {
-      position: relative;
-      border: 0;
-      image-rendering: pixelated;
-      width: 100%;
-      max-width: 1280px;
-      aspect-ratio: 16/9;
-      overflow: hidden;
+      position: relative; border: 0;
+      image-rendering: pixelated; width: 1280px; max-width: 100vw;
+      aspect-ratio: 16/9; overflow: hidden;
     }
     #game-container canvas {
-      width: 100% !important;
-      height: 100% !important;
-      image-rendering: pixelated;
-      object-fit: contain;
-      box-shadow: inset 0 0 0 4px #64477d;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 10;
+      width: 100% !important; height: 100% !important;
+      image-rendering: pixelated; object-fit: contain;
+      position: absolute; top: 0; left: 0; z-index: 10;
     }
     #game-skeleton {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
+      position: absolute; inset: 0; z-index: 5;
       background: radial-gradient(ellipse at center, #2a2a45 0%, #1a1a2e 65%, #151522 100%);
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
     #game-skeleton .hint { color: #cbd5e1; font-size: 16px; }
 
-    /* ============ LOADING OVERLAY ============ */
+    /* ===== LOADING OVERLAY ===== */
     #loading-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: radial-gradient(ellipse at center, #1a1a2e, #0f0f23);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 100000;
+      display: flex; flex-direction: column; justify-content: center;
+      align-items: center; z-index: 100000;
     }
-    .loading-star {
-      font-size: 48px;
-      margin-bottom: 20px;
-      animation: star-rotate 3s linear infinite;
-      text-shadow: 0 0 30px rgba(255,215,0,0.5), 0 0 60px rgba(255,215,0,0.2);
-    }
-    #loading-text {
-      color: #ffd700;
-      font-size: 16px;
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px rgba(255,215,0,0.3);
-    }
+    #loading-text { color: #ffd700; font-size: 16px; margin-bottom: 20px; }
     #loading-progress-container {
       width: 300px; height: 6px;
       background: rgba(51, 51, 51, 0.6);
-      border: 1px solid rgba(255,215,0,0.2);
-      border-radius: 3px;
-      overflow: hidden;
+      border: 1px solid rgba(255,215,0,0.2); border-radius: 3px; overflow: hidden;
     }
     #loading-progress-bar {
-      height: 100%;
+      height: 100%; width: 0%;
       background: linear-gradient(90deg, #e94560, #ffd700, #00d4aa);
-      background-size: 200% 100%;
-      width: 0%;
-      animation: shimmer 1.5s ease-in-out infinite;
-      border-radius: 3px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 0% 0%; }
-      100% { background-position: 200% 0%; }
+      background-size: 200% 100%; border-radius: 3px;
     }
 
-    /* ============ STATUS TEXT ============ */
+    /* ===== STATUS TEXT ===== */
     #status-text {
-      position: absolute;
-      bottom: 12px; left: 12px;
-      color: #eee;
-      font-size: 14px;
+      position: absolute; bottom: 12px; left: 12px;
+      color: #eee; font-size: 14px;
       background: rgba(0,0,0,0.7);
-      background: linear-gradient(135deg, rgba(0,0,0,0.75), rgba(10,10,30,0.8));
-      padding: 8px 14px;
-      max-width: calc(100% - 24px);
-      font-family: 'Courier New', monospace;
-      z-index: 30;
-      pointer-events: none;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      border-left: 3px solid #ffd700;
-      border-radius: 0 4px 4px 0;
-    }
-    #status-text::after {
-      content: '▊';
-      color: #ffd700;
-      animation: blink-cursor 1s step-end infinite;
-      margin-left: 2px;
-    }
-
-    /* ============ BOTTOM PANELS ============ */
-    #bottom-panels {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      max-width: 1280px;
-      justify-content: flex-start;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    /* Memo panel */
-    #memo-panel {
-      position: relative;
-      width: 460px;
-      max-width: 100%;
-      height: 200px;
-      background: rgba(17, 24, 39, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 215, 0, 0.1);
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      flex: 1;
-      border-radius: 8px;
-    }
-    #memo-title {
-      color: #ffd700;
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 6px;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-    #memo-date {
-      color: #888;
-      font-size: 10px;
-      margin-bottom: 6px;
-      text-align: right;
-    }
-    #memo-content {
-      color: #cbd5e1;
-      font-size: 12px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      overflow-y: auto;
-      flex-grow: 1;
-    }
-    #memo-placeholder { color: #666; font-style: italic; text-align: center; padding: 20px 0; }
-
-    /* Control bar */
-    #control-bar {
-      position: relative;
-      background: rgba(20, 23, 34, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      padding: 10px;
-      border: 1px solid rgba(255, 215, 0, 0.1);
-      width: 300px;
-      max-width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border-radius: 8px;
-    }
-    #control-bar-title {
-      color: #ffd700;
-      font-size: 14px;
-      font-weight: bold;
-      text-align: center;
-      padding: 4px 0 8px;
-    }
-    #control-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .control-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 8px;
-      background: #1f2937;
-      font-size: 11px;
-    }
-    .control-label { color: #9ca3af; }
-    .control-value { color: #f0f0f0; font-weight: bold; }
-
-    .hermes-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 8px;
-      background: #1f2937;
-      font-size: 11px;
-      margin-top: 4px;
-    }
-    #hermes-indicator {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: #e74c3c;
-      flex-shrink: 0;
-      animation: pulse-dot 1.5s ease-in-out infinite;
-    }
-
-    /* Member status list */
-    #member-status-list {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      margin-top: 4px;
-    }
-    .member-status-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      background: #1f2937;
-      font-size: 10px;
-    }
-    .member-status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-    .member-status-name {
-      color: #f0f0f0;
-      font-weight: bold;
-      min-width: 70px;
-    }
-    .member-status-area {
-      color: #9ca3af;
-      flex: 1;
-    }
-
-    /* ============ SIDEBAR ============ */
-    #sidebar-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000005;
-      display: none;
-    }
-    #sidebar-backdrop.open { display: block; }
-
-    #sidebar {
-      position: fixed;
-      top: 0;
-      right: -100vw;
-      width: 320px;
-      max-width: 92vw;
-      height: 100vh;
-      background: rgba(17, 24, 39, 0.92);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-left: 2px solid rgba(255, 215, 0, 0.3);
-      box-shadow: -8px 0 32px rgba(0,0,0,0.5);
-      transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 1000010;
-      display: flex;
-      flex-direction: column;
-    }
-    #sidebar.open { right: 0; }
-
-    #sidebar-header {
-      color: #ecfdf5;
-      font-size: 14px;
-      padding: 12px;
-      border-bottom: 1px solid rgba(148,163,184,0.22);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #0b1220;
-    }
-    #sidebar-header button {
-      cursor: pointer;
-      border: 1px solid rgba(148,163,184,0.24);
-      background: #1f2937;
-      color: #fff;
-      padding: 6px 10px;
+      padding: 8px 14px; z-index: 30; pointer-events: none;
       font-family: 'Courier New', monospace;
     }
-    #sidebar-body {
-      padding: 10px;
-      overflow: auto;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    /* Department list */
-    #department-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .dept-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #1f2937;
-      padding: 10px 12px;
-      border: 1px solid #374151;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .dept-item:hover { border-color: #22c55e; background: #263548; }
-    .dept-item.active { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,0.4) inset; }
-    .dept-icon { font-size: 18px; flex-shrink: 0; }
-    .dept-name { flex: 1; font-size: 13px; color: #f0f0f0; }
-    .dept-status {
-      font-size: 10px;
-      padding: 2px 6px;
-      color: #2ecc71;
-    }
-    .dept-status.inactive { color: #e74c3c; }
-
-    /* Department detail panel */
-    #dept-detail-panel {
-      display: none;
-      background: #1f2937;
-      border: 1px solid #374151;
-      padding: 12px;
-    }
-    #dept-detail-content {
-      font-size: 12px;
-      line-height: 1.6;
-    }
-    .dept-detail-header {
-      font-size: 16px;
-      font-weight: bold;
-      color: #ffd700;
-      margin-bottom: 6px;
-    }
-    .dept-detail-meta {
-      color: #9ca3af;
-      font-size: 11px;
-      margin-bottom: 12px;
-    }
-    .dept-detail-section-title {
-      color: #00d4aa;
-      font-size: 13px;
-      font-weight: bold;
-      margin: 10px 0 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #374151;
-    }
-    .dept-detail-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 8px;
-      font-size: 11px;
-    }
-    .dept-detail-item:nth-child(odd) { background: rgba(0,0,0,0.1); }
-
-    .dept-close-btn {
-      width: 100%;
-      padding: 8px;
-      margin-top: 8px;
-      background: #e74c3c;
-      border: none;
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .dept-close-btn:hover { background: #c0392b; }
   </style>
 </head>
 <body>
 
-  <!-- ===== LOADING OVERLAY ===== -->
+  <!-- ===== LOADING ===== -->
   <div id="loading-overlay">
-    <div class="loading-star">⭐</div>
     <div id="loading-text">正在載入像素辦公室...</div>
     <div id="loading-progress-container">
       <div id="loading-progress-bar"></div>
     </div>
   </div>
 
-  <!-- ===== LOGIN SCREEN ===== -->
+  <!-- ===== LOGIN ===== -->
   <div id="login-screen">
     <div class="login-logo">PIXEL OFFICE</div>
     <div class="login-subtitle">AI Agent 管理系統</div>
@@ -562,117 +141,48 @@
     </div>
   </div>
 
-  <!-- ===== MAIN APP ===== -->
+  <!-- ===== APP ===== -->
   <div id="app">
-    <!-- Main stage -->
     <div id="main-stage">
       <div id="game-container">
         <div id="game-skeleton"><div class="hint">正在進入像素辦公室…</div></div>
         <div id="status-text">載入中...</div>
       </div>
-
-      <!-- Bottom panels -->
-      <div id="bottom-panels">
-        <!-- Memo -->
-        <div id="memo-panel">
-          <div id="memo-title">📝 即時訊息</div>
-          <div id="memo-date"></div>
-          <div id="memo-content"><div id="memo-placeholder">載入中...</div></div>
-        </div>
-        <!-- Control bar -->
-        <div id="control-bar">
-          <div id="control-bar-title">系統狀態</div>
-          <div id="control-info">
-            <div class="control-row">
-              <span class="control-label">Agent 狀態</span>
-              <span class="control-value" id="agent-status-display">待命中</span>
-            </div>
-            <div class="hermes-row">
-              <span id="hermes-indicator"></span>
-              <span id="hermes-text">Hermes 離線</span>
-            </div>
-          </div>
-          <div id="control-bar-title" style="margin-top:8px;">👷 團隊成員</div>
-          <div id="member-status-list">
-            <!-- Populated by game.js -->
-          </div>
-        </div>
-      </div>
     </div>
-
-    <!-- Sidebar backdrop -->
-    <div id="sidebar-backdrop" onclick="closeSidebar()"></div>
-
-    <!-- Sidebar -->
-    <aside id="sidebar">
-      <div id="sidebar-header">
-        <span>📂 部門列表</span>
-        <button onclick="closeSidebar()">關閉</button>
-      </div>
-      <div id="sidebar-body">
-        <div id="department-list">
-          <div style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">載入中...</div>
-        </div>
-        <div id="dept-detail-panel">
-          <div id="dept-detail-content"></div>
-          <button class="dept-close-btn" onclick="closeDepartmentView()">關閉檢視</button>
-        </div>
-      </div>
-    </aside>
   </div>
 
   <!-- ===== SCRIPTS ===== -->
-  <script src="/layout.js"></script>
   <script>
-    // ============ AUTH ============
-    const TOKEN_KEY = 'token';
+    // ===== AUTH =====
+    const TOKEN_KEY='pixel_office_token';
     const USERNAME_KEY = 'username';
 
     async function handleLogin() {
       const username = document.getElementById('login-username').value.trim();
       const password = document.getElementById('login-password').value.trim();
       const errorEl = document.getElementById('login-error');
-
-      if (!username || !password) {
-        errorEl.textContent = '請輸入使用者名稱和密碼';
-        return;
-      }
-
+      if (!username || !password) { errorEl.textContent = '請輸入使用者名稱和密碼'; return; }
       errorEl.textContent = '登入中...';
-
       try {
         const resp = await fetch('/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
-
         const data = await resp.json();
-
-        if (!resp.ok) {
-          errorEl.textContent = data.error || '登入失敗';
-          return;
-        }
-
+        if (!resp.ok) { errorEl.textContent = data.error || '登入失敗'; return; }
         localStorage.setItem(TOKEN_KEY, data.token);
         localStorage.setItem(USERNAME_KEY, username);
         enterOffice();
-      } catch (e) {
-        errorEl.textContent = '網路錯誤：' + e.message;
-      }
+      } catch (e) { errorEl.textContent = '網路錯誤：' + e.message; }
     }
 
     function enterOffice() {
       document.getElementById('login-screen').classList.add('hidden');
       const app = document.getElementById('app');
       app.classList.add('visible');
-
-      // Load game (defines connectHermes, initGame)
       const script = document.createElement('script');
       script.src = '/game.js?_t=' + Date.now();
-      script.onload = function() {
-        // game.js loaded - initGame will be called by game.js itself
-      };
       document.body.appendChild(script);
     }
 
@@ -682,36 +192,18 @@
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('app').classList.remove('visible');
       document.getElementById('login-error').textContent = '';
-
-      // Disconnect WS
-      if (window.hermesWs) {
-        try { window.hermesWs.close(); } catch(e) {}
-        window.hermesWs = null;
-      }
+      if (window.hermesWs) { try { window.hermesWs.close(); } catch(e) {} window.hermesWs = null; }
     }
 
     function getToken() { return localStorage.getItem(TOKEN_KEY); }
 
-    // ============ AUTO LOGIN CHECK ============
+    // ===== AUTO LOGIN =====
     (function autoLogin() {
       const token = localStorage.getItem(TOKEN_KEY);
       if (token) {
-        // Validate token by calling a simple API
-        fetch('/api/stats', {
-          headers: { 'Authorization': 'Bearer ' + token },
-          cache: 'no-store'
-        })
-        .then(resp => {
-          if (resp.ok) {
-            enterOffice();
-          } else {
-            localStorage.removeItem(TOKEN_KEY);
-          }
-        })
-        .catch(() => {
-          // Network error - still try to show office
-          enterOffice();
-        });
+        fetch('/api/stats', { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' })
+          .then(resp => { if (resp.ok) enterOffice(); else localStorage.removeItem(TOKEN_KEY); })
+          .catch(() => enterOffice());
       }
     })();
   </script>

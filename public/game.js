@@ -477,7 +477,6 @@ let lastStatusRender = 0;
 
 function update(time) {
   if (time - lastFetch > FETCH_INT) { fetchStatus(); lastFetch = time; }
-  if (time - lastStatusRender > 2000) { renderMemberStatus(); lastStatusRender = time; }
   if (time - lastBubble > BUBBLE_INT) { showBubble(); lastBubble = time; }
   if (ttIdx < ttTarget.length && time - lastTT > TT_DELAY) {
     ttText += ttTarget[ttIdx];
@@ -671,54 +670,6 @@ function getAreaLabel(target) {
     }
   }
   return '🚶 移動中';
-}
-
-function renderMemberStatus() {
-  const list = document.getElementById('member-status-list');
-  if (!list) return;
-  let html = '';
-  MEMBERS.forEach(m => {
-    const s = window.memberStates?.[m.id] || 'idle';
-    const c = getStatusColor(m.id);
-    const icon = MEMBER_ICONS[m.id] || '👤';
-    const target = window.memberTargets?.[m.id];
-    const area = getAreaLabel(target);
-    html += `<div class="member-status-row">` +
-      `<span class="member-status-dot" style="background:${c}"></span>` +
-      `<span class="member-status-name">${icon} ${m.label}</span>` +
-      `<span class="member-status-area">${area}</span></div>`;
-  });
-  list.innerHTML = html;
-}
-
-// ===================== SIDEBAR =====================
-
-let departments = [];
-
-async function loadDepartments() {
-  const tk = localStorage.getItem('token');
-  if (!tk) return;
-  try {
-    const r = await fetch('/api/departments?t='+Date.now(), {
-      headers: { 'Authorization': 'Bearer '+tk }, cache: 'no-store'
-    });
-    if (!r.ok) return;
-    const d = await r.json();
-    departments = Array.isArray(d) ? d : [];
-  } catch(e) { /* silent */ }
-}
-async function fetchDepartments() { await loadDepartments(); }
-
-// ===================== MEMO =====================
-
-async function loadMemo() {
-  try {
-    const r = await fetch('/api/memo?t='+Date.now(), { cache: 'no-store' });
-    if (!r.ok) return;
-    const d = await r.json();
-    const el = document.getElementById('memo-content');
-    if (el && d.content) el.innerHTML = d.content.replace(/\n/g, '<br>');
-  } catch(e) { /* silent */ }
 }
 
 // ===================== WEBSOCKET =====================
