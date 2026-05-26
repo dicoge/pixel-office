@@ -81,12 +81,12 @@ const GUEST_SPRITE_INDEX = {
 };
 
 const AREAS = {
-  col1_top: { x: 240, y: 280 },
-  col1_mid: { x: 240, y: 410 },
-  col1_bot: { x: 240, y: 540 },
-  col2_top: { x: 380, y: 280 },
-  col2_mid: { x: 380, y: 410 },
-  col2_bot: { x: 380, y: 540 },
+  col1_top: { x: 300, y: 280 },
+  col1_mid: { x: 300, y: 410 },
+  col1_bot: { x: 300, y: 540 },
+  col2_top: { x: 360, y: 280 },
+  col2_mid: { x: 360, y: 410 },
+  col2_bot: { x: 360, y: 540 },
   center:  { x: 640, y: 360 },
   lounge:  { x: 640, y: 360 },
 };
@@ -181,14 +181,14 @@ function drawRoom(scene) {
 
   // === 6 desks (2 columns x 3 rows, all facing right) ===
   if (scene.textures.exists('desk')) {
-    // Column 1
-    scene.add.image(240, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(240, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(240, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    // Column 2
-    scene.add.image(380, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(380, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(380, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    // Column 1 — facing LEFT
+    scene.add.image(300, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(300, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(300, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    // Column 2 — facing RIGHT
+    scene.add.image(360, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(360, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(360, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
