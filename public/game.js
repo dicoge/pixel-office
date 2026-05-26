@@ -34,12 +34,12 @@ function hideLoadingOverlay() {
 }
 
 const STATES = {
-  idle: { name:'待命', area:'lounge' },
-  writing: { name:'整理文檔', area:'desk_big_left' },
-  researching: { name:'搜尋資訊', area:'desk_small_1' },
-  executing: { name:'執行任務', area:'desk_big_right' },
-  syncing: { name:'同步備份', area:'desk_small_3' },
-  error: { name:'出錯了', area:'lounge' }
+  idle: { name:'待命', area:'center' },
+  writing: { name:'整理文檔', area:'left_top' },
+  researching: { name:'搜尋資訊', area:'left_mid' },
+  executing: { name:'執行任務', area:'right_top' },
+  syncing: { name:'同步備份', area:'right_mid' },
+  error: { name:'出錯了', area:'center' }
 };
 const BTEXTS = {
   idle:['待命中','喝杯咖啡','放個風','找靈感'],
@@ -51,13 +51,13 @@ const BTEXTS = {
 };
 
 const MEMBERS = [
-  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'manager_desk',  offset:{x:0,y:0} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'lounge',        offset:{x:-60,y:0} },
-  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'lounge',        offset:{x:0,y:0} },
-  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'desk_small_1',  offset:{x:0,y:0} },
-  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'desk_small_2',  offset:{x:0,y:0} },
-  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'desk_small_3',  offset:{x:0,y:0} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'lounge',        offset:{x:60,y:0} }
+  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:0,y:0} },
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'left_top',      offset:{x:-60,y:0} },
+  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'left_mid',      offset:{x:0,y:0} },
+  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'left_bot',      offset:{x:0,y:0} },
+  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'right_top',     offset:{x:0,y:0} },
+  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'right_mid',     offset:{x:0,y:0} },
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'right_bot',     offset:{x:60,y:0} }
 ];
 
 const TOOL_COLORS = {
@@ -81,15 +81,14 @@ const GUEST_SPRITE_INDEX = {
 };
 
 const AREAS = {
-  lounge:        { x: 340, y: 505 },     // sofa area (center) - seat level
-  desk_big_left: { x: 750,  y: 380 },    // reserved for writing state
-  desk_big_right:{ x: 920, y: 380 },     // reserved for executing state
-  desk_small_1:  { x: 120,  y: 390 },    // Gemini - left desk
-  desk_small_2:  { x: 250, y: 390 },     // Manus - left desk
-  desk_small_3:  { x: 1050, y: 470 },    // Claude Code - right desk
-  desk_small_4:  { x: 1150, y: 475 },    // reserved
-  breakroom:     { x: 340, y: 505 },
-  manager_desk:  { x: 640, y: 280 }      // Hermes - center top
+  left_top:    { x: 240, y: 280 },
+  left_mid:    { x: 240, y: 410 },
+  left_bot:    { x: 240, y: 540 },
+  right_top:   { x: 1040, y: 280 },
+  right_mid:   { x: 1040, y: 410 },
+  right_bot:   { x: 1040, y: 540 },
+  center:      { x: 640, y: 360 },
+  lounge:      { x: 640, y: 360 },
 };
 
 let game, star, areas={}, currentState='idle', pendingState=null;
@@ -180,9 +179,14 @@ function drawRoom(scene) {
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
 
-  // === WOODEN TABLE (center-left area, depth 3) ===
+  // === 6 desks (3 left facing right, 3 right facing left) ===
   if (scene.textures.exists('desk')) {
-    scene.add.image(340, 490, 'desk').setOrigin(0.5).setDepth(3).setScale(0.5);
+    scene.add.image(240, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(240, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(240, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(1040, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(1040, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(1040, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
@@ -222,7 +226,7 @@ function placeCharacters(scene) {
       shadowG.fillEllipse(0, 0, 38, 10);
       shadowG.setPosition(bx, by + 38);
     } else {
-      const sw = m.area === 'lounge' ? 26 : 20;
+      const sw = 20;
       shadowG.fillStyle(0x000000, 0.14);
       shadowG.fillEllipse(0, 0, sw, 7);
       shadowG.setPosition(bx, by + 24);
@@ -262,7 +266,7 @@ function placeCharacters(scene) {
 
       sprite = scene.add.sprite(bx, by, spriteKey, 0).setOrigin(0.5);
       // Sofa characters sit lower with smaller scale; desk characters stand tall
-      const scale = m.area === 'lounge' ? 1.2 : 1.5;
+      const scale = 1.5;
       sprite.setScale(scale);
       sprite.setDepth(10);
       if (scene.anims.exists(animKey)) {
@@ -558,7 +562,7 @@ function fetchStatus() {
       const ws = normalizeState(w.status||'idle');
       window.memberStates[mm.id] = ws;
       let ta = (STATES[ws] || STATES.idle).area;
-      if (mm.id === 'hermes') ta = 'manager_desk';
+      if (mm.id === 'hermes') ta = 'center';
       if (AREAS[ta]) {
         window.memberTargets[mm.id] = { x: AREAS[ta].x + mm.offset.x, y: AREAS[ta].y + mm.offset.y };
       }
@@ -620,11 +624,10 @@ function getStatusColor(mid) {
 function getAreaLabel(target) {
   if (!target) return '⋯';
   const labels = {
-    lounge: '☕ 沙發區',
-    desk_big_left: '📐 大桌', desk_big_right: '🧪 大桌',
-    desk_small_1: '🔍 小桌', desk_small_2: '🎨 小桌',
-    desk_small_3: '💻 小桌', desk_small_4: '🔧 小桌',
-    breakroom: '🏢 辦公室', manager_desk: '⭐ 經理位'
+    left_top: '📐 左列上', left_mid: '🔍 左列中', left_bot: '🎨 左列下',
+    right_top: '💻 右列上', right_mid: '🟢 右列中', right_bot: '🔧 右列下',
+    center: '⭐ 中央',
+    lounge: '☕ 中央'
   };
   for (const [n, p] of Object.entries(AREAS)) {
     if (Math.abs(p.x - target.x) < 60 && Math.abs(p.y - target.y) < 60) {
