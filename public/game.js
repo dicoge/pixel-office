@@ -180,6 +180,11 @@ function drawRoom(scene) {
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
 
+  // === WOODEN TABLE (center-left area, depth 3) ===
+  if (scene.textures.exists('desk')) {
+    scene.add.image(340, 490, 'desk').setOrigin(0.5).setDepth(3).setScale(0.5);
+  }
+
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
   const vigG = scene.add.graphics().setDepth(50);
   // Very soft corner darkening
@@ -337,7 +342,7 @@ function preload() {
   lpBar = document.getElementById('loading-progress-bar');
   lpText = document.getElementById('loading-text');
   // Count all assets to load
-  totalAssets = 1 + 1 + 1 + 1 + 6; // bg + star + coffee + plants + 6 guests
+  totalAssets = 1 + 1 + 1 + 1 + 6 + 1; // bg + star + coffee + plants + 6 guests + desk
   loadedAssets = 0;
 
   const ps = document.createElement('style');
@@ -364,6 +369,9 @@ function preload() {
   }
   // guest_role_5.png is a different spritesheet used as guest_anim_7
   this.load.spritesheet('guest_anim_7', '/guest_role_5.png', { frameWidth: 32, frameHeight: 32 });
+
+  // Desk sprite for center-left area
+  this.load.image('desk', '/desk-v3.webp');
 }
 
 function create() {
@@ -415,11 +423,8 @@ function create() {
   mainCamera = this.cameras.main;
   mainCamera.setBounds(0, 0, 1280, 720);
 
-  // 5. Remote data
-  loadMemo();
+  // 5. Fetch agent status
   fetchStatus();
-  loadDepartments();
-  renderMemberStatus();
 
   game.input.on('pointerdown', () => {
     const n = Date.now();
