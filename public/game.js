@@ -142,43 +142,7 @@ function drawRoom(scene) {
 
   // === FURNITURE (depth 3~5) ===
 
-  // Red sofa (center-left area) — depth 3 — translucent blend with background
-  const sofaG = scene.add.graphics().setDepth(3);
-  // Sofa shadow on floor
-  sofaG.fillStyle(0x000000, 0.15);
-  sofaG.fillEllipse(340, 530, 280, 20);
-  // Sofa back
-  sofaG.fillStyle(0x5d4037, 1);
-  sofaG.fillRect(200, 468, 280, 20);
-  // Sofa seat base
-  sofaG.fillStyle(0x4e342e, 1);
-  sofaG.fillRect(200, 488, 280, 42);
-  // Cushions
-  sofaG.fillStyle(0x6d4c41, 1);
-  sofaG.fillRect(210, 492, 80, 16);
-  sofaG.fillRect(300, 492, 80, 16);
-  sofaG.fillRect(390, 492, 80, 16);
-  // Cushion highlights
-  sofaG.fillStyle(0x8d6e63, 0.20);
-  sofaG.fillRect(212, 494, 76, 4);
-  sofaG.fillRect(302, 494, 76, 4);
-  sofaG.fillRect(392, 494, 76, 4);
-  // Cushion shadows
-  sofaG.fillStyle(0x000000, 0.08);
-  sofaG.fillRect(210, 506, 80, 4);
-  sofaG.fillRect(300, 506, 80, 4);
-  sofaG.fillRect(390, 506, 80, 4);
-  // Pillow details
-  sofaG.fillStyle(0x8e24aa, 1);
-  sofaG.fillRect(215, 474, 20, 14);
-  sofaG.fillStyle(0x00897b, 1);
-  sofaG.fillRect(445, 474, 20, 14);
-  // Sofa arms
-  sofaG.fillStyle(0x5c4033, 1);
-  sofaG.fillRect(195, 468, 10, 62);
-  sofaG.fillRect(475, 468, 10, 62);
-
-  // Warm rug under sofa
+  // Warm rug under sofa area
   const rugG = scene.add.graphics().setDepth(2);
   rugG.fillStyle(0x5d4037, 0.25);
   rugG.fillEllipse(340, 520, 320, 50);
