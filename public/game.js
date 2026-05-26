@@ -207,44 +207,10 @@ function drawRoom(scene) {
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
-  // === DESKS with legs and details ===
-  function drawDesk(scene, dx, dy, w) {
-    const d = scene.add.graphics().setDepth(3);
-    // Desk legs
-    d.fillStyle(0x3e2723, 1);
-    d.fillRect(dx - w/2 + 4, dy + 3, 5, 16);
-    d.fillRect(dx + w/2 - 9, dy + 3, 5, 16);
-    // Desk shadow
-    d.fillStyle(0x000000, 0.10);
-    d.fillRect(dx - w/2 - 2, dy + 4, w + 4, 6);
-    // Desk top
-    d.fillStyle(0x5d4037, 1);
-    d.fillRect(dx - w/2, dy, w, 8);
-    // Desk top highlight
-    d.fillStyle(0x6d4c41, 0.6);
-    d.fillRect(dx - w/2 + 2, dy, w - 4, 4);
-  }
-
-  drawDesk(scene, 120, 395, 80);  // Gemini
-  drawDesk(scene, 250, 395, 80);  // Manus
-  drawDesk(scene, 1050, 475, 80); // Claude
-  drawDesk(scene, 1150, 475, 80); // Reserved
-
-  // Coffee machine (left side, above bookshelf) — depth 5
+  // Coffee machine (left side) — depth 5
   const coffeeCompat = scene.add.sprite(120, 220, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.4);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
-
-  // Coffee table in lounge — in front of sofa, centered under lounge characters
-  const ctG = scene.add.graphics().setDepth(3);
-  ctG.fillStyle(0x4e342e, 1);
-  ctG.fillEllipse(340, 546, 80, 20);
-  ctG.fillStyle(0x5d4037, 1);
-  ctG.fillEllipse(340, 544, 76, 16);
-  // Coffee table legs
-  ctG.fillStyle(0x3e2723, 1);
-  ctG.fillRect(325, 550, 4, 10);
-  ctG.fillRect(351, 550, 4, 10);
 
   // Plant (right side) — depth 5 — with pot shadow
   if (scene.textures.exists('plants')) {
