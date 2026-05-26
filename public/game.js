@@ -235,12 +235,16 @@ function drawRoom(scene) {
     .setOrigin(0.5).setDepth(5).setScale(0.4);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
-  // Coffee table in lounge
+  // Coffee table in lounge — in front of sofa, centered under lounge characters
   const ctG = scene.add.graphics().setDepth(3);
   ctG.fillStyle(0x4e342e, 1);
-  ctG.fillEllipse(340, 510, 60, 16);
+  ctG.fillEllipse(340, 546, 80, 20);
   ctG.fillStyle(0x5d4037, 1);
-  ctG.fillEllipse(340, 508, 56, 12);
+  ctG.fillEllipse(340, 544, 76, 16);
+  // Coffee table legs
+  ctG.fillStyle(0x3e2723, 1);
+  ctG.fillRect(325, 550, 4, 10);
+  ctG.fillRect(351, 550, 4, 10);
 
   // Plant (right side) — depth 5 — with pot shadow
   if (scene.textures.exists('plants')) {
