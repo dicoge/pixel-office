@@ -343,7 +343,9 @@ function create() {
   }
 
   // Guest idle animations — frames 0~5 (6 frames), frameRate 6, repeat -1
+  // Note: guest_anim_6 is skipped (identical to guest_anim_5), guest_anim_7 = guest_role_5.png
   for (let i = 1; i <= 7; i++) {
+    if (i === 6) continue; // guest_anim_6 not loaded (duplicate of 5)
     if (!this.anims.exists('guest_idle_' + i)) {
       this.anims.create({
         key: 'guest_idle_' + i,
