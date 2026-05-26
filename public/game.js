@@ -1,5 +1,5 @@
-// Pixel Office v5 — Single-room coffee shop using pre-drawn background
-// Pattern: background image + character overlays (Star Office UI approach)
+// Pixel Office v6 — Programmatic Clean Room
+// Warm cozy room with NO background image cats
 
 let supportsWebP = false;
 function checkWebPSupport() {
@@ -8,10 +8,6 @@ function checkWebPSupport() {
     if (c.getContext && c.getContext('2d')) r(c.toDataURL('image/webp').indexOf('data:image/webp') === 0);
     else r(false);
   });
-}
-function getExt(f) {
-  if (LAYOUT.forcePng[f.replace(/\.(png|webp)$/,'')]) return '.png';
-  return supportsWebP ? '.webp' : '.png';
 }
 
 const config = {
@@ -55,23 +51,171 @@ const BTEXTS = {
 };
 
 const MEMBERS = [
-  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'manager_desk',  offset:{x:0,y:10} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'desk_big_left', offset:{x:-30,y:-5} },
-  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'desk_big_right',offset:{x:30,y:-5} },
-  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'desk_small_1',  offset:{x:0,y:10} },
-  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'desk_small_2',  offset:{x:0,y:10} },
-  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'desk_small_3',  offset:{x:0,y:10} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'desk_small_4',  offset:{x:0,y:10} }
+  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'manager_desk',  offset:{x:0,y:-20} },
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'desk_big_left', offset:{x:-20,y:-10} },
+  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'desk_big_right',offset:{x:20,y:-10} },
+  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'desk_small_1',  offset:{x:0,y:-10} },
+  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'desk_small_2',  offset:{x:0,y:-10} },
+  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'desk_small_3',  offset:{x:0,y:-10} },
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'desk_small_4',  offset:{x:0,y:-10} }
 ];
 
+const TOOL_COLORS = {
+  hermes:   { color: 0xffd700, icon: '⭐', spriteIdx: 0 },
+  gemini:   { color: 0x9c27b0, icon: '🔮', spriteIdx: 4 },
+  manus:    { color: 0xff6b35, icon: '✍️', spriteIdx: 1 },
+  codex:    { color: 0x2196f3, icon: '📘', spriteIdx: 3 },
+  claude:   { color: 0x4caf50, icon: '🟢', spriteIdx: 2 },
+  opencode: { color: 0xffeb3b, icon: '🔧', spriteIdx: 5 },
+  openclaw: { color: 0xf44336, icon: '🦞', spriteIdx: 6 }
+};
+
+const AREAS = {
+  lounge:        { x: 340, y: 500 },     // sofa area (center-left)
+  desk_big_left: { x: 750,  y: 380 },    // Codex - large right desk
+  desk_big_right:{ x: 920, y: 380 },     // OpenClaw - large right desk
+  desk_small_1:  { x: 120,  y: 400 },    // Gemini - left wall desk
+  desk_small_2:  { x: 250, y: 400 },     // Manus - left wall desk
+  desk_small_3:  { x: 1050, y: 480 },    // Claude - right wall desk
+  desk_small_4:  { x: 1150, y: 480 },    // OpenCode - right wall desk
+  breakroom:     { x: 340, y: 500 },
+  manager_desk:  { x: 640, y: 280 }      // Hermes - center
+};
+
 let game, star, areas={}, currentState='idle', pendingState=null;
-let lastFetch=0, lastClickFetch=0, lastBubble=0, targetX=640, targetY=340;
+let lastFetch=0, lastClickFetch=0, lastBubble=0, targetX=640, targetY=280;
 let bubble=null, bubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0;
 const FETCH_INT=3000, BUBBLE_INT=8000, TT_DELAY=50;
 let mainCamera;
 const spriteData = {};
 
-// ===================== BACKGROUND + CHARACTERS =====================
+// ===================== ROOM DRAWING =====================
+
+function drawRoom(scene) {
+  // Warm beige wall
+  let g = scene.add.graphics().setDepth(0);
+  g.fillStyle(0xd4a574, 1);
+  g.fillRect(0, 0, 1280, 720);
+
+  // Ceiling trim (dark brown stripe at top)
+  g.fillStyle(0x5d4037, 1);
+  g.fillRect(0, 0, 1280, 12);
+
+  // Baseboard (dark brown stripe at bottom of wall area)
+  g.fillStyle(0x5d4037, 1);
+  g.fillRect(0, 360, 1280, 6);
+
+  // Floor border
+  g.fillStyle(0x3e2723, 1);
+  g.fillRect(0, 366, 1280, 3);
+
+  // Checkered floor (y: 369 to 720)
+  const fy = 369;
+  const ts = 20;
+  for (let y = fy; y < 720; y += ts) {
+    for (let x = 0; x < 1280; x += ts) {
+      g.fillStyle(((x/ts) + Math.floor((y-fy)/ts)) % 2 === 0 ? 0xa0724e : 0x7a4e2d, 1);
+      g.fillRect(x, y, ts, ts);
+    }
+  }
+
+  // === FURNITURE ===
+
+  // Red sofa (center-left area)
+  const sofaG = scene.add.graphics().setDepth(3);
+  // Sofa back
+  sofaG.fillStyle(0xb71c1c, 1);
+  sofaG.fillRect(200, 470, 280, 18);
+  // Sofa seat
+  sofaG.fillStyle(0xc62828, 1);
+  sofaG.fillRect(200, 488, 280, 40);
+  // Cushions
+  sofaG.fillStyle(0xd32f2f, 1);
+  sofaG.fillRect(210, 492, 80, 16);
+  sofaG.fillRect(300, 492, 80, 16);
+  sofaG.fillRect(390, 492, 80, 16);
+  // Sofa arms
+  sofaG.fillStyle(0xb71c1c, 1);
+  sofaG.fillRect(195, 470, 10, 58);
+  sofaG.fillRect(475, 470, 10, 58);
+  // Sofa shadow
+  sofaG.fillStyle(0x000000, 0.15);
+  sofaG.fillRect(200, 528, 280, 8);
+
+  // Large table (right-center) — for Codex & OpenClaw
+  const tableG = scene.add.graphics().setDepth(3);
+  tableG.fillStyle(0x5d4037, 1);
+  tableG.fillRect(710, 365, 240, 8);
+  tableG.fillStyle(0x6d4c41, 1);
+  tableG.fillRect(710, 360, 240, 5);
+  // Table legs
+  tableG.fillStyle(0x4e342e, 1);
+  tableG.fillRect(720, 373, 4, 12);
+  tableG.fillRect(936, 373, 4, 12);
+
+  // Bookshelf (left wall)
+  const shelfG = scene.add.graphics().setDepth(3);
+  shelfG.fillStyle(0x4e342e, 1);
+  shelfG.fillRect(25, 140, 30, 200);
+  // Shelves
+  const shelfColors = [0xc62828, 0x1565c0, 0x2e7d32, 0xf9a825, 0x6a1b9a, 0x00897b];
+  for (let i = 0; i < 6; i++) {
+    const sy = 150 + i * 30;
+    shelfG.fillStyle(0x6d4c41, 1);
+    shelfG.fillRect(28, sy, 24, 3);
+    // Books
+    shelfG.fillStyle(shelfColors[i % shelfColors.length], 1);
+    shelfG.fillRect(31, sy - 12, 6, 12);
+    shelfG.fillStyle(shelfColors[(i+2) % shelfColors.length], 1);
+    shelfG.fillRect(40, sy - 10, 5, 10);
+    shelfG.fillStyle(shelfColors[(i+4) % shelfColors.length], 1);
+    shelfG.fillRect(48, sy - 8, 4, 8);
+  }
+
+  // CENTRAL PERK sign
+  const signG = scene.add.graphics().setDepth(3);
+  signG.fillStyle(0x5d4037, 0.9);
+  signG.fillRect(540, 55, 200, 30);
+  signG.lineStyle(2, 0x3e2723);
+  signG.strokeRect(540, 55, 200, 30);
+  signG.fillStyle(0x4e342e, 0.7);
+  signG.fillRect(544, 59, 192, 22);
+
+  scene.add.text(640, 70, 'CENTRAL PERK', {
+    fontFamily: 'monospace', fontSize: '14px',
+    fill: '#ffd700', stroke: '#000', strokeThickness: 2
+  }).setOrigin(0.5).setDepth(4);
+
+  // Small desk 1 (left) — Gemini
+  scene.add.rectangle(120, 395, 80, 8, 0x5d4037).setDepth(3);
+  scene.add.rectangle(120, 391, 80, 4, 0x6d4c41).setDepth(4);
+
+  // Small desk 2 (left) — Manus
+  scene.add.rectangle(250, 395, 80, 8, 0x5d4037).setDepth(3);
+  scene.add.rectangle(250, 391, 80, 4, 0x6d4c41).setDepth(4);
+
+  // Small desk 3 (right) — Claude Code
+  scene.add.rectangle(1050, 475, 80, 8, 0x5d4037).setDepth(3);
+  scene.add.rectangle(1050, 471, 80, 4, 0x6d4c41).setDepth(4);
+
+  // Small desk 4 (right) — OpenCode
+  scene.add.rectangle(1150, 475, 80, 8, 0x5d4037).setDepth(3);
+  scene.add.rectangle(1150, 471, 80, 4, 0x6d4c41).setDepth(4);
+
+  // Coffee machine (left side, above bookshelf)
+  const coffeeCompat = scene.add.sprite(120, 220, 'coffee_machine', 0)
+    .setOrigin(0.5).setDepth(10).setScale(0.4);
+  if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
+
+  // Plant (right side)
+  if (scene.textures.exists('plants')) {
+    scene.add.sprite(1210, 200, 'plants',
+      Math.floor(Math.random() * 16))
+      .setOrigin(0.5).setDepth(10).setScale(0.4);
+  }
+}
+
+// ===================== CHARACTERS =====================
 
 function placeCharacters(scene) {
   window.memberSprites = {};
@@ -82,59 +226,54 @@ function placeCharacters(scene) {
   window.memberBadgeBgs = {};
 
   MEMBERS.forEach((m) => {
-    const area = areas[m.area] || areas.lounge;
+    const area = AREAS[m.area] || AREAS.lounge;
     const bx = area.x + m.offset.x;
     const by = area.y + m.offset.y;
-    const tc = LAYOUT.toolColors[m.id] || { color: 0x888888, icon: '👤' };
+    const tc = TOOL_COLORS[m.id] || { color: 0x888888, icon: '👤' };
     let sprite, badge, badgeBg;
 
     if (m.id === 'hermes') {
-      // Hermes is the big star — static image overlay
       sprite = scene.add.image(bx, by, 'star_idle_static').setOrigin(0.5);
-      sprite.setScale(0.35);
+      sprite.setScale(0.33);
       sprite.setDepth(20);
       star = sprite;
-      // Gold glow badge for Hermes
-      badgeBg = scene.add.rectangle(bx, by-24, 20, 20, 0xffd700, 0.9)
+      // Gold star badge
+      badgeBg = scene.add.rectangle(bx, by - 22, 20, 20, 0xffd700, 0.9)
         .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x5d4037, 1);
-      badge = scene.add.text(bx, by-24, '⭐', {
-        fontFamily: 'monospace', fontSize: '13px',
+      badge = scene.add.text(bx, by - 22, '⭐', {
+        fontFamily: 'monospace', fontSize: '12px',
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(25);
-      window.memberBadges[m.id] = badge;
-      window.memberBadgeBgs[m.id] = badgeBg;
     } else {
-      // Guest agents — animated sprites
       const idx = tc.spriteIdx || 1;
       const guestIdx = (idx % 6) || 6;
-      if (scene.textures.exists('guest_anim_'+guestIdx)) {
-        sprite = scene.add.sprite(bx, by, 'guest_anim_'+guestIdx, 0).setOrigin(0.5);
+      if (scene.textures.exists('guest_anim_' + guestIdx)) {
+        sprite = scene.add.sprite(bx, by, 'guest_anim_' + guestIdx, 0).setOrigin(0.5);
         sprite.setScale(1.0);
         sprite.setDepth(20);
-        if (scene.anims.exists('g_idle_'+guestIdx)) {
-          sprite.play('g_idle_'+guestIdx, true);
+        if (scene.anims.exists('g_idle_' + guestIdx)) {
+          sprite.play('g_idle_' + guestIdx, true);
         }
       } else {
-        sprite = scene.add.rectangle(bx, by, 12, 20, tc.color).setOrigin(0.5).setDepth(20);
+        sprite = scene.add.rectangle(bx, by, 12, 18, tc.color).setOrigin(0.5).setDepth(20);
       }
-      // Colored badge for each agent
-      badgeBg = scene.add.rectangle(bx, by-22, 18, 18, tc.color, 0.8)
+      // Colored badge
+      badgeBg = scene.add.rectangle(bx, by - 20, 16, 16, tc.color, 0.8)
         .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x000000, 0.8);
-      badge = scene.add.text(bx, by-22, tc.icon, {
-        fontFamily: 'monospace', fontSize: '11px',
+      badge = scene.add.text(bx, by - 20, tc.icon, {
+        fontFamily: 'monospace', fontSize: '10px',
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(25);
-      window.memberBadges[m.id] = badge;
-      window.memberBadgeBgs[m.id] = badgeBg;
     }
 
     window.memberSprites[m.id] = sprite;
+    window.memberBadges[m.id] = badge;
+    window.memberBadgeBgs[m.id] = badgeBg;
     window.memberStates[m.id] = 'idle';
     window.memberTargets[m.id] = { x: bx, y: by };
 
-    // Name label below character
     const label = scene.add.text(bx, by + 18, m.label, {
-      fontFamily: 'monospace', fontSize: '8px', fill: '#fff',
+      fontFamily: 'monospace', fontSize: '7px', fill: '#fff',
       stroke: '#000', strokeThickness: 2
     }).setOrigin(0.5).setDepth(21);
     window.memberLabels[m.id] = label;
@@ -143,108 +282,93 @@ function placeCharacters(scene) {
   window.starSprite = star;
 }
 
-function placePlaque(scene) {
-  const p = LAYOUT.plaque;
-  const bg = scene.add.rectangle(p.x, p.y, p.width, p.height, 0x5d4037, 0.92).setDepth(30);
-  bg.setStrokeStyle(2, 0x3e2723);
-  scene.add.text(p.x, p.y, 'Pixel Office', {
-    fontFamily: 'monospace', fontSize: '15px', fill: '#ffd700',
+function drawPlaque(scene) {
+  const p = scene.add.rectangle(640, 700, 260, 26, 0x5d4037, 0.92).setDepth(30);
+  p.setStrokeStyle(2, 0x3e2723);
+  scene.add.text(640, 700, 'Pixel Office', {
+    fontFamily: 'monospace', fontSize: '13px', fill: '#ffd700',
     fontWeight: 'bold', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(31);
-  scene.add.text(p.x-115, p.y, '⭐', {fontFamily:'monospace',fontSize:'14px'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(p.x+115, p.y, '⭐', {fontFamily:'monospace',fontSize:'14px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(530, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(750, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
 }
 
 // ===================== INIT =====================
+
 async function initGame() {
   try { supportsWebP = await checkWebPSupport(); } catch(e) { supportsWebP = false; }
   new Phaser.Game(config);
   setTimeout(connectHermes, 1000);
 }
 
-// ===================== PRELOAD =====================
 function preload() {
   lpOverlay = document.getElementById('loading-overlay');
   lpBar = document.getElementById('loading-progress-bar');
   lpText = document.getElementById('loading-text');
-  totalAssets = LAYOUT.totalAssets || 10;
+  totalAssets = 9;
   loadedAssets = 0;
 
-  const pulseStyle = document.createElement('style');
-  pulseStyle.textContent = '@keyframes loadingPulse {' +
-    '0%,100%{box-shadow:0 0 5px #ffd700,0 0 10px #ffd700}' +
-    '50%{box-shadow:0 0 15px #ffd700,0 0 30px #ff8c00}}' +
-    '#loading-progress-bar{transition:width 0.3s ease;animation:loadingPulse 1.5s ease-in-out infinite}';
-  document.head.appendChild(pulseStyle);
+  const ps = document.createElement('style');
+  ps.textContent = '@keyframes lp{0%,100%{box-shadow:0 0 5px #ffd700}50%{box-shadow:0 0 15px #ffd700}}' +
+    '#loading-progress-bar{transition:width 0.3s ease;animation:lp 1.5s ease-in-out infinite}';
+  document.head.appendChild(ps);
   this.load.on('filecomplete', updateLoadingProgress);
   this.load.on('complete', hideLoadingOverlay);
 
-  // Background image (the whole room — pre-drawn)
-  this.load.image('office_bg', '/office_bg.webp');
-
-  // Character sprites
   this.load.image('star_idle_static', '/star-idle-v5.png');
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
+  this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
 
   for (let i = 1; i <= 6; i++) {
-    this.load.spritesheet('guest_anim_'+i, '/guest_anim_'+i+'.webp', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('guest_anim_' + i, '/guest_anim_' + i + '.webp', { frameWidth: 32, frameHeight: 32 });
   }
 }
 
-// ===================== CREATE =====================
 function create() {
   game = this;
-  areas = LAYOUT.areas;
 
-  // 1. Background image (the whole room)
-  this.add.image(640, 360, 'office_bg');
+  // 1. Draw room background + furniture
+  drawRoom(this);
 
-  // 2. Coffee machine animation overlay
+  // 2. Coffee machine animation
   if (!this.anims.exists('cf_machine')) {
     this.anims.create({
       key: 'cf_machine',
       frames: this.anims.generateFrameNumbers('coffee_machine', { start: 0, end: 95 }),
-      frameRate: 12,
-      repeat: -1
+      frameRate: 12, repeat: -1
     });
   }
-  const cm = this.add.sprite(
-    LAYOUT.furniture.coffeeMachine.x,
-    LAYOUT.furniture.coffeeMachine.y,
-    'coffee_machine', 0
-  ).setOrigin(0.5).setDepth(10).setScale(LAYOUT.furniture.coffeeMachine.scale);
-  if (this.anims.exists('cf_machine')) cm.play('cf_machine', true);
 
-// 3. Guest character animations
+  // 3. Guest animations
   for (let i = 1; i <= 6; i++) {
-    if (!this.anims.exists('g_idle_'+i)) {
+    if (!this.anims.exists('g_idle_' + i)) {
       this.anims.create({
-        key: 'g_idle_'+i,
-        frames: this.anims.generateFrameNumbers('guest_anim_'+i, { start: 0, end: 5 }),
-        frameRate: 6,
-        repeat: -1
+        key: 'g_idle_' + i,
+        frames: this.anims.generateFrameNumbers('guest_anim_' + i, { start: 0, end: 5 }),
+        frameRate: 6, repeat: -1
       });
     }
   }
 
-  // 5. Characters + plaque
+  // 4. Characters
+  areas = AREAS;
   placeCharacters(this);
-  placePlaque(this);
+  drawPlaque(this);
 
-  // 6. Camera
+  // 5. Camera
   mainCamera = this.cameras.main;
   mainCamera.setBounds(0, 0, 1280, 720);
 
-  // 7. Remote data
+  // 6. Remote data
   loadMemo();
   fetchStatus();
   loadDepartments();
   renderMemberStatus();
 
   game.input.on('pointerdown', () => {
-    const now = Date.now();
-    if (now - lastClickFetch < 300) return;
-    lastClickFetch = now;
+    const n = Date.now();
+    if (n - lastClickFetch < 300) return;
+    lastClickFetch = n;
     fetchStatus();
     fetchDepartments();
   });
@@ -252,7 +376,6 @@ function create() {
 
 let lastStatusRender = 0;
 
-// ===================== UPDATE =====================
 function update(time) {
   if (time - lastFetch > FETCH_INT) { fetchStatus(); lastFetch = time; }
   if (time - lastStatusRender > 2000) { renderMemberStatus(); lastStatusRender = time; }
@@ -264,7 +387,6 @@ function update(time) {
     ttIdx++; lastTT = time;
   }
 
-  // Move guest agents toward their targets
   if (window.memberSprites) {
     MEMBERS.forEach(m => {
       if (m.id === 'hermes') return;
@@ -273,17 +395,16 @@ function update(time) {
       if (!sp || !t) return;
       const dx = t.x - sp.x, dy = t.y - sp.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 3) { sp.x += (dx/dist) * 1.4; sp.y += (dy/dist) * 1.4; }
-      // Animate badge bobbing
+      if (dist > 3) { sp.x += (dx/dist) * 1.2; sp.y += (dy/dist) * 1.2; }
       const badge = window.memberBadges[m.id];
       if (badge) {
-        badge.setPosition(sp.x, sp.y - 22);
-        badge.setY(sp.y - 22 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
+        badge.setPosition(sp.x, sp.y - 20);
+        badge.setY(sp.y - 20 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
       }
       const badgeBg = window.memberBadgeBgs && window.memberBadgeBgs[m.id];
       if (badgeBg) {
-        badgeBg.setPosition(sp.x, sp.y - 22);
-        badgeBg.setY(sp.y - 22 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
+        badgeBg.setPosition(sp.x, sp.y - 20);
+        badgeBg.setY(sp.y - 20 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
@@ -292,7 +413,8 @@ function update(time) {
   if (star) moveStar(time);
 }
 
-// ===================== STATE MANAGEMENT =====================
+// ===================== STATE =====================
+
 function normalizeState(s) {
   if (!s) return 'idle';
   if (s === 'working') return 'writing';
@@ -321,8 +443,8 @@ function fetchStatus() {
       ttTarget = nl; ttText = ''; ttIdx = 0; pendingState = null;
       currentState = ns;
       if (star) star.setVisible(true);
-      targetX = (areas[si.area] || areas.lounge).x;
-      targetY = (areas[si.area] || areas.lounge).y;
+      targetX = (AREAS[si.area] || AREAS.lounge).x;
+      targetY = (AREAS[si.area] || AREAS.lounge).y;
     } else if (ttTarget !== nl) { ttTarget = nl; ttText = ''; ttIdx = 0; }
 
     data.forEach(w => {
@@ -340,8 +462,8 @@ function fetchStatus() {
       window.memberStates[mm.id] = ws;
       let ta = (STATES[ws] || STATES.idle).area;
       if (mm.id === 'hermes') ta = 'manager_desk';
-      if (areas[ta]) {
-        window.memberTargets[mm.id] = { x: areas[ta].x + mm.offset.x, y: areas[ta].y + mm.offset.y };
+      if (AREAS[ta]) {
+        window.memberTargets[mm.id] = { x: AREAS[ta].x + mm.offset.x, y: AREAS[ta].y + mm.offset.y };
       }
     });
     renderMemberStatus();
@@ -354,6 +476,7 @@ function moveStar(time) {
 }
 
 // ===================== BUBBLES =====================
+
 function showBubble() {
   if (bubbleTimer) clearTimeout(bubbleTimer);
   if (bubble) { bubble.destroy(); bubble = null; }
@@ -366,7 +489,8 @@ function showBubble() {
   bubbleTimer = setTimeout(() => { if (bubble) { bubble.destroy(); bubble = null; } bubbleTimer = null; }, 3000);
 }
 
-// ===================== MEMBER STATUS PANEL =====================
+// ===================== STATUS PANEL =====================
+
 const MEMBER_ICONS = {
   hermes:'⭐', gemini:'🔮', manus:'✍️', codex:'📘',
   claude:'🟢', opencode:'🔧', openclaw:'🦞'
@@ -391,7 +515,7 @@ function getAreaLabel(target) {
     desk_small_3: '💻 小桌', desk_small_4: '🔧 小桌',
     breakroom: '🏢 辦公室', manager_desk: '⭐ 經理位'
   };
-  for (const [n, p] of Object.entries(areas)) {
+  for (const [n, p] of Object.entries(AREAS)) {
     if (Math.abs(p.x - target.x) < 60 && Math.abs(p.y - target.y) < 60) {
       return labels[n] || n;
     }
@@ -418,8 +542,8 @@ function renderMemberStatus() {
 }
 
 // ===================== SIDEBAR =====================
+
 let departments = [];
-let currentDepartmentView = null;
 
 async function loadDepartments() {
   const tk = localStorage.getItem('token');
@@ -431,21 +555,12 @@ async function loadDepartments() {
     if (!r.ok) return;
     const d = await r.json();
     departments = Array.isArray(d) ? d : [];
-    renderDepartmentSidebar();
-  } catch(e) { console.error(e); }
+  } catch(e) { /* silent */ }
 }
 async function fetchDepartments() { await loadDepartments(); }
 
-const DEPT_ICONS = {
-  '遊戲開發部':'🎮', '投資研究部':'📊', '任務執行部':'🎯',
-  '稽核日誌部':'📋', '系統狀態':'⚙️', 'default':'📁'
-};
-
-function renderDepartmentSidebar() {
-  // Kept from original for compatibility
-}
-
 // ===================== MEMO =====================
+
 async function loadMemo() {
   try {
     const r = await fetch('/api/memo?t='+Date.now(), { cache: 'no-store' });
@@ -457,9 +572,8 @@ async function loadMemo() {
 }
 
 // ===================== WEBSOCKET =====================
-function connectHermes() {
-  // WebSocket connection stub — kept for future integration
-}
+
+function connectHermes() {}
 
 // ===== BOOTSTRAP =====
 initGame();
