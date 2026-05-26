@@ -72,23 +72,23 @@ const TOOL_COLORS = {
 
 // Guest sprite index mapping: member id → guest_anim_N number
 const GUEST_SPRITE_INDEX = {
-  codex: 1,
-  openclaw: 2,
-  gemini: 3,
+  codex: 2,
+  openclaw: 7,
+  gemini: 1,
   manus: 4,
   claude: 5,
-  opencode: 6
+  opencode: 3
 };
 
 const AREAS = {
-  lounge:        { x: 340, y: 490 },     // sofa area (center)
+  lounge:        { x: 340, y: 505 },     // sofa area (center) - seat level
   desk_big_left: { x: 750,  y: 380 },    // reserved for writing state
   desk_big_right:{ x: 920, y: 380 },     // reserved for executing state
-  desk_small_1:  { x: 120,  y: 395 },    // Gemini - left desk
-  desk_small_2:  { x: 250, y: 395 },     // Manus - left desk
-  desk_small_3:  { x: 1050, y: 475 },    // Claude Code - right desk
+  desk_small_1:  { x: 120,  y: 390 },    // Gemini - left desk
+  desk_small_2:  { x: 250, y: 390 },     // Manus - left desk
+  desk_small_3:  { x: 1050, y: 470 },    // Claude Code - right desk
   desk_small_4:  { x: 1150, y: 475 },    // reserved
-  breakroom:     { x: 340, y: 490 },
+  breakroom:     { x: 340, y: 505 },
   manager_desk:  { x: 640, y: 280 }      // Hermes - center top
 };
 
@@ -230,7 +230,9 @@ function placeCharacters(scene) {
       const animKey = 'guest_idle_' + guestIdx;
 
       sprite = scene.add.sprite(bx, by, spriteKey, 0).setOrigin(0.5);
-      sprite.setScale(1.5);
+      // Sofa characters sit lower with smaller scale; desk characters stand tall
+      const scale = m.area === 'lounge' ? 1.2 : 1.5;
+      sprite.setScale(scale);
       sprite.setDepth(10);
       if (scene.anims.exists(animKey)) {
         sprite.play(animKey, true);
@@ -310,9 +312,11 @@ function preload() {
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
 
   // Guest agent spritesheets (128x64, 32x32 frames, 4x2 grid = 8 frames each)
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 5; i++) {
     this.load.spritesheet('guest_anim_' + i, '/guest_anim_' + i + '.webp', { frameWidth: 32, frameHeight: 32 });
   }
+  // guest_role_5.png is a different spritesheet used as guest_anim_7
+  this.load.spritesheet('guest_anim_7', '/guest_role_5.png', { frameWidth: 32, frameHeight: 32 });
 }
 
 function create() {
@@ -339,7 +343,7 @@ function create() {
   }
 
   // Guest idle animations — frames 0~5 (6 frames), frameRate 6, repeat -1
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 7; i++) {
     if (!this.anims.exists('guest_idle_' + i)) {
       this.anims.create({
         key: 'guest_idle_' + i,
