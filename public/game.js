@@ -245,18 +245,16 @@ function placeCharacters(scene) {
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(25);
     } else {
-      const idx = tc.spriteIdx || 1;
-      const guestIdx = (idx % 6) || 6;
-      if (scene.textures.exists('guest_anim_' + guestIdx)) {
-        sprite = scene.add.sprite(bx, by, 'guest_anim_' + guestIdx, 0).setOrigin(0.5);
-        sprite.setScale(1.0);
-        sprite.setDepth(20);
-        if (scene.anims.exists('g_idle_' + guestIdx)) {
-          sprite.play('g_idle_' + guestIdx, true);
-        }
-      } else {
-        sprite = scene.add.rectangle(bx, by, 12, 18, tc.color).setOrigin(0.5).setDepth(20);
-      }
+      // Guest agents — simple colored rectangles (no sprites to avoid animal looks)
+      const rectH = 24;
+      const rectW = 14;
+      sprite = scene.add.rectangle(bx, by, rectW, rectH, tc.color, 0.9).setOrigin(0.5).setDepth(20);
+      // Small "head" circle on top
+      const head = scene.add.circle(bx, by - rectH/2 - 6, 7, tc.color, 0.9).setOrigin(0.5).setDepth(20);
+      // Eyes (white dots)
+      scene.add.circle(bx - 3, by - rectH/2 - 7, 2, 0xffffff).setOrigin(0.5).setDepth(22);
+      scene.add.circle(bx + 3, by - rectH/2 - 7, 2, 0xffffff).setOrigin(0.5).setDepth(22);
+      sprite._headRef = head;
       // Colored badge
       badgeBg = scene.add.rectangle(bx, by - 20, 16, 16, tc.color, 0.8)
         .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x000000, 0.8);
@@ -318,10 +316,6 @@ function preload() {
   this.load.image('star_idle_static', '/star-idle-v5.png');
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
-
-  for (let i = 1; i <= 6; i++) {
-    this.load.spritesheet('guest_anim_' + i, '/guest_anim_' + i + '.webp', { frameWidth: 32, frameHeight: 32 });
-  }
 }
 
 function create() {
@@ -339,18 +333,7 @@ function create() {
     });
   }
 
-  // 3. Guest animations
-  for (let i = 1; i <= 6; i++) {
-    if (!this.anims.exists('g_idle_' + i)) {
-      this.anims.create({
-        key: 'g_idle_' + i,
-        frames: this.anims.generateFrameNumbers('guest_anim_' + i, { start: 0, end: 5 }),
-        frameRate: 6, repeat: -1
-      });
-    }
-  }
-
-  // 4. Characters
+  // 3. Characters
   areas = AREAS;
   placeCharacters(this);
   drawPlaque(this);
@@ -396,6 +379,10 @@ function update(time) {
       const dx = t.x - sp.x, dy = t.y - sp.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
       if (dist > 3) { sp.x += (dx/dist) * 1.2; sp.y += (dy/dist) * 1.2; }
+      // Move head circle with body
+      if (sp._headRef) {
+        sp._headRef.setPosition(sp.x, sp.y - 18);
+      }
       const badge = window.memberBadges[m.id];
       if (badge) {
         badge.setPosition(sp.x, sp.y - 20);
