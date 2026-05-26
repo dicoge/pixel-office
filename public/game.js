@@ -51,8 +51,7 @@ const BTEXTS = {
   researching:['挖證據鏈','定位問題','找關鍵'],
   executing:['執行中','跑 pipeline','看結果'],
   syncing:['同步到雲端','備份中','多一份安心'],
-  error:['別慌','找到 bug','錯誤是線索'],
-  cat:['喵~','咕嚕…','吉祥物在此']
+  error:['別慌','找到 bug','錯誤是線索']
 };
 
 const MEMBERS = [
@@ -66,9 +65,9 @@ const MEMBERS = [
 ];
 
 let game, star, areas={}, currentState='idle', pendingState=null;
-let lastFetch=0, lastClickFetch=0, lastBubble=0, lastCatBubble=0, targetX=640, targetY=340;
-let bubble=null, bubbleTimer=null, catBubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0, catSprite=null;
-const FETCH_INT=3000, BUBBLE_INT=8000, CAT_INT=18000, TT_DELAY=50;
+let lastFetch=0, lastClickFetch=0, lastBubble=0, targetX=640, targetY=340;
+let bubble=null, bubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0;
+const FETCH_INT=3000, BUBBLE_INT=8000, TT_DELAY=50;
 let mainCamera;
 const spriteData = {};
 
@@ -186,7 +185,6 @@ function preload() {
   // Character sprites
   this.load.image('star_idle_static', '/star-idle-v5.png');
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
-  this.load.spritesheet('cats', '/cats-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
 
   for (let i = 1; i <= 6; i++) {
     this.load.spritesheet('guest_anim_'+i, '/guest_anim_'+i+'.webp', { frameWidth: 32, frameHeight: 32 });
@@ -217,22 +215,7 @@ function create() {
   ).setOrigin(0.5).setDepth(10).setScale(LAYOUT.furniture.coffeeMachine.scale);
   if (this.anims.exists('cf_machine')) cm.play('cf_machine', true);
 
-  // 3. Cat mascot — single sprite, random frame
-  if (this.textures.exists('cats')) {
-    const catFrame = Math.floor(Math.random() * Math.min(this.textures.get('cats').frameTotal || 16, 16));
-    catSprite = this.add.sprite(
-      LAYOUT.furniture.officeCat.x,
-      LAYOUT.furniture.officeCat.y,
-      'cats', catFrame
-    ).setOrigin(0.5).setDepth(LAYOUT.furniture.officeCat.depth).setScale(LAYOUT.furniture.officeCat.scale);
-    catSprite.setInteractive({ useHandCursor: true });
-    catSprite.on('pointerdown', () => {
-      catSprite.setFrame(Math.floor(Math.random() * Math.min(this.textures.get('cats').frameTotal || 16, 16)));
-      showCatBubble(true);
-    });
-  }
-
-  // 4. Guest character animations
+// 3. Guest character animations
   for (let i = 1; i <= 6; i++) {
     if (!this.anims.exists('g_idle_'+i)) {
       this.anims.create({
@@ -274,7 +257,6 @@ function update(time) {
   if (time - lastFetch > FETCH_INT) { fetchStatus(); lastFetch = time; }
   if (time - lastStatusRender > 2000) { renderMemberStatus(); lastStatusRender = time; }
   if (time - lastBubble > BUBBLE_INT) { showBubble(); lastBubble = time; }
-  if (time - lastCatBubble > CAT_INT) { showCatBubble(); lastCatBubble = time; }
   if (ttIdx < ttTarget.length && time - lastTT > TT_DELAY) {
     ttText += ttTarget[ttIdx];
     const st = document.getElementById('status-text');
@@ -382,20 +364,6 @@ function showBubble() {
   const txt = game.add.text(640, by, text, { fontFamily: 'monospace', fontSize: '10px', fill: '#000' }).setOrigin(0.5);
   bubble = game.add.container(0, 0, [bg, txt]).setDepth(1200);
   bubbleTimer = setTimeout(() => { if (bubble) { bubble.destroy(); bubble = null; } bubbleTimer = null; }, 3000);
-}
-
-function showCatBubble(force) {
-  if (!catSprite) return;
-  if (catBubbleTimer) clearTimeout(catBubbleTimer);
-  if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; }
-  const texts = BTEXTS.cat || ['喵~'];
-  const text = texts[Math.floor(Math.random()*texts.length)];
-  const ax = catSprite.x;
-  const ay = catSprite.y - 40;
-  const bg = game.add.rectangle(ax, ay, text.length*8+16, 20, 0xfffbeb, 0.95).setStrokeStyle(2, 0xd4a574);
-  const txt = game.add.text(ax, ay, text, { fontFamily: 'monospace', fontSize: '9px', fill: '#8b6914' }).setOrigin(0.5);
-  window.catBubble = game.add.container(0, 0, [bg, txt]).setDepth(2100);
-  catBubbleTimer = setTimeout(() => { if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; } catBubbleTimer = null; }, 3000);
 }
 
 // ===================== MEMBER STATUS PANEL =====================

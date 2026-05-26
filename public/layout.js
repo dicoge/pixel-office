@@ -33,8 +33,7 @@ const LAYOUT = {
 
   // === Overlay furniture (animated elements only, rest is in bg) ===
   furniture: {
-    coffeeMachine: { x: 150, y: 250, origin: { x: 0.5, y: 0.5 }, depth: 10, scale: 0.45 },
-    officeCat: { x: 1000, y: 600, depth: 15, scale: 0.5 }
+    coffeeMachine: { x: 150, y: 250, origin: { x: 0.5, y: 0.5 }, depth: 10, scale: 0.45 }
   },
 
   // === Member positions ===
