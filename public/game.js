@@ -121,15 +121,15 @@ function drawRoom(scene) {
   lightG.fillStyle(0xffdd99, 0.015);
   lightG.fillRect(0, 0, 1280, 720);
 
-  // === FLOOR (depth 2) - subtle checkerboard that blends with background ===
+  // === FLOOR (depth 2) — checkerboard pattern ===
   const floorG = scene.add.graphics().setDepth(2);
   const tileW = 40, tileH = 30;
   for (let row = 0; row < 24; row++) {
     for (let col = 0; col < 32; col++) {
-      // Fade in gradually from the wall line — first row is almost invisible
+      // Fade in gradually from the wall line
       const fadeFactor = Math.min(1, row / 3);
       const isLight = (row + col) % 2 === 0;
-      floorG.fillStyle(isLight ? 0xb8845c : 0x9e6d46, 0.18 * fadeFactor);
+      floorG.fillStyle(isLight ? 0xb8845c : 0x9e6d46, 0.45 * fadeFactor);
       floorG.fillRect(col * tileW, 545 + row * tileH, tileW, tileH);
     }
   }
@@ -148,13 +148,13 @@ function drawRoom(scene) {
   sofaG.fillStyle(0x000000, 0.15);
   sofaG.fillEllipse(340, 530, 280, 20);
   // Sofa back
-  sofaG.fillStyle(0x9e1a1a, 0.45);
+  sofaG.fillStyle(0x9e1a1a, 1);
   sofaG.fillRect(200, 468, 280, 20);
   // Sofa seat base
-  sofaG.fillStyle(0xa02020, 0.40);
+  sofaG.fillStyle(0xa02020, 1);
   sofaG.fillRect(200, 488, 280, 42);
   // Cushions
-  sofaG.fillStyle(0xd32f2f, 0.45);
+  sofaG.fillStyle(0xd32f2f, 1);
   sofaG.fillRect(210, 492, 80, 16);
   sofaG.fillRect(300, 492, 80, 16);
   sofaG.fillRect(390, 492, 80, 16);
@@ -169,12 +169,12 @@ function drawRoom(scene) {
   sofaG.fillRect(300, 506, 80, 4);
   sofaG.fillRect(390, 506, 80, 4);
   // Pillow details
-  sofaG.fillStyle(0x8e24aa, 0.30);
+  sofaG.fillStyle(0x8e24aa, 1);
   sofaG.fillRect(215, 474, 20, 14);
-  sofaG.fillStyle(0x00897b, 0.30);
+  sofaG.fillStyle(0x00897b, 1);
   sofaG.fillRect(445, 474, 20, 14);
   // Sofa arms
-  sofaG.fillStyle(0x8b1a1a, 0.40);
+  sofaG.fillStyle(0x8b1a1a, 1);
   sofaG.fillRect(195, 468, 10, 62);
   sofaG.fillRect(475, 468, 10, 62);
 
@@ -185,75 +185,85 @@ function drawRoom(scene) {
   rugG.lineStyle(1, 0x8d6e63, 0.2);
   rugG.strokeEllipse(340, 520, 318, 48);
 
-  // Bookshelf (left wall) — depth 3 — translucent blend with background
+  // Bookshelf (left wall) — depth 3
   const shelfG = scene.add.graphics().setDepth(3);
   // Shelf shadow on wall
   shelfG.fillStyle(0x000000, 0.10);
   shelfG.fillRect(27, 142, 28, 200);
-  // Shelf frame — subtle
-  shelfG.fillStyle(0x3e2723, 0.40);
+  // Shelf frame
+  shelfG.fillStyle(0x3e2723, 1);
   shelfG.fillRect(24, 138, 32, 206);
   // Shelf inner
-  shelfG.fillStyle(0x5d4037, 0.35);
+  shelfG.fillStyle(0x5d4037, 1);
   shelfG.fillRect(26, 140, 28, 202);
   const shelfColors = [0xc62828, 0x1565c0, 0x2e7d32, 0xf9a825, 0x6a1b9a, 0x00897b, 0xe65100, 0x37474f];
   for (let i = 0; i < 6; i++) {
     const sy = 150 + i * 30;
     // Shelf plank
-    shelfG.fillStyle(0x6d4c41, 0.50);
+    shelfG.fillStyle(0x6d4c41, 1);
     shelfG.fillRect(26, sy, 28, 3);
-    // Books
+// Books
     const bookH = 10 + Math.floor(Math.random() * 6);
-    shelfG.fillStyle(shelfColors[i % shelfColors.length], 0.45);
+    shelfG.fillStyle(shelfColors[i % shelfColors.length], 1);
     shelfG.fillRect(29, sy - bookH, 5, bookH);
-    shelfG.fillStyle(shelfColors[(i+1) % shelfColors.length], 0.40);
+    shelfG.fillStyle(shelfColors[(i+1) % shelfColors.length], 1);
     shelfG.fillRect(36, sy - bookH + 2, 4, bookH - 2);
-    shelfG.fillStyle(shelfColors[(i+3) % shelfColors.length], 0.40);
+    shelfG.fillStyle(shelfColors[(i+3) % shelfColors.length], 1);
     shelfG.fillRect(42, sy - bookH + 1, 4, bookH - 1);
-    shelfG.fillStyle(shelfColors[(i+5) % shelfColors.length], 0.35);
+    shelfG.fillStyle(shelfColors[(i+5) % shelfColors.length], 1);
     shelfG.fillRect(48, sy - bookH + 3, 3, bookH - 3);
+    // Book spine highlights
+    shelfG.fillStyle(0xffffff, 0.15);
+    shelfG.fillRect(29, sy - bookH, 1, bookH);
+    shelfG.fillRect(36, sy - bookH + 2, 1, bookH - 2);
+    shelfG.fillRect(42, sy - bookH + 1, 1, bookH - 1);
+    shelfG.fillRect(48, sy - bookH + 3, 1, bookH - 3);
   }
-  // Subtle decorations
-  shelfG.fillStyle(0xffd700, 0.35);
+  // Subtle decorations — gold clock, photo frame, mini plant
+  shelfG.fillStyle(0xffd700, 1);
   shelfG.fillCircle(42, 162, 4);
-
-  // CENTRAL PERK sign — depth 3 — subtle wall-mounted plaque
+  shelfG.fillStyle(0x6d4c41, 0.7);
+  shelfG.fillRect(32, 208, 16, 12); // photo frame
+  shelfG.fillStyle(0x4caf50, 0.6);
+  shelfG.fillRect(40, 235, 6, 10);  // mini plant
+  
+  // CENTRAL PERK sign — depth 3 — wall-mounted plaque
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
   signG.fillStyle(0x000000, 0.12);
   signG.fillRect(555, 62, 180, 24);
-  // Sign board — translucent so background wall shows through
-  signG.fillStyle(0x3e2723, 0.35);
+  // Sign board — warm wood, fully opaque
+  signG.fillStyle(0x3e2723, 1);
   signG.fillRect(553, 60, 184, 24);
-  signG.fillStyle(0x5d4037, 0.30);
+  signG.fillStyle(0x5d4037, 1);
   signG.fillRect(555, 62, 180, 20);
-  // Sign gold border — subtle
-  signG.lineStyle(1, 0xffd700, 0.35);
-  signG.strokeRect(555, 62, 180, 20);
+  // Gold border
+  signG.lineStyle(1, 0xffd700, 0.7);
+  signG.strokeRect(554, 61, 182, 22);
   // Sign screws
-  signG.fillStyle(0xffd700, 0.40);
+  signG.fillStyle(0xffd700, 0.8);
   signG.fillCircle(560, 66, 2);
   signG.fillCircle(730, 66, 2);
   scene.add.text(640, 72, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '11px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
-  }).setOrigin(0.5).setDepth(4).setAlpha(0.65);
+  }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
-  // === DESKS with legs and details — translucent ===
+  // === DESKS with legs and details ===
   function drawDesk(scene, dx, dy, w) {
     const d = scene.add.graphics().setDepth(3);
     // Desk legs
-    d.fillStyle(0x3e2723, 0.30);
+    d.fillStyle(0x3e2723, 1);
     d.fillRect(dx - w/2 + 4, dy + 3, 5, 16);
     d.fillRect(dx + w/2 - 9, dy + 3, 5, 16);
     // Desk shadow
     d.fillStyle(0x000000, 0.10);
     d.fillRect(dx - w/2 - 2, dy + 4, w + 4, 6);
     // Desk top
-    d.fillStyle(0x5d4037, 0.40);
+    d.fillStyle(0x5d4037, 1);
     d.fillRect(dx - w/2, dy, w, 8);
     // Desk top highlight
-    d.fillStyle(0x6d4c41, 0.35);
+    d.fillStyle(0x6d4c41, 0.6);
     d.fillRect(dx - w/2 + 2, dy, w - 4, 4);
   }
 
@@ -269,9 +279,9 @@ function drawRoom(scene) {
 
   // Coffee table in lounge
   const ctG = scene.add.graphics().setDepth(3);
-  ctG.fillStyle(0x4e342e, 0.30);
+  ctG.fillStyle(0x4e342e, 1);
   ctG.fillEllipse(340, 510, 60, 16);
-  ctG.fillStyle(0x5d4037, 0.25);
+  ctG.fillStyle(0x5d4037, 1);
   ctG.fillEllipse(340, 508, 56, 12);
 
   // Plant (right side) — depth 5 — with pot shadow
@@ -414,10 +424,10 @@ function placeCharacters(scene) {
 function drawPlaque(scene) {
   // Shadow
   const pShadow = scene.add.rectangle(642, 702, 266, 30, 0x000000, 0.2).setDepth(30);
-  const p = scene.add.rectangle(640, 700, 260, 28, 0x3e2723, 0.95).setDepth(30);
+  const p = scene.add.rectangle(640, 700, 260, 28, 0x3e2723, 1).setDepth(30);
   p.setStrokeStyle(2, 0xffd700, 0.5);
   // Inner border
-  const pInner = scene.add.rectangle(640, 700, 252, 20, 0x5d4037, 0.6).setDepth(30);
+  const pInner = scene.add.rectangle(640, 700, 252, 20, 0x5d4037, 1).setDepth(30);
   scene.add.text(640, 700, '☕ Pixel Office — Central Perk', {
     fontFamily: 'monospace', fontSize: '13px', fill: '#ffd700',
     fontWeight: 'bold', stroke: '#000', strokeThickness: 2
