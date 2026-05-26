@@ -1,5 +1,5 @@
-// Pixel Office v6 — Programmatic Clean Room
-// Warm cozy room with NO background image cats
+// Pixel Office v8 — Star Office UI (Central Perk Coffee Shop)
+// Background image + pixel art sprites + programmatic furniture
 
 let supportsWebP = false;
 function checkWebPSupport() {
@@ -51,13 +51,13 @@ const BTEXTS = {
 };
 
 const MEMBERS = [
-  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'manager_desk',  offset:{x:0,y:-20} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'desk_big_left', offset:{x:-20,y:-10} },
-  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'desk_big_right',offset:{x:20,y:-10} },
-  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'desk_small_1',  offset:{x:0,y:-10} },
-  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'desk_small_2',  offset:{x:0,y:-10} },
-  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'desk_small_3',  offset:{x:0,y:-10} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'desk_small_4',  offset:{x:0,y:-10} }
+  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'manager_desk',  offset:{x:0,y:0} },
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'lounge',        offset:{x:-60,y:0} },
+  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'lounge',        offset:{x:0,y:0} },
+  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'desk_small_1',  offset:{x:0,y:0} },
+  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'desk_small_2',  offset:{x:0,y:0} },
+  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'desk_small_3',  offset:{x:0,y:0} },
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'lounge',        offset:{x:60,y:0} }
 ];
 
 const TOOL_COLORS = {
@@ -70,16 +70,26 @@ const TOOL_COLORS = {
   openclaw: { color: 0xf44336, icon: '🦞', spriteIdx: 6 }
 };
 
+// Guest sprite index mapping: member id → guest_anim_N number
+const GUEST_SPRITE_INDEX = {
+  codex: 1,
+  openclaw: 2,
+  gemini: 3,
+  manus: 4,
+  claude: 5,
+  opencode: 6
+};
+
 const AREAS = {
-  lounge:        { x: 340, y: 500 },     // sofa area (center-left)
-  desk_big_left: { x: 750,  y: 380 },    // Codex - large right desk
-  desk_big_right:{ x: 920, y: 380 },     // OpenClaw - large right desk
-  desk_small_1:  { x: 120,  y: 400 },    // Gemini - left wall desk
-  desk_small_2:  { x: 250, y: 400 },     // Manus - left wall desk
-  desk_small_3:  { x: 1050, y: 480 },    // Claude - right wall desk
-  desk_small_4:  { x: 1150, y: 480 },    // OpenCode - right wall desk
-  breakroom:     { x: 340, y: 500 },
-  manager_desk:  { x: 640, y: 280 }      // Hermes - center
+  lounge:        { x: 340, y: 490 },     // sofa area (center)
+  desk_big_left: { x: 750,  y: 380 },    // reserved for writing state
+  desk_big_right:{ x: 920, y: 380 },     // reserved for executing state
+  desk_small_1:  { x: 120,  y: 395 },    // Gemini - left desk
+  desk_small_2:  { x: 250, y: 395 },     // Manus - left desk
+  desk_small_3:  { x: 1050, y: 475 },    // Claude Code - right desk
+  desk_small_4:  { x: 1150, y: 475 },    // reserved
+  breakroom:     { x: 340, y: 490 },
+  manager_desk:  { x: 640, y: 280 }      // Hermes - center top
 };
 
 let game, star, areas={}, currentState='idle', pendingState=null;
@@ -92,36 +102,14 @@ const spriteData = {};
 // ===================== ROOM DRAWING =====================
 
 function drawRoom(scene) {
-  // Warm beige wall
-  let g = scene.add.graphics().setDepth(0);
-  g.fillStyle(0xd4a574, 1);
-  g.fillRect(0, 0, 1280, 720);
-
-  // Ceiling trim (dark brown stripe at top)
-  g.fillStyle(0x5d4037, 1);
-  g.fillRect(0, 0, 1280, 12);
-
-  // Baseboard (dark brown stripe at bottom of wall area)
-  g.fillStyle(0x5d4037, 1);
-  g.fillRect(0, 360, 1280, 6);
-
-  // Floor border
-  g.fillStyle(0x3e2723, 1);
-  g.fillRect(0, 366, 1280, 3);
-
-  // Checkered floor (y: 369 to 720)
-  const fy = 369;
-  const ts = 20;
-  for (let y = fy; y < 720; y += ts) {
-    for (let x = 0; x < 1280; x += ts) {
-      g.fillStyle(((x/ts) + Math.floor((y-fy)/ts)) % 2 === 0 ? 0xa0724e : 0x7a4e2d, 1);
-      g.fillRect(x, y, ts, ts);
-    }
+  // 1. Background image (depth 0) — Central Perk coffee shop scene
+  if (scene.textures.exists('office_bg')) {
+    scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0);
   }
 
-  // === FURNITURE ===
+  // === FURNITURE (depth 3~5) ===
 
-  // Red sofa (center-left area)
+  // Red sofa (center-left area) — depth 3
   const sofaG = scene.add.graphics().setDepth(3);
   // Sofa back
   sofaG.fillStyle(0xb71c1c, 1);
@@ -142,28 +130,15 @@ function drawRoom(scene) {
   sofaG.fillStyle(0x000000, 0.15);
   sofaG.fillRect(200, 528, 280, 8);
 
-  // Large table (right-center) — for Codex & OpenClaw
-  const tableG = scene.add.graphics().setDepth(3);
-  tableG.fillStyle(0x5d4037, 1);
-  tableG.fillRect(710, 365, 240, 8);
-  tableG.fillStyle(0x6d4c41, 1);
-  tableG.fillRect(710, 360, 240, 5);
-  // Table legs
-  tableG.fillStyle(0x4e342e, 1);
-  tableG.fillRect(720, 373, 4, 12);
-  tableG.fillRect(936, 373, 4, 12);
-
-  // Bookshelf (left wall)
+  // Bookshelf (left wall) — depth 3
   const shelfG = scene.add.graphics().setDepth(3);
   shelfG.fillStyle(0x4e342e, 1);
   shelfG.fillRect(25, 140, 30, 200);
-  // Shelves
   const shelfColors = [0xc62828, 0x1565c0, 0x2e7d32, 0xf9a825, 0x6a1b9a, 0x00897b];
   for (let i = 0; i < 6; i++) {
     const sy = 150 + i * 30;
     shelfG.fillStyle(0x6d4c41, 1);
     shelfG.fillRect(28, sy, 24, 3);
-    // Books
     shelfG.fillStyle(shelfColors[i % shelfColors.length], 1);
     shelfG.fillRect(31, sy - 12, 6, 12);
     shelfG.fillStyle(shelfColors[(i+2) % shelfColors.length], 1);
@@ -172,7 +147,7 @@ function drawRoom(scene) {
     shelfG.fillRect(48, sy - 8, 4, 8);
   }
 
-  // CENTRAL PERK sign
+  // CENTRAL PERK sign — depth 3
   const signG = scene.add.graphics().setDepth(3);
   signG.fillStyle(0x5d4037, 0.9);
   signG.fillRect(540, 55, 200, 30);
@@ -180,38 +155,37 @@ function drawRoom(scene) {
   signG.strokeRect(540, 55, 200, 30);
   signG.fillStyle(0x4e342e, 0.7);
   signG.fillRect(544, 59, 192, 22);
-
   scene.add.text(640, 70, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '14px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(4);
 
-  // Small desk 1 (left) — Gemini
+  // Small desk 1 (left) — Gemini — depth 3
   scene.add.rectangle(120, 395, 80, 8, 0x5d4037).setDepth(3);
   scene.add.rectangle(120, 391, 80, 4, 0x6d4c41).setDepth(4);
 
-  // Small desk 2 (left) — Manus
+  // Small desk 2 (left) — Manus — depth 3
   scene.add.rectangle(250, 395, 80, 8, 0x5d4037).setDepth(3);
   scene.add.rectangle(250, 391, 80, 4, 0x6d4c41).setDepth(4);
 
-  // Small desk 3 (right) — Claude Code
+  // Small desk 3 (right) — Claude Code — depth 3
   scene.add.rectangle(1050, 475, 80, 8, 0x5d4037).setDepth(3);
   scene.add.rectangle(1050, 471, 80, 4, 0x6d4c41).setDepth(4);
 
-  // Small desk 4 (right) — OpenCode
+  // Small desk 4 (right) — reserved — depth 3
   scene.add.rectangle(1150, 475, 80, 8, 0x5d4037).setDepth(3);
   scene.add.rectangle(1150, 471, 80, 4, 0x6d4c41).setDepth(4);
 
-  // Coffee machine (left side, above bookshelf)
+  // Coffee machine (left side, above bookshelf) — depth 5
   const coffeeCompat = scene.add.sprite(120, 220, 'coffee_machine', 0)
-    .setOrigin(0.5).setDepth(10).setScale(0.4);
+    .setOrigin(0.5).setDepth(5).setScale(0.4);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
-  // Plant (right side)
+  // Plant (right side) — depth 5
   if (scene.textures.exists('plants')) {
     scene.add.sprite(1210, 200, 'plants',
       Math.floor(Math.random() * 16))
-      .setOrigin(0.5).setDepth(10).setScale(0.4);
+      .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
 }
 
@@ -224,6 +198,7 @@ function placeCharacters(scene) {
   window.memberTargets = {};
   window.memberBadges = {};
   window.memberBadgeBgs = {};
+  window.guestSprites = {};
 
   MEMBERS.forEach((m) => {
     const area = AREAS[m.area] || AREAS.lounge;
@@ -233,35 +208,44 @@ function placeCharacters(scene) {
     let sprite, badge, badgeBg;
 
     if (m.id === 'hermes') {
-      sprite = scene.add.image(bx, by, 'star_idle_static').setOrigin(0.5);
+      // Hermes uses star-idle-v5 spritesheet (2048x1536, 256x256 frames)
+      sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
       sprite.setScale(0.33);
-      sprite.setDepth(20);
+      sprite.setDepth(10);
+      if (scene.anims.exists('star_idle_anim')) {
+        sprite.play('star_idle_anim', true);
+      }
       star = sprite;
-      // Gold star badge
+      // Gold star badge above
       badgeBg = scene.add.rectangle(bx, by - 22, 20, 20, 0xffd700, 0.9)
-        .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x5d4037, 1);
+        .setOrigin(0.5).setDepth(12).setStrokeStyle(1, 0x5d4037, 1);
       badge = scene.add.text(bx, by - 22, '⭐', {
         fontFamily: 'monospace', fontSize: '12px',
         stroke: '#000', strokeThickness: 2
-      }).setOrigin(0.5).setDepth(25);
+      }).setOrigin(0.5).setDepth(12);
     } else {
-      // Guest agents — simple colored rectangles (no sprites to avoid animal looks)
-      const rectH = 24;
-      const rectW = 14;
-      sprite = scene.add.rectangle(bx, by, rectW, rectH, tc.color, 0.9).setOrigin(0.5).setDepth(20);
-      // Small "head" circle on top
-      const head = scene.add.circle(bx, by - rectH/2 - 6, 7, tc.color, 0.9).setOrigin(0.5).setDepth(20);
-      // Eyes (white dots)
-      scene.add.circle(bx - 3, by - rectH/2 - 7, 2, 0xffffff).setOrigin(0.5).setDepth(22);
-      scene.add.circle(bx + 3, by - rectH/2 - 7, 2, 0xffffff).setOrigin(0.5).setDepth(22);
-      sprite._headRef = head;
+      // Guest agents use guest_anim_N spritesheets (128x64, 32x32 frames)
+      const guestIdx = GUEST_SPRITE_INDEX[m.id];
+      const spriteKey = 'guest_anim_' + guestIdx;
+      const animKey = 'guest_idle_' + guestIdx;
+
+      sprite = scene.add.sprite(bx, by, spriteKey, 0).setOrigin(0.5);
+      sprite.setScale(1.5);
+      sprite.setDepth(10);
+      if (scene.anims.exists(animKey)) {
+        sprite.play(animKey, true);
+      }
+
+      // Store reference for animation restart on re-create
+      window.guestSprites[m.id] = sprite;
+
       // Colored badge
       badgeBg = scene.add.rectangle(bx, by - 20, 16, 16, tc.color, 0.8)
-        .setOrigin(0.5).setDepth(24).setStrokeStyle(1, 0x000000, 0.8);
+        .setOrigin(0.5).setDepth(12).setStrokeStyle(1, 0x000000, 0.8);
       badge = scene.add.text(bx, by - 20, tc.icon, {
         fontFamily: 'monospace', fontSize: '10px',
         stroke: '#000', strokeThickness: 2
-      }).setOrigin(0.5).setDepth(25);
+      }).setOrigin(0.5).setDepth(12);
     }
 
     window.memberSprites[m.id] = sprite;
@@ -273,7 +257,7 @@ function placeCharacters(scene) {
     const label = scene.add.text(bx, by + 18, m.label, {
       fontFamily: 'monospace', fontSize: '7px', fill: '#fff',
       stroke: '#000', strokeThickness: 2
-    }).setOrigin(0.5).setDepth(21);
+    }).setOrigin(0.5).setDepth(12);
     window.memberLabels[m.id] = label;
     spriteData[m.id] = { badge, label };
   });
@@ -303,7 +287,8 @@ function preload() {
   lpOverlay = document.getElementById('loading-overlay');
   lpBar = document.getElementById('loading-progress-bar');
   lpText = document.getElementById('loading-text');
-  totalAssets = 9;
+  // Count all assets to load
+  totalAssets = 1 + 1 + 1 + 1 + 6; // bg + star + coffee + plants + 6 guests
   loadedAssets = 0;
 
   const ps = document.createElement('style');
@@ -313,18 +298,38 @@ function preload() {
   this.load.on('filecomplete', updateLoadingProgress);
   this.load.on('complete', hideLoadingOverlay);
 
-  this.load.image('star_idle_static', '/star-idle-v5.png');
+  // Background image — Central Perk coffee shop scene
+  this.load.image('office_bg', '/office_bg_small.webp');
+
+  // Hermes spritesheet — star idle animation (2048x1536, 256x256 frames)
+  this.load.spritesheet('star_idle', '/star-idle-v5.png', { frameWidth: 256, frameHeight: 256 });
+
+  // Coffee machine spritesheet
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
+  // Plants spritesheet
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
+
+  // Guest agent spritesheets (128x64, 32x32 frames, 4x2 grid = 8 frames each)
+  for (let i = 1; i <= 6; i++) {
+    this.load.spritesheet('guest_anim_' + i, '/guest_anim_' + i + '.webp', { frameWidth: 32, frameHeight: 32 });
+  }
 }
 
 function create() {
   game = this;
 
-  // 1. Draw room background + furniture
-  drawRoom(this);
+  // 1. Create animations
+  // Star idle animation — 48 frames (8 cols × 6 rows)
+  if (!this.anims.exists('star_idle_anim')) {
+    this.anims.create({
+      key: 'star_idle_anim',
+      frames: this.anims.generateFrameNumbers('star_idle', { start: 0, end: 47 }),
+      frameRate: 12,
+      repeat: -1
+    });
+  }
 
-  // 2. Coffee machine animation
+  // Coffee machine animation
   if (!this.anims.exists('cf_machine')) {
     this.anims.create({
       key: 'cf_machine',
@@ -333,16 +338,31 @@ function create() {
     });
   }
 
+  // Guest idle animations — frames 0~5 (6 frames), frameRate 6, repeat -1
+  for (let i = 1; i <= 6; i++) {
+    if (!this.anims.exists('guest_idle_' + i)) {
+      this.anims.create({
+        key: 'guest_idle_' + i,
+        frames: this.anims.generateFrameNumbers('guest_anim_' + i, { start: 0, end: 5 }),
+        frameRate: 6,
+        repeat: -1
+      });
+    }
+  }
+
+  // 2. Draw room background + furniture
+  drawRoom(this);
+
   // 3. Characters
   areas = AREAS;
   placeCharacters(this);
   drawPlaque(this);
 
-  // 5. Camera
+  // 4. Camera
   mainCamera = this.cameras.main;
   mainCamera.setBounds(0, 0, 1280, 720);
 
-  // 6. Remote data
+  // 5. Remote data
   loadMemo();
   fetchStatus();
   loadDepartments();
@@ -372,17 +392,15 @@ function update(time) {
 
   if (window.memberSprites) {
     MEMBERS.forEach(m => {
-      if (m.id === 'hermes') return;
+      if (m.id === 'hermes') return; // Hermes stays at center desk
       const sp = window.memberSprites[m.id];
       const t = window.memberTargets[m.id];
       if (!sp || !t) return;
       const dx = t.x - sp.x, dy = t.y - sp.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
       if (dist > 3) { sp.x += (dx/dist) * 1.2; sp.y += (dy/dist) * 1.2; }
-      // Move head circle with body
-      if (sp._headRef) {
-        sp._headRef.setPosition(sp.x, sp.y - 18);
-      }
+
+      // Update badge position to follow sprite
       const badge = window.memberBadges[m.id];
       if (badge) {
         badge.setPosition(sp.x, sp.y - 20);
