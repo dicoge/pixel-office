@@ -142,13 +142,6 @@ function drawRoom(scene) {
 
   // === FURNITURE (depth 3~5) ===
 
-  // Warm rug under sofa area
-  const rugG = scene.add.graphics().setDepth(2);
-  rugG.fillStyle(0x5d4037, 0.25);
-  rugG.fillEllipse(340, 520, 320, 50);
-  rugG.lineStyle(1, 0x8d6e63, 0.2);
-  rugG.strokeEllipse(340, 520, 318, 48);
-
   // CENTRAL PERK sign — depth 3 — wall-mounted plaque
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
