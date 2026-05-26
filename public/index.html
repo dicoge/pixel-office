@@ -537,79 +537,6 @@
       cursor: pointer;
     }
     .dept-close-btn:hover { background: #c0392b; }
-
-    /* ============ TOP NAV ============ */
-    #top-nav {
-      width: 100%;
-      max-width: 1280px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 16px;
-      flex-wrap: wrap;
-      gap: 6px;
-      background: linear-gradient(135deg, rgba(30, 30, 60, 0.9), rgba(20, 20, 45, 0.95));
-      border: 1px solid rgba(255, 215, 0, 0.15);
-      border-radius: 8px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    #top-nav-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    #top-nav-title {
-      color: #ffd700;
-      font-size: 14px;
-      font-weight: bold;
-      text-shadow: 2px 2px 0 #e67e22, 0 0 20px rgba(255,215,0,0.2);
-    }
-    #top-nav-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .top-btn {
-      padding: 6px 14px;
-      background: rgba(51, 51, 51, 0.6);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border-radius: 4px;
-    }
-    .top-btn:hover {
-      border-color: #ffd700;
-      background: rgba(255, 215, 0, 0.1);
-      box-shadow: 0 0 15px rgba(255,215,0,0.2);
-      transform: translateY(-1px);
-    }
-    .top-btn.logout-btn {
-      background: rgba(90, 24, 24, 0.8);
-      border-color: rgba(233, 69, 96, 0.5);
-    }
-    .top-btn.logout-btn:hover {
-      background: rgba(106, 40, 40, 0.9);
-      border-color: #e94560;
-      box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
-    }
-
-    /* ============ COMPANY SELECTOR ============ */
-    #company-select {
-      padding: 4px 10px;
-      background: rgba(26, 26, 46, 0.8);
-      border: 1px solid rgba(255, 215, 0, 0.2);
-      color: #ffd700;
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    #company-select:focus { outline: none; border-color: #ffd700; box-shadow: 0 0 8px rgba(255,215,0,0.2); }
   </style>
 </head>
 <body>
@@ -637,22 +564,6 @@
 
   <!-- ===== MAIN APP ===== -->
   <div id="app">
-    <!-- Top Nav -->
-    <div id="top-nav">
-      <div id="top-nav-left">
-        <span id="top-nav-title">Pixel Office</span>
-      </div>
-      <div id="top-nav-right">
-        <select id="company-select">
-          <option value="">所有公司</option>
-          <option value="company-a">Company A</option>
-          <option value="company-b">Company B</option>
-        </select>
-        <button class="top-btn" onclick="toggleSidebar()">☰ 部門</button>
-        <button class="top-btn logout-btn" onclick="handleLogout()">登出</button>
-      </div>
-    </div>
-
     <!-- Main stage -->
     <div id="main-stage">
       <div id="game-container">
