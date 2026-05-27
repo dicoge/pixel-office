@@ -164,7 +164,7 @@ function drawRoom(scene) {
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
   // Coffee machine (left room, next to bookshelf, right of desk lamp)
-  const coffeeCompat = scene.add.sprite(220, 300, 'coffee_machine', 0)
+  const coffeeCompat = scene.add.sprite(220, 255, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.35);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
