@@ -87,12 +87,12 @@ const AREAS = {
   col2_top: { x: 280, y: 280 },
   col2_mid: { x: 280, y: 410 },
   col2_bot: { x: 280, y: 540 },
-  center:  { x: 560, y: 360 },
-  lounge:  { x: 560, y: 360 },
+  center:  { x: 490, y: 360 },
+  lounge:  { x: 490, y: 360 },
 };
 
 let game, star, areas={}, currentState='idle', pendingState=null;
-let lastFetch=0, lastClickFetch=0, lastBubble=0, targetX=560, targetY=280;
+let lastFetch=0, lastClickFetch=0, lastBubble=0, targetX=490, targetY=280;
 let bubble=null, bubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0;
 const FETCH_INT=3000, BUBBLE_INT=8000, TT_DELAY=50;
 let mainCamera;
@@ -103,7 +103,7 @@ const spriteData = {};
 function drawRoom(scene) {
   // 1. Background image (depth 0) — Central Perk coffee shop scene
   if (scene.textures.exists('office_bg')) {
-    scene.add.image(560, 360, 'office_bg').setOrigin(0.5).setDepth(0);
+    scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0);
   }
 
   // === WARM LIGHTING OVERLAY (depth 1) — subtle, complements background ===
@@ -115,7 +115,7 @@ function drawRoom(scene) {
   lightG.fillCircle(220, 380, 500);
   // Gentle warm wash from the right side
   lightG.fillStyle(0xffcc66, 0.02);
-  lightG.fillCircle(1070, 250, 280);
+  lightG.fillCircle(1140, 250, 280);
   // Ultra-subtle overall warmth
   lightG.fillStyle(0xffdd99, 0.015);
   lightG.fillRect(0, 0, 1280, 720);
@@ -145,26 +145,26 @@ function drawRoom(scene) {
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
   signG.fillStyle(0x000000, 0.12);
-  signG.fillRect(475, 62, 180, 24);
+  signG.fillRect(400, 62, 180, 24);
   // Sign board — warm wood, fully opaque
   signG.fillStyle(0x3e2723, 1);
-  signG.fillRect(473, 60, 184, 24);
+  signG.fillRect(398, 60, 184, 24);
   signG.fillStyle(0x5d4037, 1);
-  signG.fillRect(475, 62, 180, 20);
+  signG.fillRect(400, 62, 180, 20);
   // Gold border
   signG.lineStyle(1, 0xffd700, 0.7);
-  signG.strokeRect(474, 61, 182, 22);
+  signG.strokeRect(399, 61, 182, 22);
   // Sign screws
   signG.fillStyle(0xffd700, 0.8);
-  signG.fillCircle(480, 66, 2);
-  signG.fillCircle(650, 66, 2);
-  scene.add.text(560, 72, 'CENTRAL PERK', {
+  signG.fillCircle(405, 66, 2);
+  signG.fillCircle(575, 66, 2);
+  scene.add.text(490, 72, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '11px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
-  // Coffee machine (left side) — depth 5
-  const coffeeCompat = scene.add.sprite(60, 220, 'coffee_machine', 0)
+  // Coffee machine (right side) — depth 5
+  const coffeeCompat = scene.add.sprite(1170, 220, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.4);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
@@ -199,29 +199,6 @@ function drawRoom(scene) {
   vigG.fillRect(1240, 0, 40, 720);
   vigG.fillRect(0, 0, 1280, 15);
   vigG.fillRect(0, 705, 1280, 15);
-
-  // === RIGHT WALL DECORATION (depth 3) — framed picture for visual balance ===
-  const decorG = scene.add.graphics().setDepth(3);
-  // Frame shadow
-  decorG.fillStyle(0x000000, 0.12);
-  decorG.fillRect(1197, 142, 52, 42);
-  // Outer frame — dark wood
-  decorG.fillStyle(0x3e2723, 1);
-  decorG.fillRect(1195, 140, 52, 42);
-  // Inner frame — warm gold
-  decorG.fillStyle(0x5d4037, 1);
-  decorG.fillRect(1197, 142, 48, 38);
-  // Canvas — warm tone
-  decorG.fillStyle(0x8d6e63, 0.6);
-  decorG.fillRect(1200, 145, 42, 32);
-  // Mini "mountain" landscape
-  decorG.fillStyle(0xa1887f, 0.5);
-  decorG.fillTriangle(1200, 177, 1221, 160, 1242, 177);
-  decorG.fillStyle(0x6d4c41, 0.4);
-  decorG.fillTriangle(1210, 177, 1230, 165, 1242, 177);
-  // Gold frame edge
-  decorG.lineStyle(1, 0xffd700, 0.35);
-  decorG.strokeRect(1199, 144, 44, 34);
 }
 
 // ===================== CHARACTERS =====================
@@ -342,20 +319,20 @@ function placeCharacters(scene) {
 
 function drawPlaque(scene) {
   // Shadow
-  const pShadow = scene.add.rectangle(562, 702, 266, 30, 0x000000, 0.2).setDepth(30);
-  const p = scene.add.rectangle(560, 700, 260, 28, 0x3e2723, 1).setDepth(30);
+  const pShadow = scene.add.rectangle(492, 702, 266, 30, 0x000000, 0.2).setDepth(30);
+  const p = scene.add.rectangle(490, 700, 260, 28, 0x3e2723, 1).setDepth(30);
   p.setStrokeStyle(2, 0xffd700, 0.5);
   // Inner border
-  const pInner = scene.add.rectangle(560, 700, 252, 20, 0x5d4037, 1).setDepth(30);
-  scene.add.text(560, 700, '☕ Pixel Office — Central Perk', {
+  const pInner = scene.add.rectangle(490, 700, 252, 20, 0x5d4037, 1).setDepth(30);
+  scene.add.text(490, 700, '☕ Pixel Office — Central Perk', {
     fontFamily: 'monospace', fontSize: '13px', fill: '#ffd700',
     fontWeight: 'bold', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(31);
-  scene.add.text(445, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(675, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(375, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(605, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
   // Small dots
-  scene.add.text(485, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(635, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(415, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(565, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
 }
 
 // ===================== INIT =====================
@@ -625,7 +602,7 @@ function showBubble() {
     fontFamily: 'monospace', fontSize: '11px', fill: '#1a1a2e',
     fontStyle: 'bold'
   }).setOrigin(0.5);
-  bubble = game.add.container(560, by, [bg, txt]).setDepth(1200);
+  bubble = game.add.container(490, by, [bg, txt]).setDepth(1200);
   bubbleTimer = setTimeout(() => { if (bubble) { bubble.destroy(); bubble = null; } bubbleTimer = null; }, 3000);
 }
 
