@@ -163,9 +163,9 @@ function drawRoom(scene) {
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
-  // Coffee machine (left-middle area, stacked over cabinet position) — depth 5
-  const coffeeCompat = scene.add.sprite(430, 370, 'coffee_machine', 0)
-    .setOrigin(0.5).setDepth(5).setScale(0.35);
+  // Coffee machine (right side wall)
+  const coffeeCompat = scene.add.sprite(1170, 220, 'coffee_machine', 0)
+    .setOrigin(0.5).setDepth(5).setScale(0.4);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
   // Plant (right side) — depth 5 — with pot shadow
@@ -173,8 +173,8 @@ function drawRoom(scene) {
     // Plant pot shadow
     const pG = scene.add.graphics().setDepth(4);
     pG.fillStyle(0x000000, 0.15);
-    pG.fillEllipse(1150, 215, 40, 10);
-    scene.add.sprite(1150, 200, 'plants',
+    pG.fillEllipse(1090, 215, 40, 10);
+    scene.add.sprite(1090, 200, 'plants',
       Math.floor(Math.random() * 16))
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
