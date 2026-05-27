@@ -81,12 +81,12 @@ const GUEST_SPRITE_INDEX = {
 };
 
 const AREAS = {
-  col1_top: { x: 200, y: 280 },
-  col1_mid: { x: 200, y: 410 },
-  col1_bot: { x: 200, y: 540 },
-  col2_top: { x: 350, y: 280 },
-  col2_mid: { x: 350, y: 410 },
-  col2_bot: { x: 350, y: 540 },
+  col1_top: { x: 160, y: 280 },
+  col1_mid: { x: 160, y: 410 },
+  col1_bot: { x: 160, y: 540 },
+  col2_top: { x: 310, y: 280 },
+  col2_mid: { x: 310, y: 410 },
+  col2_bot: { x: 310, y: 540 },
   center:  { x: 490, y: 360 },
   lounge:  { x: 490, y: 360 },
 };
@@ -108,14 +108,14 @@ function drawRoom(scene) {
 
   // === WARM LIGHTING OVERLAY (depth 1) — subtle, complements background ===
   const lightG = scene.add.graphics().setDepth(1);
-  // Warm glow from fireplace (left-center) — matches winter cabin mood
+  // Warm glow from left side (shifted left with desks) — matches winter cabin mood
   lightG.fillStyle(0xff8844, 0.04);
-  lightG.fillCircle(200, 380, 350);
+  lightG.fillCircle(160, 380, 350);
   lightG.fillStyle(0xffaa66, 0.025);
-  lightG.fillCircle(200, 380, 500);
-  // Gentle warm wash from the right side
+  lightG.fillCircle(160, 380, 500);
+  // Gentle warm wash from right side (moved slightly left for balance after coffee machine relocation)
   lightG.fillStyle(0xffcc66, 0.02);
-  lightG.fillCircle(1140, 250, 280);
+  lightG.fillCircle(1090, 250, 280);
   // Ultra-subtle overall warmth
   lightG.fillStyle(0xffdd99, 0.015);
   lightG.fillRect(0, 0, 1280, 720);
@@ -141,31 +141,31 @@ function drawRoom(scene) {
 
   // === FURNITURE (depth 3~5) ===
 
-  // CENTRAL PERK sign — depth 3 — wall-mounted plaque
+  // CENTRAL PERK sign — depth 3 — wall-mounted plaque, centered at x=640
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
   signG.fillStyle(0x000000, 0.12);
-  signG.fillRect(400, 62, 180, 24);
+  signG.fillRect(550, 62, 180, 24);
   // Sign board — warm wood, fully opaque
   signG.fillStyle(0x3e2723, 1);
-  signG.fillRect(398, 60, 184, 24);
+  signG.fillRect(548, 60, 184, 24);
   signG.fillStyle(0x5d4037, 1);
-  signG.fillRect(400, 62, 180, 20);
+  signG.fillRect(550, 62, 180, 20);
   // Gold border
   signG.lineStyle(1, 0xffd700, 0.7);
-  signG.strokeRect(399, 61, 182, 22);
+  signG.strokeRect(549, 61, 182, 22);
   // Sign screws
   signG.fillStyle(0xffd700, 0.8);
-  signG.fillCircle(405, 66, 2);
-  signG.fillCircle(575, 66, 2);
-  scene.add.text(490, 72, 'CENTRAL PERK', {
+  signG.fillCircle(555, 66, 2);
+  signG.fillCircle(725, 66, 2);
+  scene.add.text(640, 72, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '11px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
-  // Coffee machine (right side) — depth 5
-  const coffeeCompat = scene.add.sprite(1180, 170, 'coffee_machine', 0)
-    .setOrigin(0.5).setDepth(5).setScale(0.4);
+  // Coffee machine (left-middle area, stacked over cabinet position) — depth 5
+  const coffeeCompat = scene.add.sprite(430, 370, 'coffee_machine', 0)
+    .setOrigin(0.5).setDepth(5).setScale(0.35);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
   // Plant (right side) — depth 5 — with pot shadow
@@ -173,8 +173,8 @@ function drawRoom(scene) {
     // Plant pot shadow
     const pG = scene.add.graphics().setDepth(4);
     pG.fillStyle(0x000000, 0.15);
-    pG.fillEllipse(1090, 215, 40, 10);
-    scene.add.sprite(1090, 200, 'plants',
+    pG.fillEllipse(1150, 215, 40, 10);
+    scene.add.sprite(1150, 200, 'plants',
       Math.floor(Math.random() * 16))
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
@@ -182,13 +182,13 @@ function drawRoom(scene) {
   // === 6 desks (2 columns x 3 rows, all facing right) ===
   if (scene.textures.exists('desk')) {
     // Column 1 — facing LEFT
-    scene.add.image(200, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(200, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(200, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(160, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(160, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(160, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
     // Column 2 — facing RIGHT
-    scene.add.image(350, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(350, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(350, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(310, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(310, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(310, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
