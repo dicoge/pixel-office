@@ -141,30 +141,30 @@ function drawRoom(scene) {
 
   // === FURNITURE (depth 3~5) ===
 
-  // CENTRAL PERK sign — depth 3 — centered at x=640
+  // CENTRAL PERK sign — depth 3 — centered at x=660
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
   signG.fillStyle(0x000000, 0.12);
-  signG.fillRect(550, 30, 180, 24);
+  signG.fillRect(570, 30, 180, 24);
   // Sign board — warm wood, fully opaque
   signG.fillStyle(0x3e2723, 1);
-  signG.fillRect(548, 28, 184, 24);
+  signG.fillRect(568, 28, 184, 24);
   signG.fillStyle(0x5d4037, 1);
-  signG.fillRect(550, 30, 180, 20);
+  signG.fillRect(570, 30, 180, 20);
   // Gold border
   signG.lineStyle(1, 0xffd700, 0.7);
-  signG.strokeRect(549, 29, 182, 22);
+  signG.strokeRect(569, 29, 182, 22);
   // Sign screws
   signG.fillStyle(0xffd700, 0.8);
-  signG.fillCircle(555, 34, 2);
-  signG.fillCircle(725, 34, 2);
-  scene.add.text(640, 40, 'CENTRAL PERK', {
+  signG.fillCircle(575, 34, 2);
+  signG.fillCircle(745, 34, 2);
+  scene.add.text(660, 40, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '11px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
   // Coffee machine (left room, next to bookshelf, right of desk lamp)
-  const coffeeCompat = scene.add.sprite(220, 360, 'coffee_machine', 0)
+  const coffeeCompat = scene.add.sprite(180, 360, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.35);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
@@ -199,6 +199,22 @@ function drawRoom(scene) {
   vigG.fillRect(1240, 0, 40, 720);
   vigG.fillRect(0, 0, 1280, 15);
   vigG.fillRect(0, 705, 1280, 15);
+
+  // === BOTTOM PLAQUE (depth 51) — PIXEL OFFICE, centered with top sign ===
+  const plaqueG = scene.add.graphics().setDepth(51);
+  const plX = 660;  // aligned with top sign center
+  const plY = 704;  // near bottom edge
+  // Semi-transparent dark background
+  plaqueG.fillStyle(0x000000, 0.5);
+  plaqueG.fillRoundedRect(plX - 130, plY - 14, 260, 28, 6);
+  // Gold border
+  plaqueG.lineStyle(1.5, 0xffd700, 0.6);
+  plaqueG.strokeRoundedRect(plX - 130, plY - 14, 260, 28, 6);
+  // PIXEL OFFICE text
+  scene.add.text(plX, plY, 'PIXEL OFFICE', {
+    fontFamily: 'monospace', fontSize: '11px',
+    fill: '#ffd700', stroke: '#000', strokeThickness: 1
+  }).setOrigin(0.5).setDepth(52).setAlpha(0.9);
 }
 
 // ===================== CHARACTERS =====================
