@@ -81,12 +81,12 @@ const GUEST_SPRITE_INDEX = {
 };
 
 const AREAS = {
-  col1_top: { x: 220, y: 280 },
-  col1_mid: { x: 220, y: 410 },
-  col1_bot: { x: 220, y: 540 },
-  col2_top: { x: 280, y: 280 },
-  col2_mid: { x: 280, y: 410 },
-  col2_bot: { x: 280, y: 540 },
+  col1_top: { x: 200, y: 280 },
+  col1_mid: { x: 200, y: 410 },
+  col1_bot: { x: 200, y: 540 },
+  col2_top: { x: 350, y: 280 },
+  col2_mid: { x: 350, y: 410 },
+  col2_bot: { x: 350, y: 540 },
   center:  { x: 490, y: 360 },
   lounge:  { x: 490, y: 360 },
 };
@@ -110,9 +110,9 @@ function drawRoom(scene) {
   const lightG = scene.add.graphics().setDepth(1);
   // Warm glow from fireplace (left-center) — matches winter cabin mood
   lightG.fillStyle(0xff8844, 0.04);
-  lightG.fillCircle(220, 380, 350);
+  lightG.fillCircle(200, 380, 350);
   lightG.fillStyle(0xffaa66, 0.025);
-  lightG.fillCircle(220, 380, 500);
+  lightG.fillCircle(200, 380, 500);
   // Gentle warm wash from the right side
   lightG.fillStyle(0xffcc66, 0.02);
   lightG.fillCircle(1140, 250, 280);
@@ -182,13 +182,13 @@ function drawRoom(scene) {
   // === 6 desks (2 columns x 3 rows, all facing right) ===
   if (scene.textures.exists('desk')) {
     // Column 1 — facing LEFT
-    scene.add.image(220, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(220, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(220, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(200, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(200, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(200, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
     // Column 2 — facing RIGHT
-    scene.add.image(280, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(280, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(280, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(350, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(350, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(350, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
@@ -528,7 +528,7 @@ function normalizeState(s) {
 }
 
 function fetchStatus() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('pixel_office_token');
   if (!token) return;
   fetch('/api/workers?t='+Date.now(), {
     headers: { 'Authorization': 'Bearer '+token }, cache: 'no-store'
