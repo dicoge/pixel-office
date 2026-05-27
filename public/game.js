@@ -574,6 +574,10 @@ function fetchStatus() {
   .catch(() => { ttTarget = '連線失敗'; ttText = ''; ttIdx = 0; pendingState = null; });
 }
 
+function renderMemberStatus() {
+  // stub — member status rendering not yet implemented
+}
+
 function moveStar(time) {
   if (star) star.setVisible(true);
 }
