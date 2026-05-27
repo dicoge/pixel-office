@@ -84,9 +84,9 @@ const AREAS = {
   col1_top: { x: 160, y: 280 },
   col1_mid: { x: 160, y: 410 },
   col1_bot: { x: 160, y: 540 },
-  col2_top: { x: 310, y: 280 },
-  col2_mid: { x: 310, y: 410 },
-  col2_bot: { x: 310, y: 540 },
+  col2_top: { x: 270, y: 280 },
+  col2_mid: { x: 270, y: 410 },
+  col2_bot: { x: 270, y: 540 },
   center:  { x: 490, y: 360 },
   lounge:  { x: 490, y: 360 },
 };
@@ -141,31 +141,31 @@ function drawRoom(scene) {
 
   // === FURNITURE (depth 3~5) ===
 
-  // CENTRAL PERK sign — depth 3 — wall-mounted plaque, centered at x=640
+  // CENTRAL PERK sign — depth 3 — wall-mounted plaque, centered at x=700
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
   signG.fillStyle(0x000000, 0.12);
-  signG.fillRect(550, 62, 180, 24);
+  signG.fillRect(610, 52, 180, 24);
   // Sign board — warm wood, fully opaque
   signG.fillStyle(0x3e2723, 1);
-  signG.fillRect(548, 60, 184, 24);
+  signG.fillRect(608, 50, 184, 24);
   signG.fillStyle(0x5d4037, 1);
-  signG.fillRect(550, 62, 180, 20);
+  signG.fillRect(610, 52, 180, 20);
   // Gold border
   signG.lineStyle(1, 0xffd700, 0.7);
-  signG.strokeRect(549, 61, 182, 22);
+  signG.strokeRect(609, 51, 182, 22);
   // Sign screws
   signG.fillStyle(0xffd700, 0.8);
-  signG.fillCircle(555, 66, 2);
-  signG.fillCircle(725, 66, 2);
-  scene.add.text(640, 72, 'CENTRAL PERK', {
+  signG.fillCircle(615, 56, 2);
+  signG.fillCircle(785, 56, 2);
+  scene.add.text(700, 62, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '11px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
-  // Coffee machine (right side wall)
-  const coffeeCompat = scene.add.sprite(1170, 220, 'coffee_machine', 0)
-    .setOrigin(0.5).setDepth(5).setScale(0.4);
+  // Coffee machine (left room, next to desk lamp)
+  const coffeeCompat = scene.add.sprite(480, 370, 'coffee_machine', 0)
+    .setOrigin(0.5).setDepth(5).setScale(0.35);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
   // Plant (right side) — depth 5 — with pot shadow
@@ -179,16 +179,16 @@ function drawRoom(scene) {
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
 
-  // === 6 desks (2 columns x 3 rows, all facing right) ===
+  // === 6 desks (2 columns x 3 rows, col1 facing LEFT, col2 facing RIGHT) ===
   if (scene.textures.exists('desk')) {
     // Column 1 — facing LEFT
     scene.add.image(160, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
     scene.add.image(160, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
     scene.add.image(160, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    // Column 2 — facing RIGHT
-    scene.add.image(310, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(310, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(310, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    // Column 2 — facing RIGHT (moved closer to col1, desks touching)
+    scene.add.image(270, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(270, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(270, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
@@ -319,20 +319,20 @@ function placeCharacters(scene) {
 
 function drawPlaque(scene) {
   // Shadow
-  const pShadow = scene.add.rectangle(492, 702, 266, 30, 0x000000, 0.2).setDepth(30);
-  const p = scene.add.rectangle(490, 700, 260, 28, 0x3e2723, 1).setDepth(30);
+  const pShadow = scene.add.rectangle(642, 702, 266, 30, 0x000000, 0.2).setDepth(30);
+  const p = scene.add.rectangle(640, 700, 260, 28, 0x3e2723, 1).setDepth(30);
   p.setStrokeStyle(2, 0xffd700, 0.5);
   // Inner border
-  const pInner = scene.add.rectangle(490, 700, 252, 20, 0x5d4037, 1).setDepth(30);
-  scene.add.text(490, 700, '☕ Pixel Office — Central Perk', {
+  const pInner = scene.add.rectangle(640, 700, 252, 20, 0x5d4037, 1).setDepth(30);
+  scene.add.text(640, 700, '☕ Pixel Office — Central Perk', {
     fontFamily: 'monospace', fontSize: '13px', fill: '#ffd700',
     fontWeight: 'bold', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(31);
-  scene.add.text(375, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(605, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(525, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(755, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
   // Small dots
-  scene.add.text(415, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
   scene.add.text(565, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(715, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
 }
 
 // ===================== INIT =====================
