@@ -145,26 +145,26 @@ function drawRoom(scene) {
   const signG = scene.add.graphics().setDepth(3);
   // Sign shadow
   signG.fillStyle(0x000000, 0.12);
-  signG.fillRect(610, 52, 180, 24);
+  signG.fillRect(605, 42, 180, 24);
   // Sign board — warm wood, fully opaque
   signG.fillStyle(0x3e2723, 1);
-  signG.fillRect(608, 50, 184, 24);
+  signG.fillRect(603, 40, 184, 24);
   signG.fillStyle(0x5d4037, 1);
-  signG.fillRect(610, 52, 180, 20);
+  signG.fillRect(605, 42, 180, 20);
   // Gold border
   signG.lineStyle(1, 0xffd700, 0.7);
-  signG.strokeRect(609, 51, 182, 22);
+  signG.strokeRect(604, 41, 182, 22);
   // Sign screws
   signG.fillStyle(0xffd700, 0.8);
-  signG.fillCircle(615, 56, 2);
-  signG.fillCircle(785, 56, 2);
-  scene.add.text(700, 62, 'CENTRAL PERK', {
+  signG.fillCircle(610, 46, 2);
+  signG.fillCircle(780, 46, 2);
+  scene.add.text(695, 52, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '11px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
   // Coffee machine (left room, next to desk lamp)
-  const coffeeCompat = scene.add.sprite(480, 370, 'coffee_machine', 0)
+  const coffeeCompat = scene.add.sprite(280, 370, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.35);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
@@ -319,20 +319,20 @@ function placeCharacters(scene) {
 
 function drawPlaque(scene) {
   // Shadow
-  const pShadow = scene.add.rectangle(642, 702, 266, 30, 0x000000, 0.2).setDepth(30);
-  const p = scene.add.rectangle(640, 700, 260, 28, 0x3e2723, 1).setDepth(30);
+  const pShadow = scene.add.rectangle(652, 702, 266, 30, 0x000000, 0.2).setDepth(30);
+  const p = scene.add.rectangle(650, 700, 260, 28, 0x3e2723, 1).setDepth(30);
   p.setStrokeStyle(2, 0xffd700, 0.5);
   // Inner border
-  const pInner = scene.add.rectangle(640, 700, 252, 20, 0x5d4037, 1).setDepth(30);
-  scene.add.text(640, 700, '☕ Pixel Office — Central Perk', {
+  const pInner = scene.add.rectangle(650, 700, 252, 20, 0x5d4037, 1).setDepth(30);
+  scene.add.text(650, 700, '☕ Pixel Office — Central Perk', {
     fontFamily: 'monospace', fontSize: '13px', fill: '#ffd700',
     fontWeight: 'bold', stroke: '#000', strokeThickness: 2
   }).setOrigin(0.5).setDepth(31);
-  scene.add.text(525, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(755, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(535, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(765, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
   // Small dots
-  scene.add.text(565, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(715, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(575, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
+  scene.add.text(725, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
 }
 
 // ===================== INIT =====================
