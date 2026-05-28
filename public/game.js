@@ -51,13 +51,13 @@ const BTEXTS = {
 };
 
 const MEMBERS = [
-  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:0,y:0} },
+  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:100,y:10} },
   { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'sofa',          offset:{x:0,y:0} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-60,y:0} },
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-260,y:50} },
   { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'col1_mid',      offset:{x:-20,y:20} },
   { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'col1_bot',      offset:{x:-20,y:20} },
   { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'col2_top',      offset:{x:50,y:25} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_mid',      offset:{x:60,y:0} }
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_mid',      offset:{x:-440,y:200} }
 ];
 
 const TOOL_COLORS = {
@@ -257,8 +257,8 @@ function placeCharacters(scene) {
     if (m.id === 'hermes') {
       // Wider shadow for Hermes (he's bigger)
       shadowG.fillStyle(0x000000, 0.15);
-      shadowG.fillEllipse(0, 0, 38, 10);
-      shadowG.setPosition(bx, by + 38);
+      shadowG.fillEllipse(0, 0, 60, 16);
+      shadowG.setPosition(bx, by + 50);
     } else {
       const sw = 20;
       shadowG.fillStyle(0x000000, 0.14);
@@ -270,7 +270,7 @@ function placeCharacters(scene) {
     if (m.id === 'hermes') {
       // Hermes uses star-idle-v5 spritesheet (2048x1536, 256x256 frames)
       sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
-      sprite.setScale(0.33);
+      sprite.setScale(0.66);
       sprite.setDepth(10);
       if (scene.anims.exists('star_idle_anim')) {
         sprite.play('star_idle_anim', true);
@@ -280,16 +280,16 @@ function placeCharacters(scene) {
       // Glow aura behind Hermes badge
       const glowG = scene.add.graphics().setDepth(11);
       glowG.fillStyle(0xffd700, 0.15);
-      glowG.fillCircle(bx, by - 22, 18);
+      glowG.fillCircle(bx, by - 30, 28);
       glowG.fillStyle(0xffd700, 0.08);
-      glowG.fillCircle(bx, by - 22, 26);
+      glowG.fillCircle(bx, by - 30, 38);
       window.hermesGlow = glowG;
 
       // Gold star badge above — enhanced
-      badgeBg = scene.add.rectangle(bx, by - 22, 22, 22, 0xffd700, 0.95)
+      badgeBg = scene.add.rectangle(bx, by - 30, 30, 30, 0xffd700, 0.95)
         .setOrigin(0.5).setDepth(12).setStrokeStyle(2, 0xffaa00, 1);
-      badge = scene.add.text(bx, by - 22, '⭐', {
-        fontFamily: 'monospace', fontSize: '13px',
+      badge = scene.add.text(bx, by - 30, '⭐', {
+        fontFamily: 'monospace', fontSize: '18px',
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5).setDepth(12);
     } else {
