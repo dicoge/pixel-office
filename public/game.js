@@ -587,6 +587,7 @@ function fetchStatus() {
       window.memberStates[mm.id] = ws;
       let ta = (STATES[ws] || STATES.idle).area;
       if (mm.id === 'hermes') ta = 'center';
+      if (mm.id === 'openclaw') ta = 'sofa';
       if (AREAS[ta]) {
         window.memberTargets[mm.id] = { x: AREAS[ta].x + mm.offset.x, y: AREAS[ta].y + mm.offset.y };
       }
