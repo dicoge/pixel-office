@@ -164,7 +164,7 @@ function drawRoom(scene) {
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
   // Coffee machine (left room, next to bookshelf, right of desk lamp)
-  const coffeeCompat = scene.add.sprite(225, 210, 'coffee_machine', 0)
+  const coffeeCompat = scene.add.sprite(230, 200, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.35);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
@@ -340,24 +340,6 @@ function placeCharacters(scene) {
   window.starSprite = star;
 }
 
-function drawPlaque(scene) {
-  // Shadow
-  const pShadow = scene.add.rectangle(642, 702, 266, 30, 0x000000, 0.2).setDepth(30);
-  const p = scene.add.rectangle(640, 700, 260, 28, 0x3e2723, 1).setDepth(30);
-  p.setStrokeStyle(2, 0xffd700, 0.5);
-  // Inner border
-  const pInner = scene.add.rectangle(640, 700, 252, 20, 0x5d4037, 1).setDepth(30);
-  scene.add.text(640, 700, '☕ Pixel Office — Central Perk', {
-    fontFamily: 'monospace', fontSize: '13px', fill: '#ffd700',
-    fontWeight: 'bold', stroke: '#000', strokeThickness: 2
-  }).setOrigin(0.5).setDepth(31);
-  scene.add.text(525, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(755, 700, '⭐', {fontFamily:'monospace',fontSize:'12px'}).setOrigin(0.5).setDepth(31);
-  // Small dots
-  scene.add.text(565, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
-  scene.add.text(715, 700, '·', {fontFamily:'monospace',fontSize:'12px',fill:'#ffd700'}).setOrigin(0.5).setDepth(31);
-}
-
 // ===================== INIT =====================
 
 async function initGame() {
@@ -446,7 +428,6 @@ function create() {
   // 3. Characters
   areas = AREAS;
   placeCharacters(this);
-  drawPlaque(this);
 
   // 4. Camera
   mainCamera = this.cameras.main;
