@@ -53,11 +53,11 @@ const BTEXTS = {
 const MEMBERS = [
   { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:170,y:10} },
   { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'sofa',          offset:{x:0,y:0} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-190,y:60} },
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-180,y:65} },
   { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'col1_mid',      offset:{x:-20,y:20} },
   { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'col1_bot',      offset:{x:-20,y:20} },
   { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'col2_top',      offset:{x:50,y:25} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_mid',      offset:{x:-190,y:210} }
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_mid',      offset:{x:-170,y:210} }
 ];
 
 const TOOL_COLORS = {
@@ -325,19 +325,7 @@ function placeCharacters(scene) {
     window.memberStates[m.id] = 'idle';
     window.memberTargets[m.id] = { x: bx, y: by };
 
-    // Name label — enhanced with pointer arrow
-    const labelBg = scene.add.rectangle(bx, by + 18, m.label.length * 6 + 10, 14, 0x1a1a2e, 0.55)
-      .setOrigin(0.5).setDepth(11).setStrokeStyle(1, 0xffd700, 0.25);
-    // Small arrow pointing up to character
-    const arrowG = scene.add.graphics().setDepth(11);
-    arrowG.fillStyle(0x1a1a2e, 0.45);
-    arrowG.fillTriangle(-3, 0, 3, 0, 0, 3);
-    arrowG.setPosition(bx, by + 11);
-    window.memberLabelBgs = window.memberLabelBgs || {};
-    window.memberLabelBgs[m.id] = labelBg;
-    window.memberArrows = window.memberArrows || {};
-    window.memberArrows[m.id] = arrowG;
-
+    // Name label — text only (no background box or arrow)
     const label = scene.add.text(bx, by + 18, m.label, {
       fontFamily: 'monospace', fontSize: '8px', fill: '#fff',
       fontStyle: 'bold',
@@ -485,15 +473,6 @@ function update(time) {
       if (shadow) {
         const sy = m.id === 'hermes' ? sp.y + 38 : sp.y + 24;
         shadow.setPosition(sp.x, sy);
-      }
-
-      // Update label background to follow sprite
-      const lblBg = window.memberLabelBgs && window.memberLabelBgs[m.id];
-      if (lblBg) lblBg.setPosition(sp.x, sp.y + 18);
-      // Update arrow to follow sprite
-      const arr = window.memberArrows && window.memberArrows[m.id];
-      if (arr) {
-        arr.setPosition(sp.x, sp.y + 11);
       }
 
       // Update badge position to follow sprite
