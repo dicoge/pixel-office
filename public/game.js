@@ -181,14 +181,14 @@ function drawRoom(scene) {
 
   // === 6 desks (2 columns x 3 rows, col1 facing LEFT, col2 facing RIGHT) ===
   if (scene.textures.exists('desk')) {
-    // Column 1 — facing LEFT (v15: x=190, y=310/440/570)
-    scene.add.image(190, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(190, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(190, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    // Column 2 — facing RIGHT (v15: x=265, y=310/440/570)
-    scene.add.image(265, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(265, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(265, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    // Column 1 — facing LEFT (v16: x=195, y=310/440/570)
+    scene.add.image(195, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(195, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(195, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    // Column 2 — facing RIGHT (v16: x=260, y=310/440/570)
+    scene.add.image(260, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(260, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(260, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
@@ -201,7 +201,7 @@ function drawRoom(scene) {
 
   // === BOTTOM PLAQUE (depth 51) — PIXEL OFFICE with star decorations ===
   const plaqueG = scene.add.graphics().setDepth(51);
-  const plX = 670;  // aligned with top sign center
+  const plX = 675;  // aligned with top sign center
   const plY = 705;  // very bottom edge
   // Dark background bar
   plaqueG.fillStyle(0x1a1a2e, 0.85);
