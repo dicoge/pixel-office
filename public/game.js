@@ -52,12 +52,12 @@ const BTEXTS = {
 
 const MEMBERS = [
   { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:0,y:0} },
+  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'sofa',          offset:{x:0,y:0} },
   { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-60,y:0} },
-  { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'col1_mid',      offset:{x:0,y:0} },
-  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'col1_bot',      offset:{x:0,y:0} },
-  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'col2_top',      offset:{x:0,y:0} },
-  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'col2_mid',      offset:{x:0,y:0} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_bot',      offset:{x:60,y:0} }
+  { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'col1_mid',      offset:{x:0,y:0} },
+  { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'col1_bot',      offset:{x:0,y:0} },
+  { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'col2_top',      offset:{x:0,y:0} },
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_mid',      offset:{x:60,y:0} }
 ];
 
 const TOOL_COLORS = {
@@ -89,6 +89,7 @@ const AREAS = {
   col2_bot: { x: 270, y: 540 },
   center:  { x: 490, y: 360 },
   lounge:  { x: 490, y: 360 },
+  sofa:    { x: 1092, y: 230 },  // OpenClaw 在沙發正上方
 };
 
 let game, star, areas={}, currentState='idle', pendingState=null;
@@ -506,6 +507,11 @@ function update(time) {
         badgeBg.setPosition(sp.x, sp.y - 20);
         badgeBg.setY(sp.y - 20 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
       }
+      // Update status indicator position
+      const si = window.statusIndicators && window.statusIndicators[m.id];
+      if (si) {
+        si.setPosition(sp.x + 14, sp.y - 20);
+      }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
     });
@@ -591,7 +597,38 @@ function fetchStatus() {
 }
 
 function renderMemberStatus() {
-  // stub — member status rendering not yet implemented
+  if (!window.statusIndicators) {
+    window.statusIndicators = {};
+  }
+  const STATUS_COLORS = {
+    idle: 0x2ecc71,
+    writing: 0xf1c40f,
+    researching: 0xf1c40f,
+    executing: 0xf1c40f,
+    syncing: 0x3498db,
+    error: 0xe74c3c
+  };
+  MEMBERS.forEach(m => {
+    const sp = window.memberSprites[m.id];
+    if (!sp) return;
+    const state = window.memberStates[m.id] || 'idle';
+    const color = STATUS_COLORS[state] || STATUS_COLORS.idle;
+    if (window.statusIndicators[m.id]) {
+      // Already exists — update color only
+      const indicator = window.statusIndicators[m.id];
+      indicator.clear();
+      indicator.fillStyle(color, 1);
+      indicator.fillRect(0, 0, 4, 4);
+    } else {
+      // Create new indicator
+      const indicator = game.add.graphics().setDepth(13);
+      indicator.fillStyle(color, 1);
+      indicator.fillRect(0, 0, 4, 4);
+      // Position to the right of badge (badge is at sp.y - 20)
+      indicator.setPosition(sp.x + 14, sp.y - 20);
+      window.statusIndicators[m.id] = indicator;
+    }
+  });
 }
 
 function moveStar(time) {
