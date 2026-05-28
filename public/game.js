@@ -182,9 +182,9 @@ function drawRoom(scene) {
   // Sofa (v18) — top-right room area (x=1050, y=200, scale=0.45)
   if (scene.textures.exists('sofa')) {
     // Sofa shadow (depth 4, behind sofa)
-    scene.add.image(1052, 230, 'sofa_shadow').setOrigin(0.5).setDepth(4).setScale(0.45);
+    scene.add.image(1072, 230, 'sofa_shadow').setOrigin(0.5).setDepth(4).setScale(0.45);
     // Sofa sprite (depth 5)
-    scene.add.image(1052, 230, 'sofa').setOrigin(0.5).setDepth(5).setScale(0.45);
+    scene.add.image(1072, 230, 'sofa').setOrigin(0.5).setDepth(5).setScale(0.45);
   }
 
   // === 6 desks (2 columns x 3 rows, col1 facing LEFT, col2 facing RIGHT) ===
