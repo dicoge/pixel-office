@@ -53,7 +53,7 @@ const BTEXTS = {
 const MEMBERS = [
   { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:170,y:10} },
   { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'sofa',          offset:{x:0,y:0} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-180,y:65} },
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-175,y:65} },
   { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'col1_mid',      offset:{x:-20,y:20} },
   { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'col1_bot',      offset:{x:-20,y:20} },
   { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'col2_top',      offset:{x:50,y:25} },
@@ -241,7 +241,6 @@ function placeCharacters(scene) {
   window.memberStates = {};
   window.memberTargets = {};
   window.memberBadges = {};
-  window.memberBadgeBgs = {};
   window.memberShadows = {};
   window.guestSprites = {};
 
@@ -286,8 +285,6 @@ function placeCharacters(scene) {
       window.hermesGlow = glowG;
 
       // Gold star badge above — enhanced
-      badgeBg = scene.add.rectangle(bx, by - 30, 30, 30, 0xffd700, 0.95)
-        .setOrigin(0.5).setDepth(12).setStrokeStyle(2, 0xffaa00, 1);
       badge = scene.add.text(bx, by - 30, '⭐', {
         fontFamily: 'monospace', fontSize: '18px',
         stroke: '#000', strokeThickness: 2
@@ -311,8 +308,6 @@ function placeCharacters(scene) {
       window.guestSprites[m.id] = sprite;
 
       // Colored badge — enhanced with glow
-      badgeBg = scene.add.rectangle(bx, by - 20, 18, 18, tc.color, 0.85)
-        .setOrigin(0.5).setDepth(12).setStrokeStyle(2, 0x000000, 0.6);
       badge = scene.add.text(bx, by - 20, tc.icon, {
         fontFamily: 'monospace', fontSize: '11px',
         stroke: '#000', strokeThickness: 2
@@ -321,7 +316,6 @@ function placeCharacters(scene) {
 
     window.memberSprites[m.id] = sprite;
     window.memberBadges[m.id] = badge;
-    window.memberBadgeBgs[m.id] = badgeBg;
     window.memberStates[m.id] = 'idle';
     window.memberTargets[m.id] = { x: bx, y: by };
 
@@ -481,11 +475,6 @@ function update(time) {
         badge.setPosition(sp.x, sp.y - 20);
         badge.setY(sp.y - 20 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
       }
-      const badgeBg = window.memberBadgeBgs && window.memberBadgeBgs[m.id];
-      if (badgeBg) {
-        badgeBg.setPosition(sp.x, sp.y - 20);
-        badgeBg.setY(sp.y - 20 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
-      }
       // Update status indicator position
       const si = window.statusIndicators && window.statusIndicators[m.id];
       if (si) {
@@ -507,15 +496,7 @@ function update(time) {
     window.hermesGlow.fillCircle(star.x, star.y - 22, 26);
   }
 
-  // Animate badge glows (pulse effect)
-  MEMBERS.forEach(m => {
-    const bbg = window.memberBadgeBgs && window.memberBadgeBgs[m.id];
-    if (bbg) {
-      const pulse = 0.7 + Math.sin(time/500 + parseFloat('0.'+m.id.charCodeAt(0)))*0.15;
-      bbg.setAlpha(pulse);
-    }
-  });
-}
+  }
 
 // ===================== STATE =====================
 
