@@ -179,6 +179,14 @@ function drawRoom(scene) {
       .setOrigin(0.5).setDepth(5).setScale(0.4);
   }
 
+  // Sofa (v18) — top-right room area (x=1050, y=200, scale=0.45)
+  if (scene.textures.exists('sofa')) {
+    // Sofa shadow (depth 4, behind sofa)
+    scene.add.image(1050, 200, 'sofa_shadow').setOrigin(0.5).setDepth(4).setScale(0.45);
+    // Sofa sprite (depth 5)
+    scene.add.image(1050, 200, 'sofa').setOrigin(0.5).setDepth(5).setScale(0.45);
+  }
+
   // === 6 desks (2 columns x 3 rows, col1 facing LEFT, col2 facing RIGHT) ===
   if (scene.textures.exists('desk')) {
     // Column 1 — facing LEFT (v17: x=205, y=310/440/570)
@@ -353,7 +361,7 @@ function preload() {
   lpBar = document.getElementById('loading-progress-bar');
   lpText = document.getElementById('loading-text');
   // Count all assets to load
-  totalAssets = 1 + 1 + 1 + 1 + 6 + 1; // bg + star + coffee + plants + 6 guests + desk
+  totalAssets = 1 + 1 + 1 + 1 + 6 + 1 + 2; // bg + star + coffee + plants + 6 guests + desk + sofa
   loadedAssets = 0;
 
   const ps = document.createElement('style');
@@ -383,6 +391,10 @@ function preload() {
 
   // Desk sprite for center-left area
   this.load.image('desk', '/desk-v3.webp');
+
+  // Sofa (v18) — top-right room area
+  this.load.image('sofa', '/sofa-idle-v3.png');
+  this.load.image('sofa_shadow', '/sofa-shadow-v1.png');
 }
 
 function create() {
