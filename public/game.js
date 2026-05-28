@@ -240,7 +240,6 @@ function placeCharacters(scene) {
   window.memberLabels = {};
   window.memberStates = {};
   window.memberTargets = {};
-  window.memberBadges = {};
   window.memberShadows = {};
   window.guestSprites = {};
 
@@ -249,7 +248,7 @@ function placeCharacters(scene) {
     const bx = area.x + m.offset.x;
     const by = area.y + m.offset.y;
     const tc = TOOL_COLORS[m.id] || { color: 0x888888, icon: '👤' };
-    let sprite, badge, badgeBg;
+    let sprite;
 
     // === Shadow beneath character ===
     const shadowG = scene.add.graphics().setDepth(9);
@@ -284,11 +283,6 @@ function placeCharacters(scene) {
       glowG.fillCircle(bx, by - 30, 38);
       window.hermesGlow = glowG;
 
-      // Gold star badge above — enhanced
-      badge = scene.add.text(bx, by - 30, '⭐', {
-        fontFamily: 'monospace', fontSize: '18px',
-        stroke: '#000', strokeThickness: 2
-      }).setOrigin(0.5).setDepth(12);
     } else {
       // Guest agents use guest_anim_N spritesheets (128x64, 32x32 frames)
       const guestIdx = GUEST_SPRITE_INDEX[m.id];
@@ -306,16 +300,9 @@ function placeCharacters(scene) {
 
       // Store reference for animation restart on re-create
       window.guestSprites[m.id] = sprite;
-
-      // Colored badge — enhanced with glow
-      badge = scene.add.text(bx, by - 20, tc.icon, {
-        fontFamily: 'monospace', fontSize: '11px',
-        stroke: '#000', strokeThickness: 2
-      }).setOrigin(0.5).setDepth(12);
     }
 
     window.memberSprites[m.id] = sprite;
-    window.memberBadges[m.id] = badge;
     window.memberStates[m.id] = 'idle';
     window.memberTargets[m.id] = { x: bx, y: by };
 
@@ -326,7 +313,7 @@ function placeCharacters(scene) {
       stroke: '#000', strokeThickness: 1
     }).setOrigin(0.5).setDepth(12);
     window.memberLabels[m.id] = label;
-    spriteData[m.id] = { badge, label };
+    spriteData[m.id] = { label };
   });
   window.starSprite = star;
 }
@@ -469,12 +456,6 @@ function update(time) {
         shadow.setPosition(sp.x, sy);
       }
 
-      // Update badge position to follow sprite
-      const badge = window.memberBadges[m.id];
-      if (badge) {
-        badge.setPosition(sp.x, sp.y - 20);
-        badge.setY(sp.y - 20 + Math.sin(time/300 + parseFloat('0.'+m.id.charCodeAt(0)))*1.5);
-      }
       // Update status indicator position
       const si = window.statusIndicators && window.statusIndicators[m.id];
       if (si) {
