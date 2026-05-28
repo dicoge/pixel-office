@@ -181,10 +181,10 @@ function drawRoom(scene) {
 
   // === 6 desks (2 columns x 3 rows, col1 facing LEFT, col2 facing RIGHT) ===
   if (scene.textures.exists('desk')) {
-    // Column 1 — facing LEFT (v16: x=195, y=310/440/570)
-    scene.add.image(195, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(195, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(195, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    // Column 1 — facing LEFT (v17: x=205, y=310/440/570)
+    scene.add.image(205, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(205, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(205, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
     // Column 2 — facing RIGHT (v16: x=260, y=310/440/570)
     scene.add.image(260, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
     scene.add.image(260, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
