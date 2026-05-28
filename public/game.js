@@ -51,13 +51,13 @@ const BTEXTS = {
 };
 
 const MEMBERS = [
-  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:100,y:10} },
+  { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:150,y:10} },
   { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'sofa',          offset:{x:0,y:0} },
-  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-260,y:50} },
+  { id:'codex',    label:'Codex',      role:'📐 架構',   area:'col1_top',      offset:{x:-210,y:60} },
   { id:'gemini',   label:'Gemini',     role:'🔍 研究',   area:'col1_mid',      offset:{x:-20,y:20} },
   { id:'manus',    label:'Manus',      role:'🎨 UI/UX',  area:'col1_bot',      offset:{x:-20,y:20} },
   { id:'claude',   label:'Claude Code',role:'💻 開發',   area:'col2_top',      offset:{x:50,y:25} },
-  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_mid',      offset:{x:-440,y:200} }
+  { id:'opencode', label:'OpenCode',   role:'🔧 優化',   area:'col2_mid',      offset:{x:-240,y:210} }
 ];
 
 const TOOL_COLORS = {
