@@ -89,7 +89,7 @@ const AREAS = {
   col2_bot: { x: 270, y: 540 },
   center:  { x: 490, y: 360 },
   lounge:  { x: 490, y: 360 },
-  sofa:    { x: 1092, y: 260 },  // OpenClaw 在沙發正上方
+  sofa:    { x: 1092, y: 270 },  // OpenClaw 在沙發正上方
 };
 
 let game, star, areas={}, currentState='idle', pendingState=null;
