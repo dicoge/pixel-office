@@ -164,7 +164,7 @@ function drawRoom(scene) {
   }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
   // Coffee machine (left room, next to bookshelf, right of desk lamp)
-  const coffeeCompat = scene.add.sprite(220, 220, 'coffee_machine', 0)
+  const coffeeCompat = scene.add.sprite(225, 210, 'coffee_machine', 0)
     .setOrigin(0.5).setDepth(5).setScale(0.35);
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
@@ -198,12 +198,11 @@ function drawRoom(scene) {
   vigG.fillRect(0, 0, 40, 720);
   vigG.fillRect(1240, 0, 40, 720);
   vigG.fillRect(0, 0, 1280, 15);
-  vigG.fillRect(0, 705, 1280, 15);
 
   // === BOTTOM PLAQUE (depth 51) — PIXEL OFFICE with star decorations ===
   const plaqueG = scene.add.graphics().setDepth(51);
   const plX = 660;  // aligned with top sign center
-  const plY = 690;  // near bottom edge
+  const plY = 705;  // very bottom edge
   // Dark background bar
   plaqueG.fillStyle(0x1a1a2e, 0.85);
   plaqueG.fillRoundedRect(plX - 180, plY - 18, 360, 36, 8);
