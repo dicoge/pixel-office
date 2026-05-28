@@ -181,14 +181,14 @@ function drawRoom(scene) {
 
   // === 6 desks (2 columns x 3 rows, col1 facing LEFT, col2 facing RIGHT) ===
   if (scene.textures.exists('desk')) {
-    // Column 1 — facing LEFT
-    scene.add.image(160, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(160, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(160, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    // Column 2 — facing RIGHT (moved closer to col1, desks touching)
-    scene.add.image(270, 280, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(270, 410, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(270, 540, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    // Column 1 — facing LEFT (v13: x=170, y=290/420/550)
+    scene.add.image(170, 290, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(170, 420, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(170, 550, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    // Column 2 — facing RIGHT (v13: x=265, y=290/420/550)
+    scene.add.image(265, 290, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(265, 420, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(265, 550, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
