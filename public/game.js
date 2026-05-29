@@ -117,6 +117,7 @@ const FETCH_INT=3000, BUBBLE_INT=8000, TT_DELAY=50;
 let mainCamera;
 const spriteData = {};
 let memberStatusTexts = {};
+let memberMoodTexts = {};
 
 // ===================== ROOM DRAWING =====================
 
@@ -258,6 +259,7 @@ function placeCharacters(scene) {
   window.memberSprites = {};
   window.memberLabels = {};
   window.memberStates = {};
+  window.memberMoods = {};
   window.memberTargets = {};
   window.memberShadows = {};
   window.guestSprites = {};
@@ -342,6 +344,15 @@ function placeCharacters(scene) {
       align: 'center'
     }).setOrigin(0.5).setDepth(12);
     memberStatusTexts[m.id] = statusText;
+
+    // Mood text below status
+    const moodText = scene.add.text(bx, by + yOff + 12, '', {
+      fontFamily: 'monospace', fontSize: '8px',
+      fill: '#aaaaaa',
+      stroke: '#000', strokeThickness: 1,
+      align: 'center'
+    }).setOrigin(0.5).setDepth(12);
+    memberMoodTexts[m.id] = moodText;
 
     spriteData[m.id] = { label };
   });
@@ -492,6 +503,11 @@ function update(time) {
         const yOff = m.id === 'hermes' ? -45 : -35;
         stxt.setPosition(sp.x, sp.y + yOff);
       }
+      // Update mood text position
+      const mtxt = memberMoodTexts[m.id];
+      if (mtxt) {
+        mtxt.setPosition(sp.x, sp.y + yOff + 12);
+      }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
     });
@@ -557,6 +573,7 @@ function fetchStatus() {
       if (!mm) return;
       const ws = normalizeState(w.status||'idle');
       window.memberStates[mm.id] = ws;
+      window.memberMoods[mm.id] = w.mood || '';
       let ta = (STATES[ws] || STATES.idle).area;
       if (mm.id === 'hermes') ta = 'center';
       if (mm.id === 'openclaw') ta = 'sofa';
@@ -579,6 +596,12 @@ function renderMemberStatus() {
     if (txt) {
       txt.setText(label);
       txt.setFill(getStatusColor(state));
+      // Update mood text
+      const moodTxt = memberMoodTexts[m.id];
+      const mood = window.memberMoods[m.id] || '';
+      if (moodTxt) {
+        moodTxt.setText(mood ? '~ ' + mood + ' ~' : '');
+      }
     }
   });
 }
@@ -640,7 +663,38 @@ function getAreaLabel(target) {
 
 // ===================== WEBSOCKET =====================
 
-function connectHermes() {}
+function connectHermes() {
+  const token = localStorage.getItem('pixel_office_token');
+  if (!token) return;
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(`${proto}//${location.host}/ws?token=${token}`);
+  ws.onmessage = (ev) => {
+    try {
+      const data = JSON.parse(ev.data);
+      if (data.type === 'worker_ping' && data.worker) {
+        handleWorkerUpdate(data.worker);
+      }
+    } catch(e) {}
+  };
+  ws.onclose = () => setTimeout(connectHermes, 5000); // auto-reconnect
+}
+
+function handleWorkerUpdate(worker) {
+  if (!worker || !worker.name) return;
+  const wn = worker.name.toLowerCase();
+  let mm = null, bs = 0;
+  MEMBERS.forEach(m => {
+    let sc = 0;
+    if (wn === m.id) sc = 3;
+    else if (wn.includes(m.id)) sc = 2;
+    else if (m.id.includes(wn)) sc = 1;
+    if (sc > bs) { bs = sc; mm = m; }
+  });
+  if (!mm) return;
+  window.memberStates[mm.id] = normalizeState(worker.status);
+  window.memberMoods[mm.id] = worker.mood || '';
+  renderMemberStatus();
+}
 
 // ===== BOOTSTRAP =====
 initGame();

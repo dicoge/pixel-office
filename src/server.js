@@ -148,6 +148,12 @@ function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+  // Migration: Add mood column for hourly mood messages
+  try {
+    db.exec("ALTER TABLE workers ADD COLUMN mood TEXT DEFAULT NULL");
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   // Companies table (for custom company names)
   db.exec(`
@@ -716,7 +722,7 @@ app.post('/api/workers/ping/:id', (req, res) => {
     return res.status(401).json({ error: 'Invalid API key' });
   }
 
-  const { status } = req.body;
+  const { status, mood } = req.body;
   const company_id = getCompanyId(req);
   const validStatuses = ['active', 'idle', 'busy'];
   const newStatus = validStatuses.includes(status) ? status : 'active';
@@ -726,9 +732,15 @@ app.post('/api/workers/ping/:id', (req, res) => {
     return res.status(404).json({ error: 'Worker not found' });
   }
 
-  db.prepare(`
-    UPDATE workers SET status = ?, last_ping = datetime('now') WHERE id = ?
-  `).run(newStatus, req.params.id);
+  if (mood !== undefined) {
+    db.prepare(`
+      UPDATE workers SET status = ?, mood = ?, last_ping = datetime('now') WHERE id = ?
+    `).run(newStatus, mood, req.params.id);
+  } else {
+    db.prepare(`
+      UPDATE workers SET status = ?, last_ping = datetime('now') WHERE id = ?
+    `).run(newStatus, req.params.id);
+  }
 
   const worker = db.prepare('SELECT * FROM workers WHERE id = ?').get(req.params.id);
   broadcast({ type: 'worker_ping', worker });
