@@ -50,6 +50,24 @@ const BTEXTS = {
   error:['別慌','找到 bug','錯誤是線索']
 };
 
+const STATUS_LABELS = {
+  idle: '閒置中',
+  writing: '工作中',
+  researching: '搜尋中',
+  executing: '執行中',
+  syncing: '同步中',
+  error: '出錯'
+};
+
+function getStatusColor(state) {
+  switch(state) {
+    case 'writing': case 'researching': case 'executing': return '#f1c40f'; // 黃色
+    case 'syncing': return '#3498db';  // 藍色
+    case 'error': return '#e74c3c';    // 紅色
+    default: return '#2ecc71';         // 綠色（idle）
+  }
+}
+
 const MEMBERS = [
   { id:'hermes',   label:'Hermes',     role:'🏢 經理',   area:'center',        offset:{x:170,y:10} },
   { id:'openclaw', label:'OpenClaw',   role:'🧪 測試',   area:'sofa',          offset:{x:0,y:0} },
@@ -98,6 +116,7 @@ let bubble=null, bubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0;
 const FETCH_INT=3000, BUBBLE_INT=8000, TT_DELAY=50;
 let mainCamera;
 const spriteData = {};
+let memberStatusTexts = {};
 
 // ===================== ROOM DRAWING =====================
 
@@ -313,6 +332,17 @@ function placeCharacters(scene) {
       stroke: '#000', strokeThickness: 1
     }).setOrigin(0.5).setDepth(12);
     window.memberLabels[m.id] = label;
+
+    // Status text above head
+    const yOff = m.id === 'hermes' ? -45 : -35;
+    const statusText = scene.add.text(bx, by + yOff, '閒置中', {
+      fontFamily: 'monospace', fontSize: '9px',
+      fill: '#2ecc71',
+      stroke: '#000', strokeThickness: 2,
+      align: 'center'
+    }).setOrigin(0.5).setDepth(12);
+    memberStatusTexts[m.id] = statusText;
+
     spriteData[m.id] = { label };
   });
   window.starSprite = star;
@@ -456,10 +486,11 @@ function update(time) {
         shadow.setPosition(sp.x, sy);
       }
 
-      // Update status indicator position
-      const si = window.statusIndicators && window.statusIndicators[m.id];
-      if (si) {
-        si.setPosition(sp.x + 14, sp.y - 20);
+      // Update status text position
+      const stxt = memberStatusTexts[m.id];
+      if (stxt) {
+        const yOff = m.id === 'hermes' ? -45 : -35;
+        stxt.setPosition(sp.x, sp.y + yOff);
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
@@ -539,36 +570,15 @@ function fetchStatus() {
 }
 
 function renderMemberStatus() {
-  if (!window.statusIndicators) {
-    window.statusIndicators = {};
-  }
-  const STATUS_COLORS = {
-    idle: 0x2ecc71,
-    writing: 0xf1c40f,
-    researching: 0xf1c40f,
-    executing: 0xf1c40f,
-    syncing: 0x3498db,
-    error: 0xe74c3c
-  };
   MEMBERS.forEach(m => {
     const sp = window.memberSprites[m.id];
     if (!sp) return;
     const state = window.memberStates[m.id] || 'idle';
-    const color = STATUS_COLORS[state] || STATUS_COLORS.idle;
-    if (window.statusIndicators[m.id]) {
-      // Already exists — update color only
-      const indicator = window.statusIndicators[m.id];
-      indicator.clear();
-      indicator.fillStyle(color, 1);
-      indicator.fillRect(0, 0, 4, 4);
-    } else {
-      // Create new indicator
-      const indicator = game.add.graphics().setDepth(13);
-      indicator.fillStyle(color, 1);
-      indicator.fillRect(0, 0, 4, 4);
-      // Position to the right of badge (badge is at sp.y - 20)
-      indicator.setPosition(sp.x + 14, sp.y - 20);
-      window.statusIndicators[m.id] = indicator;
+    const label = STATUS_LABELS[state] || '閒置中';
+    const txt = memberStatusTexts[m.id];
+    if (txt) {
+      txt.setText(label);
+      txt.setFill(getStatusColor(state));
     }
   });
 }
@@ -611,16 +621,6 @@ const MEMBER_ICONS = {
   hermes:'⭐', gemini:'🔮', manus:'✍️', codex:'📘',
   claude:'🟢', opencode:'🔧', openclaw:'🦞'
 };
-
-function getStatusColor(mid) {
-  const s = window.memberStates?.[mid] || 'idle';
-  switch(s) {
-    case 'error': return '#e74c3c';
-    case 'writing': case 'researching': case 'executing': return '#f1c40f';
-    case 'syncing': return '#3498db';
-    default: return '#2ecc71';
-  }
-}
 
 function getAreaLabel(target) {
   if (!target) return '⋯';
