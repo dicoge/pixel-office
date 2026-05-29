@@ -619,16 +619,29 @@ function moveStar(time) {
 function showBubble() {
   if (bubbleTimer) clearTimeout(bubbleTimer);
   if (bubble) { bubble.destroy(); bubble = null; }
-  const texts = BTEXTS[currentState] || BTEXTS.idle;
+  
+  // Pick a random member (prefer non-idle ones)
+  const candidates = MEMBERS.filter(m => {
+    const state = window.memberStates[m.id] || 'idle';
+    return state !== 'idle' || Math.random() < 0.4;
+  });
+  const pick = candidates.length ? candidates[Math.floor(Math.random()*candidates.length)] : MEMBERS[1];
+  
+  const state = window.memberStates[pick.id] || 'idle';
+  const texts = BTEXTS[state] || BTEXTS.idle;
   const text = texts[Math.floor(Math.random()*texts.length)];
-  const by = 280;
+  
+  const sp = window.memberSprites[pick.id];
+  if (!sp) return;
+  
+  const bx = sp.x;
+  const by = sp.y - 55;  // Above status + mood text
   const tw = text.length * 8 + 20;
+  
   // Speech bubble with tail
   const bg = game.add.graphics();
   bg.fillStyle(0xffffff, 0.95);
   bg.fillRoundedRect(-tw/2, -11, tw, 22, 4);
-  bg.fillStyle(0xffd700, 0.3);
-  bg.fillRoundedRect(-tw/2, -11, tw/3, 22, 4);
   bg.lineStyle(2, 0x000000, 0.8);
   bg.strokeRoundedRect(-tw/2, -11, tw, 22, 4);
   // Bubble tail (triangle pointing down)
@@ -638,7 +651,7 @@ function showBubble() {
     fontFamily: 'monospace', fontSize: '11px', fill: '#1a1a2e',
     fontStyle: 'bold'
   }).setOrigin(0.5);
-  bubble = game.add.container(490, by, [bg, txt]).setDepth(1200);
+  bubble = game.add.container(bx, by, [bg, txt]).setDepth(1200);
   bubbleTimer = setTimeout(() => { if (bubble) { bubble.destroy(); bubble = null; } bubbleTimer = null; }, 3000);
 }
 
