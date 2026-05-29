@@ -584,6 +584,7 @@ function fetchStatus() {
       window.memberStates[mm.id] = ws;
       window.memberMoods[mm.id] = w.mood || '';
       let ta = (STATES[ws] || STATES.idle).area;
+      if (ws === 'idle') ta = m.area;  // idle 時留在自己的書桌
       if (mm.id === 'hermes') ta = 'center';
       if (mm.id === 'openclaw') ta = 'sofa';
       if (AREAS[ta]) {
