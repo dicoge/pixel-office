@@ -19,7 +19,7 @@ const DATA_DIR = path.join(__dirname, '..', 'data');
 const DB_PATH = path.join(DATA_DIR, 'tasks.db');
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*').split(',').map(s => s.trim());
 const RATE_LIMIT_WINDOW = 5 * 60 * 1000; // 5 minutes
-const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_MAX = 300;
 
 // Task Queue API Key for worker registration
 const TASK_QUEUE_API_KEY=process.env.TASK_QUEUE_API_KEY || 's3cr3t_t4sk_k3y_2026';

@@ -113,7 +113,7 @@ const AREAS = {
 let game, star, areas={}, currentState='idle', pendingState=null;
 let lastFetch=0, lastClickFetch=0, targetX=490, targetY=280;
 let ttText='', ttTarget='', ttIdx=0, lastTT=0;
-const FETCH_INT=3000, TT_DELAY=50;
+const FETCH_INT=15000, TT_DELAY=50;
 let mainCamera;
 const spriteData = {};
 let memberStatusTexts = {};
