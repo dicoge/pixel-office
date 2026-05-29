@@ -600,7 +600,10 @@ function renderMemberStatus() {
       const moodTxt = memberMoodTexts[m.id];
       const mood = window.memberMoods[m.id] || '';
       if (moodTxt) {
-        moodTxt.setText(mood ? '~ ' + mood + ' ~' : '');
+        // Show mood with tildes if it doesn't already have them
+        const m = mood ? mood.trim() : '';
+        const display = m ? (m.startsWith('~') && m.endsWith('~') ? m : '~ ' + m.replace(/^~+\s*|\s*~+$/g, '') + ' ~') : '';
+        moodTxt.setText(display);
       }
     }
   });
