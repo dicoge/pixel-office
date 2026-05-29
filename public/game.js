@@ -397,8 +397,8 @@ function preload() {
   for (let i = 1; i <= 5; i++) {
     this.load.spritesheet('guest_anim_' + i, '/guest_anim_' + i + '.webp', { frameWidth: 32, frameHeight: 32 });
   }
-  // guest_role_5.png is a different spritesheet used as guest_anim_7
-  this.load.spritesheet('guest_anim_7', '/guest_role_5.png', { frameWidth: 32, frameHeight: 32 });
+  // guest_role_1.png is used as guest_anim_7 for OpenClaw (distinct from Manus's guest_anim_4)
+  this.load.spritesheet('guest_anim_7', '/guest_role_1.png', { frameWidth: 32, frameHeight: 32 });
 
   // Desk sprite for center-left area
   this.load.image('desk', '/desk-v3.webp');
