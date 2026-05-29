@@ -111,13 +111,13 @@ const AREAS = {
 };
 
 let game, star, areas={}, currentState='idle', pendingState=null;
-let lastFetch=0, lastClickFetch=0, lastBubble=0, targetX=490, targetY=280;
-let bubble=null, bubbleTimer=null, ttText='', ttTarget='', ttIdx=0, lastTT=0;
-const FETCH_INT=3000, BUBBLE_INT=8000, TT_DELAY=50;
+let lastFetch=0, lastClickFetch=0, targetX=490, targetY=280;
+let ttText='', ttTarget='', ttIdx=0, lastTT=0;
+const FETCH_INT=3000, TT_DELAY=50;
 let mainCamera;
 const spriteData = {};
 let memberStatusTexts = {};
-let memberMoodTexts = {};
+let memberMoodBubbles = {};  // { id: { bg, text } }
 
 // ===================== ROOM DRAWING =====================
 
@@ -345,14 +345,15 @@ function placeCharacters(scene) {
     }).setOrigin(0.5).setDepth(12);
     memberStatusTexts[m.id] = statusText;
 
-    // Mood text below status
-    const moodText = scene.add.text(bx, by + yOff + 12, '', {
-      fontFamily: 'monospace', fontSize: '8px',
-      fill: '#aaaaaa',
-      stroke: '#000', strokeThickness: 1,
+    // Mood speech bubble — dialog bubble above status text
+    const moodBubbleBg = scene.add.graphics().setDepth(11);
+    const moodBubbleText = scene.add.text(bx, by + yOff + 12, '', {
+      fontFamily: 'monospace', fontSize: '9px',
+      fill: '#333', fontStyle: 'bold',
+      stroke: '#000', strokeThickness: 0,
       align: 'center'
     }).setOrigin(0.5).setDepth(12);
-    memberMoodTexts[m.id] = moodText;
+    memberMoodBubbles[m.id] = { bg: moodBubbleBg, text: moodBubbleText };
 
     spriteData[m.id] = { label };
   });
@@ -472,7 +473,6 @@ let lastStatusRender = 0;
 
 function update(time) {
   if (time - lastFetch > FETCH_INT) { fetchStatus(); lastFetch = time; }
-  if (time - lastBubble > BUBBLE_INT) { showBubble(); lastBubble = time; }
   if (ttIdx < ttTarget.length && time - lastTT > TT_DELAY) {
     ttText += ttTarget[ttIdx];
     const st = document.getElementById('status-text');
@@ -503,11 +503,19 @@ function update(time) {
         const yOff = m.id === 'hermes' ? -45 : -35;
         stxt.setPosition(sp.x, sp.y + yOff);
       }
-      // Update mood text position
-      const mtxt = memberMoodTexts[m.id];
-      if (mtxt) {
-        const moodYOff = m.id === 'hermes' ? -45 : -35;
-        mtxt.setPosition(sp.x, sp.y + moodYOff + 12);
+      // Update mood bubble position (redraw at current position)
+      const moodBubble = memberMoodBubbles[m.id];
+      if (moodBubble && moodBubble.text.text.length > 0) {
+        const display = moodBubble.text.text;
+        const tw = display.length * 7 + 16;
+        moodBubble.bg.clear();
+        moodBubble.bg.fillStyle(0xf0ead6, 0.95);
+        moodBubble.bg.fillRoundedRect(sp.x - tw/2, sp.y - 32, tw, 18, 4);
+        moodBubble.bg.lineStyle(1, 0x888888, 0.6);
+        moodBubble.bg.strokeRoundedRect(sp.x - tw/2, sp.y - 32, tw, 18, 4);
+        moodBubble.bg.fillStyle(0xf0ead6, 0.95);
+        moodBubble.bg.fillTriangle(sp.x - 3, sp.y - 14, sp.x + 3, sp.y - 14, sp.x, sp.y - 10);
+        moodBubble.text.setPosition(sp.x, sp.y - 23);
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
@@ -597,14 +605,15 @@ function renderMemberStatus() {
     if (txt) {
       txt.setText(label);
       txt.setFill(getStatusColor(state));
-      // Update mood text
-      const moodTxt = memberMoodTexts[m.id];
+      
+      // Update mood bubble (dialog bubble)
+      const bubble = memberMoodBubbles[m.id];
       const mood = window.memberMoods[m.id] || '';
-      if (moodTxt) {
-        // Show mood with tildes if it doesn't already have them
+      if (bubble) {
+        // Format mood with tildes
         const m = mood ? mood.trim() : '';
         const display = m ? (m.startsWith('~') && m.endsWith('~') ? m : '~ ' + m.replace(/^~+\s*|\s*~+$/g, '') + ' ~') : '';
-        moodTxt.setText(display);
+        bubble.text.setText(display);
       }
     }
   });
@@ -612,47 +621,6 @@ function renderMemberStatus() {
 
 function moveStar(time) {
   if (star) star.setVisible(true);
-}
-
-// ===================== BUBBLES =====================
-
-function showBubble() {
-  if (bubbleTimer) clearTimeout(bubbleTimer);
-  if (bubble) { bubble.destroy(); bubble = null; }
-  
-  // Pick a random member (prefer non-idle ones)
-  const candidates = MEMBERS.filter(m => {
-    const state = window.memberStates[m.id] || 'idle';
-    return state !== 'idle' || Math.random() < 0.4;
-  });
-  const pick = candidates.length ? candidates[Math.floor(Math.random()*candidates.length)] : MEMBERS[1];
-  
-  const state = window.memberStates[pick.id] || 'idle';
-  const texts = BTEXTS[state] || BTEXTS.idle;
-  const text = texts[Math.floor(Math.random()*texts.length)];
-  
-  const sp = window.memberSprites[pick.id];
-  if (!sp) return;
-  
-  const bx = sp.x;
-  const by = sp.y - 55;  // Above status + mood text
-  const tw = text.length * 8 + 20;
-  
-  // Speech bubble with tail
-  const bg = game.add.graphics();
-  bg.fillStyle(0xffffff, 0.95);
-  bg.fillRoundedRect(-tw/2, -11, tw, 22, 4);
-  bg.lineStyle(2, 0x000000, 0.8);
-  bg.strokeRoundedRect(-tw/2, -11, tw, 22, 4);
-  // Bubble tail (triangle pointing down)
-  bg.fillStyle(0xffffff, 0.95);
-  bg.fillTriangle(-4, 11, 4, 11, 0, 16);
-  const txt = game.add.text(0, 0, text, {
-    fontFamily: 'monospace', fontSize: '11px', fill: '#1a1a2e',
-    fontStyle: 'bold'
-  }).setOrigin(0.5);
-  bubble = game.add.container(bx, by, [bg, txt]).setDepth(1200);
-  bubbleTimer = setTimeout(() => { if (bubble) { bubble.destroy(); bubble = null; } bubbleTimer = null; }, 3000);
 }
 
 // ===================== STATUS PANEL =====================
