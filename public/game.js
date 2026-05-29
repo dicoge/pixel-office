@@ -506,7 +506,8 @@ function update(time) {
       // Update mood text position
       const mtxt = memberMoodTexts[m.id];
       if (mtxt) {
-        mtxt.setPosition(sp.x, sp.y + yOff + 12);
+        const moodYOff = m.id === 'hermes' ? -45 : -35;
+        mtxt.setPosition(sp.x, sp.y + moodYOff + 12);
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
