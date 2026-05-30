@@ -180,8 +180,8 @@
       <div style="display:flex;align-items:center">
         <span style="color:#ffd700;font-weight:bold">PIXEL OFFICE</span>
         <select id="office-switcher" class="office-select">
-          <option value="local">🏠 本地 Office</option>
-          <option value="remote">🌐 遠端 Office</option>
+          <option value="local">🖥️ MiniPC</option>
+          <option value="remote">💻 MacBook</option>
         </select>
       </div>
       <span id="room-label" style="color:#2ecc71">辦公室</span>
@@ -271,8 +271,7 @@
   <!-- Remote Office Switcher Script -->
   <script>
     // 遠端 Office 切換邏輯
-    let currentOffice = "local";
-    window.currentOffice = currentOffice;
+    window.currentOffice = "local";
 
     // 載入已儲存的設定
     const savedUrl = localStorage.getItem("remote_url");
@@ -299,12 +298,11 @@
 
     // 下拉選單切換
     document.getElementById("office-switcher").onchange = function() {
-      currentOffice = this.value;
-      window.currentOffice = currentOffice;
+      window.currentOffice = this.value;
       // 如果有 game 的 fetchStatus，強制重新整理
       if (typeof fetchStatus === "function") {
         lastFetch = 0;
-        ttTarget = currentOffice === "local" ? "已切換到本地 Office" : "已切換到遠端 Office";
+        ttTarget = window.currentOffice === "local" ? "已切換到 MiniPC" : "已切換到 MacBook";
         ttText = "";
         ttIdx = 0;
       }

@@ -110,7 +110,7 @@ const AREAS = {
   sofa:    { x: 1092, y: 270 },  // OpenClaw 在沙發正上方
 };
 
-let currentOffice = localStorage.getItem("current_office") || "local";
+window.currentOffice = localStorage.getItem("current_office") || "local";
 let game, star, areas={}, currentState='idle', pendingState=null;
 let lastFetch=0, lastClickFetch=0, targetX=490, targetY=280;
 let ttText='', ttTarget='', ttIdx=0, lastTT=0;
@@ -473,11 +473,9 @@ function create() {
 let lastStatusRender = 0;
 
 function update(time) {
-  // Sync office mode from UI
-  if (typeof window.currentOffice !== 'undefined' && window.currentOffice !== currentOffice) {
-    currentOffice = window.currentOffice;
-    localStorage.setItem('current_office', currentOffice);
-    lastFetch = 0; // Force re-fetch immediately
+  // Ensure office mode is synced to localStorage
+  if (typeof window.currentOffice !== 'undefined') {
+    localStorage.setItem('current_office', window.currentOffice);
   }
   if (time - lastFetch > FETCH_INT) { fetchStatus(); lastFetch = time; }
   if (ttIdx < ttTarget.length && time - lastTT > TT_DELAY) {
@@ -562,11 +560,11 @@ function fetchStatus() {
   if (!token) return;
 
   let fetchPromise;
-  if (currentOffice === 'remote') {
+  if (window.currentOffice === 'remote') {
     const remoteUrl = localStorage.getItem('remote_url');
     const remoteToken = localStorage.getItem('remote_token');
     if (!remoteUrl) {
-      document.getElementById('status-text').textContent = '⚠️ 請先設定遠端 Office URL';
+      document.getElementById('status-text').textContent = '⚠️ 請先設定 MacBook 的遠端 URL（⚙️）';
       return;
     }
     fetchPromise = fetch('/api/proxy/workers', {
