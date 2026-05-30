@@ -482,13 +482,9 @@ function update(time) {
 
   if (window.memberSprites) {
     MEMBERS.forEach(m => {
-      if (m.id === 'hermes') return; // Hermes stays at center desk
       const sp = window.memberSprites[m.id];
       const t = window.memberTargets[m.id];
       if (!sp || !t) return;
-      const dx = t.x - sp.x, dy = t.y - sp.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 3) { sp.x += (dx/dist) * 1.2; sp.y += (dy/dist) * 1.2; }
 
       // Update shadow to follow sprite
       const shadow = window.memberShadows && window.memberShadows[m.id];
@@ -519,6 +515,12 @@ function update(time) {
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
+
+      if (m.id === 'hermes') return; // Hermes stays at center desk — skip movement but still update UI
+
+      const dx = t.x - sp.x, dy = t.y - sp.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 3) { sp.x += (dx/dist) * 1.2; sp.y += (dy/dist) * 1.2; }
     });
   }
   if (star) moveStar(time);
