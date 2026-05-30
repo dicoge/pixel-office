@@ -508,12 +508,12 @@ function update(time) {
         const statusY = sp.y + yOff;
         moodBubble.bg.clear();
         moodBubble.bg.fillStyle(0xf0ead6, 0.95);
-        moodBubble.bg.fillRoundedRect(sp.x - tw/2, statusY + 14, tw, 18, 4);
+        moodBubble.bg.fillRoundedRect(sp.x - tw/2, statusY - 22, tw, 18, 4);
         moodBubble.bg.lineStyle(1, 0x888888, 0.6);
-        moodBubble.bg.strokeRoundedRect(sp.x - tw/2, statusY + 14, tw, 18, 4);
+        moodBubble.bg.strokeRoundedRect(sp.x - tw/2, statusY - 22, tw, 18, 4);
         moodBubble.bg.fillStyle(0xf0ead6, 0.95);
-        moodBubble.bg.fillTriangle(sp.x - 3, statusY + 32, sp.x + 3, statusY + 32, sp.x, statusY + 36);
-        moodBubble.text.setPosition(sp.x, statusY + 23);
+        moodBubble.bg.fillTriangle(sp.x - 3, statusY - 4, sp.x + 3, statusY - 4, sp.x, statusY);
+        moodBubble.text.setPosition(sp.x, statusY - 13);
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
