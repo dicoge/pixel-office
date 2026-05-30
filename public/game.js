@@ -504,14 +504,16 @@ function update(time) {
       if (moodBubble && moodBubble.text.text.length > 0) {
         const display = moodBubble.text.text;
         const tw = display.length * 7 + 16;
+        const yOff = m.id === "hermes" ? -45 : -35;
+        const statusY = sp.y + yOff;
         moodBubble.bg.clear();
         moodBubble.bg.fillStyle(0xf0ead6, 0.95);
-        moodBubble.bg.fillRoundedRect(sp.x - tw/2, sp.y - 32, tw, 18, 4);
+        moodBubble.bg.fillRoundedRect(sp.x - tw/2, statusY + 14, tw, 18, 4);
         moodBubble.bg.lineStyle(1, 0x888888, 0.6);
-        moodBubble.bg.strokeRoundedRect(sp.x - tw/2, sp.y - 32, tw, 18, 4);
+        moodBubble.bg.strokeRoundedRect(sp.x - tw/2, statusY + 14, tw, 18, 4);
         moodBubble.bg.fillStyle(0xf0ead6, 0.95);
-        moodBubble.bg.fillTriangle(sp.x - 3, sp.y - 14, sp.x + 3, sp.y - 14, sp.x, sp.y - 10);
-        moodBubble.text.setPosition(sp.x, sp.y - 23);
+        moodBubble.bg.fillTriangle(sp.x - 3, statusY + 32, sp.x + 3, statusY + 32, sp.x, statusY + 36);
+        moodBubble.text.setPosition(sp.x, statusY + 23);
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 18);
