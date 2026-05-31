@@ -208,6 +208,16 @@ function initDatabase() {
   workerStmt.run('worker-6', 'Claude Code', 'idle', null, 'company-a', 'MiniPc', '程式碼撰寫中');
   workerStmt.run('worker-7', 'OpenCode', 'idle', null, 'company-a', 'MiniPc', '優化現有功能');
 
+  // Company-b workers (MacBook) — different moods from MiniPC
+  // Note: IDs use worker-b prefix to avoid collision with company-a
+  workerStmt.run('worker-b1', 'Hermes', 'idle', null, 'company-b', 'MacBook', '編輯設定中...');
+  workerStmt.run('worker-b2', 'OpenClaw', 'idle', null, 'company-b', 'MacBook', '測試 MacBook 環境');
+  workerStmt.run('worker-b3', 'Codex', 'idle', null, 'company-b', 'MacBook', '架構轉移評估');
+  workerStmt.run('worker-b4', 'Gemini', 'idle', null, 'company-b', 'MacBook', '資料比對中');
+  workerStmt.run('worker-b5', 'Manus', 'idle', null, 'company-b', 'MacBook', 'UI 適配調整');
+  workerStmt.run('worker-b6', 'Claude Code', 'idle', null, 'company-b', 'MacBook', 'Mac 端開發');
+  workerStmt.run('worker-b7', 'OpenCode', 'idle', null, 'company-b', 'MacBook', '效能優化中');
+
     // Messages table
   db.exec(`
     CREATE TABLE IF NOT EXISTS messages (
