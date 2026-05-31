@@ -548,6 +548,7 @@ function update(time) {
 
 function normalizeState(s) {
   if (!s) return 'idle';
+  if (s === 'active' || s === 'idle') return 'idle';
   if (s === 'working') return 'writing';
   if (s === 'run' || s === 'running') return 'executing';
   if (s === 'sync') return 'syncing';

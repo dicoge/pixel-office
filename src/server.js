@@ -188,10 +188,10 @@ function initDatabase() {
 
   // Seed 7 workers (shared across all companies)
   const workerStmt = db.prepare('INSERT OR IGNORE INTO workers (id, name, status, department_id, company_id, machine_id, mood) VALUES (?, ?, ?, ?, ?, ?, ?)');
-  // 7 workers for both companies — with default moods so dialog bubbles show on fresh deploy
-  workerStmt.run('worker-1', 'Hermes', 'active', 'dept-pixeloffice', 'company-a', 'MiniPc', '協調一切進行中');
-  workerStmt.run('worker-2', 'OpenClaw', 'active', 'dept-dungeon', 'company-a', 'MiniPc', '測試案例撰寫中');
-  workerStmt.run('worker-3', 'Codex', 'active', 'dept-stock', 'company-a', 'MiniPc', '架構規劃中');
+  // 7 workers — all 'idle' so they stay at their designated desks
+  workerStmt.run('worker-1', 'Hermes', 'idle', 'dept-pixeloffice', 'company-a', 'MiniPc', '協調一切進行中');
+  workerStmt.run('worker-2', 'OpenClaw', 'idle', 'dept-dungeon', 'company-a', 'MiniPc', '測試案例撰寫中');
+  workerStmt.run('worker-3', 'Codex', 'idle', 'dept-stock', 'company-a', 'MiniPc', '架構規劃中');
   workerStmt.run('worker-4', 'Gemini', 'idle', null, 'company-a', 'MiniPc', '搜尋相關資料');
   workerStmt.run('worker-5', 'Manus', 'idle', null, 'company-a', 'MiniPc', '設計 UI 流程');
   workerStmt.run('worker-6', 'Claude Code', 'idle', null, 'company-a', 'MiniPc', '程式碼撰寫中');
