@@ -569,6 +569,15 @@ function fetchStatus() {
         MEMBERS.forEach(m => { window.memberStates[m.id] = 'idle'; window.memberMoods[m.id] = ''; });
         renderMemberStatus();
       }
+      const companyLabel = companyId === 'company-a' ? 'MiniPC' : 'MacBook';
+      ttTarget = '['+companyLabel+'] 尚無 workers，請先註冊';
+      ttText = '';
+      ttIdx = 0;
+      pendingState = null;
+      currentState = 'idle';
+      if (star) star.setVisible(true);
+      targetX = AREAS.center.x;
+      targetY = AREAS.center.y;
       return;
     }
     const hw = data.find(w => (w.name||'').toLowerCase() === 'hermes') || data[0];
