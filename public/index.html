@@ -261,6 +261,12 @@
       document.getElementById("office-switcher").value = savedOffice;
     }
 
+    // 背景主題切換
+    window.setOfficeTheme = function(office) {
+      if (window.officeBg) window.officeBg.setVisible(office !== 'company-b');
+      if (window.bedroomBg) window.bedroomBg.setVisible(office === 'company-b');
+    };
+
     // 下拉選單切換
     document.getElementById("office-switcher").onchange = function() {
       window.currentOffice = this.value;

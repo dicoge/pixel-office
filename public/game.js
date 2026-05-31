@@ -126,26 +126,123 @@ function drawRoom(scene) {
   // 1. Background — office-specific
   window.officeBg = scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0).setVisible(window.currentOffice !== 'company-b');
 
-  // Tech background for company-b (programmatic — cool blue/dark theme)
-  const techBg = scene.add.graphics().setDepth(0).setVisible(window.currentOffice === 'company-b');
-  // Dark grid background
-  techBg.fillStyle(0x0a0a1a, 1);
-  techBg.fillRect(0, 0, 1280, 720);
-  // Grid lines
-  techBg.lineStyle(1, 0x1a2a4a, 0.3);
-  for (let x = 0; x < 1280; x += 40) techBg.lineBetween(x, 0, x, 720);
-  for (let y = 0; y < 720; y += 40) techBg.lineBetween(0, y, 1280, y);
-  // Data stream nodes — animated feel
-  techBg.fillStyle(0x00d4aa, 0.08);
-  techBg.fillCircle(200, 120, 60);
-  techBg.fillCircle(900, 500, 80);
-  techBg.fillCircle(700, 200, 40);
-  techBg.fillStyle(0x3a86ff, 0.05);
-  techBg.fillCircle(1100, 100, 50);
-  techBg.fillCircle(100, 600, 70);
-  window.techBg = techBg;
+  // Bedroom background for company-b (programmatic — cozy pixel bedroom)
+  const bedroomBg = scene.add.graphics().setDepth(0).setVisible(window.currentOffice === 'company-b');
+  // Wall — warm cream
+  bedroomBg.fillStyle(0xd9c8a8, 1);
+  bedroomBg.fillRect(0, 0, 1280, 500);
+  // Wallpaper pattern — subtle vertical stripes
+  bedroomBg.lineStyle(1, 0xc4b494, 0.2);
+  for (let x = 0; x < 1280; x += 32) bedroomBg.lineBetween(x, 0, x, 500);
+  // Floor — wooden planks
+  bedroomBg.fillStyle(0x8b6914, 1);
+  bedroomBg.fillRect(0, 500, 1280, 220);
+  // Wood plank lines
+  bedroomBg.lineStyle(1, 0x7a5c10, 0.3);
+  for (let y = 500; y < 720; y += 20) bedroomBg.lineBetween(0, y, 1280, y);
+  for (let x = 0; x < 1280; x += 160) bedroomBg.lineBetween(x, 500, x, 720);
+  // Baseboard
+  bedroomBg.fillStyle(0x6b4e0e, 1);
+  bedroomBg.fillRect(0, 495, 1280, 8);
+  // === BED (left side, x=60~370 area) ===
+  // Bed frame
+  bedroomBg.fillStyle(0x5c3a1e, 1);
+  bedroomBg.fillRect(60, 380, 320, 180); // bed base
+  // Headboard
+  bedroomBg.fillStyle(0x4a2e15, 1);
+  bedroomBg.fillRect(50, 340, 30, 220); // headboard left
+  bedroomBg.fillRect(360, 340, 30, 220); // headboard right
+  bedroomBg.fillRect(50, 340, 340, 20);  // headboard top
+  // Mattress
+  bedroomBg.fillStyle(0xe8e0d0, 1);
+  bedroomBg.fillRect(75, 395, 290, 60);
+  // Blanket
+  bedroomBg.fillStyle(0x6cb4ee, 1);
+  bedroomBg.fillRect(75, 410, 290, 140);
+  // Blanket pattern — folded edge
+  bedroomBg.fillStyle(0x5a9fd4, 1);
+  bedroomBg.fillRect(75, 410, 290, 6);
+  // Pillow
+  bedroomBg.fillStyle(0xf5f0e0, 1);
+  bedroomBg.fillRect(85, 395, 80, 50);
+  bedroomBg.fillStyle(0xe8e0d0, 1);
+  bedroomBg.fillRect(85, 395, 80, 4); // pillow shadow
+  // Bedside table (left of bed)
+  bedroomBg.fillStyle(0x5c3a1e, 1);
+  bedroomBg.fillRect(30, 510, 40, 50);
+  // Bedside lamp
+  bedroomBg.fillStyle(0x8b6914, 1);
+  bedroomBg.fillRect(44, 505, 12, 10);
+  bedroomBg.fillStyle(0xf0d080, 0.6);
+  bedroomBg.fillCircle(50, 500, 10); // lamp glow
+  bedroomBg.fillStyle(0xffe8a0, 0.2);
+  bedroomBg.fillCircle(50, 500, 25); // outer glow
+  // === WINDOW (upper right) ===
+  // Window frame
+  bedroomBg.fillStyle(0x2a1a0e, 1);
+  bedroomBg.fillRect(920, 80, 220, 200);
+  // Night sky
+  bedroomBg.fillStyle(0x0a0a30, 1);
+  bedroomBg.fillRect(928, 88, 204, 184);
+  // Stars
+  bedroomBg.fillStyle(0xffffff, 0.8);
+  bedroomBg.fillCircle(960, 110, 2);
+  bedroomBg.fillCircle(1010, 130, 1.5);
+  bedroomBg.fillCircle(1060, 100, 2);
+  bedroomBg.fillCircle(1030, 160, 1);
+  bedroomBg.fillCircle(990, 150, 1.5);
+  bedroomBg.fillCircle(1080, 145, 1);
+  bedroomBg.fillCircle(940, 160, 1);
+  // Moon
+  bedroomBg.fillStyle(0xfff4d0, 1);
+  bedroomBg.fillCircle(1050, 120, 18);
+  bedroomBg.fillStyle(0x0a0a30, 1);
+  bedroomBg.fillCircle(1060, 115, 15); // crescent cutout
+  // Window mullions
+  bedroomBg.lineStyle(4, 0x2a1a0e, 1);
+  bedroomBg.lineBetween(1030, 80, 1030, 280);
+  bedroomBg.lineBetween(920, 180, 1140, 180);
+  // Moonlight glow on floor
+  bedroomBg.fillStyle(0x4466aa, 0.03);
+  bedroomBg.fillRect(900, 500, 300, 220);
+  // === SMALL DESK (right area) ===
+  bedroomBg.fillStyle(0x6b4e0e, 1);
+  bedroomBg.fillRect(800, 520, 160, 10);
+  bedroomBg.fillRect(800, 530, 10, 60); // left leg
+  bedroomBg.fillRect(950, 530, 10, 60); // right leg
+  // Desk lamp
+  bedroomBg.fillStyle(0x8b6914, 1);
+  bedroomBg.fillRect(870, 510, 8, 15);
+  bedroomBg.fillStyle(0xf0d080, 1);
+  bedroomBg.fillRect(865, 505, 18, 8);
+  // Chair
+  bedroomBg.fillStyle(0x5c3a1e, 1);
+  bedroomBg.fillRect(880, 560, 30, 30); // seat
+  bedroomBg.fillRect(880, 550, 30, 5);  // back
+  // === RUG (in front of bed) ===
+  bedroomBg.fillStyle(0x8b2e2e, 0.8);
+  bedroomBg.fillEllipse(400, 580, 200, 60);
+  bedroomBg.fillStyle(0xa04040, 0.6);
+  bedroomBg.fillEllipse(400, 580, 160, 40);
+  // === WALL DECORATIONS ===
+  // Picture frame (above bed area)
+  bedroomBg.fillStyle(0x2a1a0e, 1);
+  bedroomBg.fillRect(160, 280, 80, 60);
+  bedroomBg.fillStyle(0xf5e6c8, 1);
+  bedroomBg.fillRect(164, 284, 72, 52);
+  // Small landscape in frame
+  bedroomBg.fillStyle(0x87ceeb, 1);
+  bedroomBg.fillRect(164, 284, 72, 30);
+  bedroomBg.fillStyle(0x3a7d3a, 1);
+  bedroomBg.fillRect(164, 310, 72, 26);
+  // Coat hook (right wall)
+  bedroomBg.fillStyle(0x2a1a0e, 1);
+  bedroomBg.fillRect(700, 180, 6, 6);
+  bedroomBg.fillStyle(0x4a6a9e, 1);
+  bedroomBg.fillRect(697, 186, 12, 40);
+  window.bedroomBg = bedroomBg;
 
-  window.officeLighting = scene.add.graphics().setDepth(1);
+  window.officeLighting = scene.add.graphics().setDepth(1).setVisible(window.currentOffice !== 'company-b');
   // Warm glow from left side (shifted left with desks) — matches winter cabin mood
   window.officeLighting.fillStyle(0xff8844, 0.04);
   window.officeLighting.fillCircle(160, 380, 350);
@@ -158,8 +255,8 @@ function drawRoom(scene) {
   window.officeLighting.fillStyle(0xffdd99, 0.015);
   window.officeLighting.fillRect(0, 0, 1280, 720);
 
-  // === FLOOR (depth 2) — checkerboard pattern ===
-  const floorG = scene.add.graphics().setDepth(2);
+  // === FLOOR (depth 2) — checkerboard pattern (company-a only) ===
+  const floorG = scene.add.graphics().setDepth(2).setVisible(window.currentOffice !== 'company-b');
   const tileW = 40, tileH = 30;
   for (let row = 0; row < 24; row++) {
     for (let col = 0; col < 32; col++) {
@@ -179,8 +276,8 @@ function drawRoom(scene) {
 
   // === FURNITURE (depth 3~5) ===
 
-  // CENTRAL PERK sign — depth 3 — centered at x=665
-  const signG = scene.add.graphics().setDepth(3);
+  // CENTRAL PERK sign — depth 3 — centered at x=665 (company-a only)
+  const signG = scene.add.graphics().setDepth(3).setVisible(window.currentOffice !== 'company-b');
   // Sign shadow
   signG.fillStyle(0x000000, 0.12);
   signG.fillRect(575, 15, 180, 24);
@@ -199,54 +296,54 @@ function drawRoom(scene) {
   scene.add.text(665, 25, 'CENTRAL PERK', {
     fontFamily: 'monospace', fontSize: '11px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
-  }).setOrigin(0.5).setDepth(4).setAlpha(1);
+  }).setOrigin(0.5).setDepth(4).setAlpha(1).setVisible(window.currentOffice !== 'company-b');
 
-  // Coffee machine (left room, next to bookshelf, right of desk lamp)
+  // Coffee machine (left room, next to bookshelf, right of desk lamp) — company-a only
   const coffeeCompat = scene.add.sprite(235, 190, 'coffee_machine', 0)
-    .setOrigin(0.5).setDepth(5).setScale(0.35);
+    .setOrigin(0.5).setDepth(5).setScale(0.35).setVisible(window.currentOffice !== 'company-b');
   if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
 
-  // Plant (right side) — depth 5 — with pot shadow
+  // Plant (right side) — depth 5 — with pot shadow (company-a only)
   if (scene.textures.exists('plants')) {
     // Plant pot shadow
-    const pG = scene.add.graphics().setDepth(4);
+    const pG = scene.add.graphics().setDepth(4).setVisible(window.currentOffice !== 'company-b');
     pG.fillStyle(0x000000, 0.15);
     pG.fillEllipse(1090, 215, 40, 10);
     scene.add.sprite(1090, 200, 'plants',
       Math.floor(Math.random() * 16))
-      .setOrigin(0.5).setDepth(5).setScale(0.4);
+      .setOrigin(0.5).setDepth(5).setScale(0.4).setVisible(window.currentOffice !== 'company-b');
   }
 
-  // Sofa (v18) — top-right room area (x=1050, y=200, scale=0.45)
+  // Sofa (v18) — top-right room area (x=1050, y=200, scale=0.45) — company-a only
   if (scene.textures.exists('sofa')) {
     // Sofa shadow (depth 4, behind sofa)
-    scene.add.image(1092, 280, 'sofa_shadow').setOrigin(0.5).setDepth(4).setScale(0.45);
+    scene.add.image(1092, 280, 'sofa_shadow').setOrigin(0.5).setDepth(4).setScale(0.45).setVisible(window.currentOffice !== 'company-b');
     // Sofa sprite (depth 5)
-    scene.add.image(1092, 280, 'sofa').setOrigin(0.5).setDepth(5).setScale(0.45);
+    scene.add.image(1092, 280, 'sofa').setOrigin(0.5).setDepth(5).setScale(0.45).setVisible(window.currentOffice !== 'company-b');
   }
 
-  // === 6 desks (2 columns x 3 rows, col1 facing LEFT, col2 facing RIGHT) ===
+  // === 6 desks (2 columns x 3 rows) — company-a only ===
   if (scene.textures.exists('desk')) {
     // Column 1 — facing LEFT (v17: x=205, y=310/440/570)
-    scene.add.image(205, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(205, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(205, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    scene.add.image(205, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90).setVisible(window.currentOffice !== 'company-b');
+    scene.add.image(205, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90).setVisible(window.currentOffice !== 'company-b');
+    scene.add.image(205, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90).setVisible(window.currentOffice !== 'company-b');
     // Column 2 — facing RIGHT (v16: x=260, y=310/440/570)
-    scene.add.image(260, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(260, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(260, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    scene.add.image(260, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90).setVisible(window.currentOffice !== 'company-b');
+    scene.add.image(260, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90).setVisible(window.currentOffice !== 'company-b');
+    scene.add.image(260, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90).setVisible(window.currentOffice !== 'company-b');
   }
 
-  // === SUBTLE VIGNETTE CORNERS (depth 50) — just frames the scene ===
-  const vigG = scene.add.graphics().setDepth(50);
+  // === SUBTLE VIGNETTE CORNERS (depth 50) — company-a only ===
+  const vigG = scene.add.graphics().setDepth(50).setVisible(window.currentOffice !== 'company-b');
   // Very soft corner darkening
   vigG.fillStyle(0x000000, 0.04);
   vigG.fillRect(0, 0, 40, 720);
   vigG.fillRect(1240, 0, 40, 720);
   vigG.fillRect(0, 0, 1280, 15);
 
-  // === BOTTOM PLAQUE (depth 51) — PIXEL OFFICE with star decorations ===
-  const plaqueG = scene.add.graphics().setDepth(51);
+  // === BOTTOM PLAQUE (depth 51) — PIXEL OFFICE with star decorations (company-a only) ===
+  const plaqueG = scene.add.graphics().setDepth(51).setVisible(window.currentOffice !== 'company-b');
   const plX = 675;  // aligned with top sign center
   const plY = 705;  // very bottom edge
   // Dark background bar
@@ -258,16 +355,16 @@ function drawRoom(scene) {
   // Left star decoration
   scene.add.text(plX - 150, plY, '⭐', {
     fontFamily: 'monospace', fontSize: '16px'
-  }).setOrigin(0.5).setDepth(52);
+  }).setOrigin(0.5).setDepth(52).setVisible(window.currentOffice !== 'company-b');
   // Right star decoration
   scene.add.text(plX + 150, plY, '⭐', {
     fontFamily: 'monospace', fontSize: '16px'
-  }).setOrigin(0.5).setDepth(52);
+  }).setOrigin(0.5).setDepth(52).setVisible(window.currentOffice !== 'company-b');
   // PIXEL OFFICE text
   scene.add.text(plX, plY, 'PIXEL OFFICE', {
     fontFamily: 'monospace', fontSize: '13px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
-  }).setOrigin(0.5).setDepth(52).setAlpha(0.95);
+  }).setOrigin(0.5).setDepth(52).setAlpha(0.95).setVisible(window.currentOffice !== 'company-b');
 }
 
 // ===================== OFFICE THEME SWITCHING =====================
