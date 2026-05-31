@@ -123,24 +123,40 @@ let memberMoodBubbles = {};  // { id: { bg, text } }
 // ===================== ROOM DRAWING =====================
 
 function drawRoom(scene) {
-  // 1. Background image (depth 0) — Central Perk coffee shop scene
-  if (scene.textures.exists('office_bg')) {
-    scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0);
-  }
+  // 1. Background — office-specific
+  window.officeBg = scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0).setVisible(window.currentOffice !== 'company-b');
 
-  // === WARM LIGHTING OVERLAY (depth 1) — subtle, complements background ===
-  const lightG = scene.add.graphics().setDepth(1);
+  // Tech background for company-b (programmatic — cool blue/dark theme)
+  const techBg = scene.add.graphics().setDepth(0).setVisible(window.currentOffice === 'company-b');
+  // Dark grid background
+  techBg.fillStyle(0x0a0a1a, 1);
+  techBg.fillRect(0, 0, 1280, 720);
+  // Grid lines
+  techBg.lineStyle(1, 0x1a2a4a, 0.3);
+  for (let x = 0; x < 1280; x += 40) techBg.lineBetween(x, 0, x, 720);
+  for (let y = 0; y < 720; y += 40) techBg.lineBetween(0, y, 1280, y);
+  // Data stream nodes — animated feel
+  techBg.fillStyle(0x00d4aa, 0.08);
+  techBg.fillCircle(200, 120, 60);
+  techBg.fillCircle(900, 500, 80);
+  techBg.fillCircle(700, 200, 40);
+  techBg.fillStyle(0x3a86ff, 0.05);
+  techBg.fillCircle(1100, 100, 50);
+  techBg.fillCircle(100, 600, 70);
+  window.techBg = techBg;
+
+  window.officeLighting = scene.add.graphics().setDepth(1);
   // Warm glow from left side (shifted left with desks) — matches winter cabin mood
-  lightG.fillStyle(0xff8844, 0.04);
-  lightG.fillCircle(160, 380, 350);
-  lightG.fillStyle(0xffaa66, 0.025);
-  lightG.fillCircle(160, 380, 500);
+  window.officeLighting.fillStyle(0xff8844, 0.04);
+  window.officeLighting.fillCircle(160, 380, 350);
+  window.officeLighting.fillStyle(0xffaa66, 0.025);
+  window.officeLighting.fillCircle(160, 380, 500);
   // Gentle warm wash from right side (moved slightly left for balance after coffee machine relocation)
-  lightG.fillStyle(0xffcc66, 0.02);
-  lightG.fillCircle(1090, 250, 280);
+  window.officeLighting.fillStyle(0xffcc66, 0.02);
+  window.officeLighting.fillCircle(1090, 250, 280);
   // Ultra-subtle overall warmth
-  lightG.fillStyle(0xffdd99, 0.015);
-  lightG.fillRect(0, 0, 1280, 720);
+  window.officeLighting.fillStyle(0xffdd99, 0.015);
+  window.officeLighting.fillRect(0, 0, 1280, 720);
 
   // === FLOOR (depth 2) — checkerboard pattern ===
   const floorG = scene.add.graphics().setDepth(2);
@@ -252,6 +268,33 @@ function drawRoom(scene) {
     fontFamily: 'monospace', fontSize: '13px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(52).setAlpha(0.95);
+}
+
+// ===================== OFFICE THEME SWITCHING =====================
+
+function setOfficeTheme(office) {
+  if (window.officeBg) window.officeBg.setVisible(office !== 'company-b');
+  if (window.techBg) window.techBg.setVisible(office === 'company-b');
+  if (window.officeLighting) {
+    window.officeLighting.clear();
+    if (office === 'company-b') {
+      // Cool blue lighting for MacBook
+      window.officeLighting.fillStyle(0x3a86ff, 0.03);
+      window.officeLighting.fillCircle(640, 360, 400);
+      window.officeLighting.fillStyle(0x0066cc, 0.02);
+      window.officeLighting.fillCircle(640, 360, 600);
+    } else {
+      // Warm lighting for MiniPC
+      window.officeLighting.fillStyle(0xff8844, 0.04);
+      window.officeLighting.fillCircle(160, 380, 350);
+      window.officeLighting.fillStyle(0xffaa66, 0.025);
+      window.officeLighting.fillCircle(160, 380, 500);
+      window.officeLighting.fillStyle(0xffcc66, 0.02);
+      window.officeLighting.fillCircle(1090, 250, 280);
+      window.officeLighting.fillStyle(0xffdd99, 0.015);
+      window.officeLighting.fillRect(0, 0, 1280, 720);
+    }
+  }
 }
 
 // ===================== CHARACTERS =====================

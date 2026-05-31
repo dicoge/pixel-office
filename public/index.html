@@ -265,9 +265,10 @@
     document.getElementById("office-switcher").onchange = function() {
       window.currentOffice = this.value;
       localStorage.setItem("current_office", this.value);
+      if (typeof setOfficeTheme === "function") setOfficeTheme(this.value);
       if (typeof fetchStatus === "function") {
         lastFetch = 0;
-        ttTarget = window.currentOffice === "company-a" ? "已切換到 MiniPC" : "已切換到 MacBook";
+        ttTarget = window.currentOffice === "company-a" ? "🖥️ 已切換到 MiniPC" : "💻 已切換到 MacBook";
         ttText = "";
         ttIdx = 0;
       }
