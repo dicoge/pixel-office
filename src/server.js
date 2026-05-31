@@ -996,14 +996,6 @@ app.get('/api/workers', (req, res) => {
   res.json(workers);
 });
 
-// TEMP: Clear all workers for a company (for cleanup)
-app.post('/api/workers/clear-company', (req, res) => {
-  const company_id = req.query.company_id || req.body.company_id;
-  if (!company_id) return res.status(400).json({ error: 'company_id required' });
-  const result = db.prepare('DELETE FROM workers WHERE company_id = ?').run(company_id);
-  res.json({ deleted: result.changes, company_id });
-});
-
 // Companies
 app.get('/api/companies', (req, res) => {
   // Read companies from database
