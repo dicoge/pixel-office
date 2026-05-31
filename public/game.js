@@ -564,7 +564,13 @@ function fetchStatus() {
   }).then(r => { if (!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 
   fetchPromise.then(data => {
-    if (!Array.isArray(data) || !data.length) return;
+    if (!Array.isArray(data) || !data.length) {
+      if (window.memberStates) {
+        MEMBERS.forEach(m => { window.memberStates[m.id] = 'idle'; window.memberMoods[m.id] = ''; });
+        renderMemberStatus();
+      }
+      return;
+    }
     const hw = data.find(w => (w.name||'').toLowerCase() === 'hermes') || data[0];
     const ns = normalizeState(hw.status||'idle');
     const si = STATES[ns] || STATES.idle;
