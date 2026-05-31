@@ -1154,17 +1154,7 @@ app.post('/api/hermes-reply', authMiddleware, (req, res) => {
   res.status(201).json(botMsg);
 });
 
-// ============ PROXY ENDPOINT ============
-app.post('/api/proxy/workers', (req, res) => {
-  const { url, token } = req.body;
-  if (!url) return res.status(400).json({ error: 'URL required' });
-  const fetchUrl = url + '/api/workers?t=' + Date.now();
-  const headers = { 'Authorization': 'Bearer ' + (token || '') };
-  fetch(fetchUrl, { headers })
-    .then(r => r.json())
-    .then(data => res.json(data))
-    .catch(e => res.status(502).json({ error: 'Proxy failed: ' + e.message }));
-});
+
 
 // ============ SERVE FRONTEND ============
 app.get('/', (req, res) => {

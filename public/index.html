@@ -123,11 +123,6 @@
       padding: 4px 8px; font-family: monospace; font-size: 12px;
       margin-left: 12px; cursor: pointer;
     }
-    .settings-btn {
-      background: none; border: none; color: #fff;
-      font-size: 16px; cursor: pointer; padding: 4px 8px; opacity: 0.7;
-    }
-    .settings-btn:hover { opacity: 1; }
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); z-index: 9999;
@@ -180,13 +175,12 @@
       <div style="display:flex;align-items:center">
         <span style="color:#ffd700;font-weight:bold">PIXEL OFFICE</span>
         <select id="office-switcher" class="office-select">
-          <option value="local">🖥️ MiniPC</option>
-          <option value="remote">💻 MacBook</option>
+          <option value="company-a">🖥️ MiniPC</option>
+          <option value="company-b">💻 MacBook</option>
         </select>
       </div>
       <span id="room-label" style="color:#2ecc71">辦公室</span>
       <div style="display:flex;align-items:center;gap:4px">
-        <button id="settings-btn" class="settings-btn" title="設定遠端 Office">⚙️</button>
         <button id="logout-btn" onclick="localStorage.removeItem('pixel_office_token');location.reload()" style="background:#e74c3c;border:none;color:white;padding:6px 14px;cursor:pointer;font-family:monospace;border-radius:4px">登出</button>
       </div>
     </div>
@@ -255,54 +249,25 @@
     })();
   </script>
 
-  <!-- Settings Modal -->
-  <div id="settings-modal" class="modal-overlay" style="display:none">
-    <div class="modal-content">
-      <h3>⚙️ 遠端 Office 設定</h3>
-      <label>遠端 URL：</label>
-      <input type="text" id="remote-url" placeholder="https://xxx.onrender.com">
-      <label>API Token：</label>
-      <input type="password" id="remote-token" placeholder="Bearer token">
-      <button id="settings-save">儲存</button>
-      <button id="settings-close">關閉</button>
-    </div>
-  </div>
 
-  <!-- Remote Office Switcher Script -->
+
   <script>
-    // 遠端 Office 切換邏輯
-    window.currentOffice = "local";
+    window.currentOffice = localStorage.getItem("current_office") || "company-a";
 
-    // 載入已儲存的設定
-    const savedUrl = localStorage.getItem("remote_url");
-    const savedToken = localStorage.getItem("remote_token");
-    if (savedUrl) document.getElementById("remote-url").value = savedUrl;
-    if (savedToken) document.getElementById("remote-token").value = savedToken;
-
-    // 設定按鈕 open modal
-    document.getElementById("settings-btn").onclick = () => {
-      document.getElementById("settings-modal").style.display = "flex";
-    };
-    // 關閉 modal
-    document.getElementById("settings-close").onclick = () => {
-      document.getElementById("settings-modal").style.display = "none";
-    };
-    // 儲存設定
-    document.getElementById("settings-save").onclick = () => {
-      const url = document.getElementById("remote-url").value.trim();
-      const token = document.getElementById("remote-token").value.trim();
-      localStorage.setItem("remote_url", url);
-      localStorage.setItem("remote_token", token);
-      document.getElementById("settings-modal").style.display = "none";
-    };
+    // 載入已儲存的辦公室選擇
+    const savedOffice = localStorage.getItem("current_office");
+    if (savedOffice) {
+      window.currentOffice = savedOffice;
+      document.getElementById("office-switcher").value = savedOffice;
+    }
 
     // 下拉選單切換
     document.getElementById("office-switcher").onchange = function() {
       window.currentOffice = this.value;
-      // 如果有 game 的 fetchStatus，強制重新整理
+      localStorage.setItem("current_office", this.value);
       if (typeof fetchStatus === "function") {
         lastFetch = 0;
-        ttTarget = window.currentOffice === "local" ? "已切換到 MiniPC" : "已切換到 MacBook";
+        ttTarget = window.currentOffice === "company-a" ? "已切換到 MiniPC" : "已切換到 MacBook";
         ttText = "";
         ttIdx = 0;
       }
