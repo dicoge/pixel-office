@@ -186,7 +186,18 @@ function initDatabase() {
   ];
   departments.forEach(d => deptStmt.run(...d));
 
-  // Seed 7 workers (shared across all companies)
+  // Seed workers — use name-based IDs to survive INSERT OR IGNORE
+  // Migration: delete old workers with wrong names (mismatch between old and new seed)
+  try {
+    // Check if old seed workers exist (OpenClaw should not be worker-1 in new schema)
+    const oldWorker = db.prepare('SELECT id, name FROM workers WHERE id = ?').get('worker-1');
+    if (oldWorker && oldWorker.name !== 'Hermes') {
+      console.log('🐛 Migration: Removing old seed workers (name mismatch), re-seeding fresh...');
+      const oldIds = ['worker-1','worker-2','worker-3','worker-4','worker-5','worker-6','worker-7'];
+      oldIds.forEach(id => db.prepare('DELETE FROM workers WHERE id = ?').run(id));
+    }
+  } catch(e) { /* ignore migration errors */ }
+  
   const workerStmt = db.prepare('INSERT OR IGNORE INTO workers (id, name, status, department_id, company_id, machine_id, mood) VALUES (?, ?, ?, ?, ?, ?, ?)');
   // 7 workers — all 'idle' so they stay at their designated desks
   workerStmt.run('worker-1', 'Hermes', 'idle', 'dept-pixeloffice', 'company-a', 'MiniPc', '協調一切進行中');
