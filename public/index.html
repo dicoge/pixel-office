@@ -268,6 +268,7 @@
       if (typeof setOfficeTheme === "function") setOfficeTheme(this.value);
       if (typeof fetchStatus === "function") {
         lastFetch = 0;
+        fetchStatus();
         ttTarget = window.currentOffice === "company-a" ? "🖥️ 已切換到 MiniPC" : "💻 已切換到 MacBook";
         ttText = "";
         ttIdx = 0;
