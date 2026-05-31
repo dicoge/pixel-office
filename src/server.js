@@ -187,10 +187,8 @@ function initDatabase() {
   departments.forEach(d => deptStmt.run(...d));
 
   // Seed workers — use name-based IDs to survive INSERT OR IGNORE
-  // Migration: delete old workers with wrong names or from company-b
+  // Migration: delete old seed workers with wrong names
   try {
-    // Delete any existing company-b workers (should be empty, no seed for it)
-    db.prepare('DELETE FROM workers WHERE company_id = ?').run('company-b');
     // Check if old seed workers exist (OpenClaw should not be worker-1 in new schema)
     const oldWorker = db.prepare('SELECT id, name FROM workers WHERE id = ?').get('worker-1');
     if (oldWorker && oldWorker.name !== 'Hermes') {
