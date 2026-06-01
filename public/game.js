@@ -538,17 +538,22 @@ function update(time) {
       const moodBubble = memberMoodBubbles[m.id];
       if (moodBubble && moodBubble.text.text.length > 0) {
         const display = moodBubble.text.text;
-        const tw = display.length * 9 + 20;
+        const lines = display.split('\n');
+        const maxLen = Math.max(...lines.map(l => l.length));
+        const tw = maxLen * 9 + 20;
+        const numLines = lines.length;
+        const lineH = 18;
+        const bh = numLines * lineH + 4;
         const yOff = m.id === "hermes" ? -54 : -42;
         const statusY = sp.y + yOff;
         moodBubble.bg.clear();
         moodBubble.bg.fillStyle(0xf0ead6, 0.95);
-        moodBubble.bg.fillRoundedRect(sp.x - tw/2, statusY - 22, tw, 18, 4);
+        moodBubble.bg.fillRoundedRect(sp.x - tw/2, statusY - 8 - bh, tw, bh, 4);
         moodBubble.bg.lineStyle(1, 0x888888, 0.6);
-        moodBubble.bg.strokeRoundedRect(sp.x - tw/2, statusY - 22, tw, 18, 4);
+        moodBubble.bg.strokeRoundedRect(sp.x - tw/2, statusY - 8 - bh, tw, bh, 4);
         moodBubble.bg.fillStyle(0xf0ead6, 0.95);
         moodBubble.bg.fillTriangle(sp.x - 3, statusY - 4, sp.x + 3, statusY - 4, sp.x, statusY);
-        moodBubble.text.setPosition(sp.x, statusY - 13);
+        moodBubble.text.setPosition(sp.x, statusY - 6 - bh/2);
       }
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 22);
@@ -652,6 +657,15 @@ function fetchStatus() {
   .catch(() => { ttTarget = '連線失敗'; ttText = ''; ttIdx = 0; pendingState = null; });
 }
 
+function wrapMoodText(text, maxLen) {
+  maxLen = maxLen || 10;
+  const result = [];
+  for (let i = 0; i < text.length; i += maxLen) {
+    result.push(text.substring(i, i + maxLen));
+  }
+  return result.join('\n');
+}
+
 function renderMemberStatus() {
   MEMBERS.forEach(m => {
     const sp = window.memberSprites[m.id];
@@ -670,7 +684,7 @@ function renderMemberStatus() {
         // Format mood with tildes
         const m = mood ? mood.trim() : '';
         const display = m ? (m.startsWith('~') && m.endsWith('~') ? m : '~ ' + m.replace(/^~+\s*|\s*~+$/g, '') + ' ~') : '';
-        bubble.text.setText(display);
+        bubble.text.setText(wrapMoodText(display, 10));
       }
     }
   });
