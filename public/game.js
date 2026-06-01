@@ -644,6 +644,11 @@ function fetchStatus() {
       const ws = normalizeState(w.status||'idle');
       window.memberStates[mm.id] = ws;
       window.memberMoods[mm.id] = w.mood || '';
+      // Custom avatar: if worker has avatar data, load it
+      if (w.avatar && !window.workerIdMap[mm.id]) {
+        window.workerIdMap[mm.id] = w.id;
+        loadCustomAvatar(w.id, mm.id);
+      }
       let ta = (STATES[ws] || STATES.idle).area;
       if (ws === 'idle') ta = mm.area;  // idle 時留在自己的書桌
       if (mm.id === 'hermes') ta = 'center';
@@ -688,6 +693,55 @@ function renderMemberStatus() {
       }
     }
   });
+}
+
+// ===================== CUSTOM AVATARS =====================
+
+// Map worker DB ID → member ID (for custom avatar loading)
+window.workerIdMap = {};
+
+function loadCustomAvatar(workerId, memberId) {
+  if (!game || !game.textures) return;
+  const avKey = 'avatar_' + memberId;
+  if (game.textures.exists(avKey)) return; // Already loaded
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    try {
+      const scene = game.scene.scenes[0];
+      if (!scene || !scene.textures) return;
+
+      // Create 32x32 pixel-art canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, 32, 32);
+
+      // Add as Phaser texture (replace if exists)
+      if (scene.textures.exists(avKey)) scene.textures.remove(avKey);
+      scene.textures.addCanvas(avKey, canvas);
+
+      // Replace the sprite
+      const oldSprite = window.memberSprites[memberId];
+      if (oldSprite && oldSprite.scene) {
+        const bx = oldSprite.x, by = oldSprite.y;
+        const depth = oldSprite.depth;
+        oldSprite.destroy();
+
+        const newSprite = scene.add.sprite(bx, by, avKey).setOrigin(0.5);
+        newSprite.setScale(memberId === 'hermes' ? 2.5 : 1.8);
+        newSprite.setDepth(depth);
+        window.memberSprites[memberId] = newSprite;
+        window.guestSprites[memberId] = newSprite;
+        if (memberId === 'hermes') window.starSprite = newSprite;
+      }
+    } catch(e) { console.warn('Avatar load error:', memberId, e); }
+  };
+  img.onerror = () => { /* silent fail, keep default sprite */ };
+  img.src = '/api/workers/' + workerId + '/avatar';
 }
 
 function moveStar(time) {
@@ -749,6 +803,11 @@ function handleWorkerUpdate(worker) {
   if (!mm) return;
   window.memberStates[mm.id] = normalizeState(worker.status);
   window.memberMoods[mm.id] = worker.mood || '';
+  // Custom avatar update via WebSocket
+  if (worker.avatar && !window.workerIdMap[mm.id]) {
+    window.workerIdMap[mm.id] = worker.id;
+    loadCustomAvatar(worker.id, mm.id);
+  }
   renderMemberStatus();
 }
 

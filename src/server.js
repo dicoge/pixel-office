@@ -154,6 +154,12 @@ function initDatabase() {
   } catch (e) {
     // Column already exists, ignore
   }
+  // Migration: Add avatar column for worker self-portraits (base64 PNG)
+  try {
+    db.exec("ALTER TABLE workers ADD COLUMN avatar TEXT DEFAULT NULL");
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   // Companies table (for custom company names)
   db.exec(`
@@ -779,6 +785,55 @@ app.get('/api/workers/status', (req, res) => {
     ORDER BY w.machine_id, w.name
   `).all(company_id);
   res.json(workers);
+});
+
+// ============ AVATAR ENDPOINTS ============
+
+// POST /api/workers/:id/avatar — upload self-portrait (base64 PNG), x-api-key protected
+app.post('/api/workers/:id/avatar', (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== TASK_QUEUE_API_KEY) {
+    return res.status(401).json({ error: 'Invalid API key' });
+  }
+
+  const { avatar } = req.body; // base64 PNG string
+  if (!avatar || typeof avatar !== 'string') {
+    return res.status(400).json({ error: 'Missing avatar field (base64 PNG string)' });
+  }
+
+  // Validate it's a reasonable PNG base64
+  if (!avatar.startsWith('iVBOR') && !avatar.startsWith('/9j/')) {
+    return res.status(400).json({ error: 'Avatar must be base64 PNG (starts with iVBOR) or JPEG' });
+  }
+
+  const existing = db.prepare('SELECT * FROM workers WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ error: 'Worker not found' });
+  }
+
+  db.prepare('UPDATE workers SET avatar = ? WHERE id = ?').run(avatar, req.params.id);
+  const worker = db.prepare('SELECT id, name, avatar FROM workers WHERE id = ?').get(req.params.id);
+  broadcast({ type: 'worker_avatar_update', worker: { id: worker.id, hasAvatar: !!worker.avatar } });
+
+  console.log(`🎨 Avatar updated for ${worker.name} (${worker.id})`);
+  res.json({ success: true, id: worker.id, name: worker.name, avatarLength: avatar.length });
+});
+
+// GET /api/workers/:id/avatar — retrieve avatar image (public, returns raw image)
+app.get('/api/workers/:id/avatar', (req, res) => {
+  const worker = db.prepare('SELECT id, name, avatar FROM workers WHERE id = ?').get(req.params.id);
+  if (!worker || !worker.avatar) {
+    return res.status(404).json({ error: 'Avatar not found' });
+  }
+
+  const imgBuffer = Buffer.from(worker.avatar, 'base64');
+  const mime = worker.avatar.startsWith('/9j/') ? 'image/jpeg' : 'image/png';
+  res.writeHead(200, {
+    'Content-Type': mime,
+    'Content-Length': imgBuffer.length,
+    'Cache-Control': 'public, max-age=3600'
+  });
+  res.end(imgBuffer);
 });
 
 // ============ API ROUTES (PROTECTED) ============
