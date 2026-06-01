@@ -306,20 +306,20 @@ function placeCharacters(scene) {
     if (m.id === 'hermes') {
       // Wider shadow for Hermes (he's bigger)
       shadowG.fillStyle(0x000000, 0.15);
-      shadowG.fillEllipse(0, 0, 60, 16);
-      shadowG.setPosition(bx, by + 50);
+      shadowG.fillEllipse(0, 0, 72, 20);
+      shadowG.setPosition(bx, by + 58);
     } else {
-      const sw = 20;
+      const sw = 24;
       shadowG.fillStyle(0x000000, 0.14);
-      shadowG.fillEllipse(0, 0, sw, 7);
-      shadowG.setPosition(bx, by + 24);
+      shadowG.fillEllipse(0, 0, sw, 8);
+      shadowG.setPosition(bx, by + 28);
     }
     window.memberShadows[m.id] = shadowG;
 
     if (m.id === 'hermes') {
       // Hermes uses star-idle-v5 spritesheet (2048x1536, 256x256 frames)
       sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
-      sprite.setScale(0.66);
+      sprite.setScale(0.79);
       sprite.setDepth(10);
       if (scene.anims.exists('star_idle_anim')) {
         sprite.play('star_idle_anim', true);
@@ -329,9 +329,9 @@ function placeCharacters(scene) {
       // Glow aura behind Hermes badge
       const glowG = scene.add.graphics().setDepth(11);
       glowG.fillStyle(0xffd700, 0.15);
-      glowG.fillCircle(bx, by - 30, 28);
+      glowG.fillCircle(bx, by - 34, 34);
       glowG.fillStyle(0xffd700, 0.08);
-      glowG.fillCircle(bx, by - 30, 38);
+      glowG.fillCircle(bx, by - 34, 46);
       window.hermesGlow = glowG;
 
     } else {
@@ -342,8 +342,8 @@ function placeCharacters(scene) {
 
       sprite = scene.add.sprite(bx, by, spriteKey, 0).setOrigin(0.5);
       // Sofa characters sit lower with smaller scale; desk characters stand tall
-      const scale = 1.5;
-      sprite.setScale(scale);
+      const scale = 1.8;
+      sprite.setScale(1.8);
       sprite.setDepth(10);
       if (scene.anims.exists(animKey)) {
         sprite.play(animKey, true);
@@ -358,17 +358,17 @@ function placeCharacters(scene) {
     window.memberTargets[m.id] = { x: bx, y: by };
 
     // Name label — text only (no background box or arrow)
-    const label = scene.add.text(bx, by + 18, m.label, {
-      fontFamily: 'monospace', fontSize: '8px', fill: '#fff',
+    const label = scene.add.text(bx, by + 22, m.label, {
+      fontFamily: 'monospace', fontSize: '10px', fill: '#fff',
       fontStyle: 'bold',
       stroke: '#000', strokeThickness: 1
     }).setOrigin(0.5).setDepth(12);
     window.memberLabels[m.id] = label;
 
     // Status text above head
-    const yOff = m.id === 'hermes' ? -45 : -35;
+    const yOff = m.id === 'hermes' ? -54 : -42;
     const statusText = scene.add.text(bx, by + yOff, '閒置中', {
-      fontFamily: 'monospace', fontSize: '9px',
+      fontFamily: 'monospace', fontSize: '11px',
       fill: '#2ecc71',
       stroke: '#000', strokeThickness: 2,
       align: 'center'
@@ -378,7 +378,7 @@ function placeCharacters(scene) {
     // Mood speech bubble — dialog bubble above status text
     const moodBubbleBg = scene.add.graphics().setDepth(11);
     const moodBubbleText = scene.add.text(bx, by + yOff + 12, '', {
-      fontFamily: 'monospace', fontSize: '9px',
+      fontFamily: 'monospace', fontSize: '11px',
       fill: '#333', fontStyle: 'bold',
       stroke: '#000', strokeThickness: 0,
       align: 'center'
@@ -524,22 +524,22 @@ function update(time) {
       // Update shadow to follow sprite
       const shadow = window.memberShadows && window.memberShadows[m.id];
       if (shadow) {
-        const sy = m.id === 'hermes' ? sp.y + 38 : sp.y + 24;
+        const sy = m.id === 'hermes' ? sp.y + 44 : sp.y + 28;
         shadow.setPosition(sp.x, sy);
       }
 
       // Update status text position
       const stxt = memberStatusTexts[m.id];
       if (stxt) {
-        const yOff = m.id === 'hermes' ? -45 : -35;
+        const yOff = m.id === 'hermes' ? -54 : -42;
         stxt.setPosition(sp.x, sp.y + yOff);
       }
       // Update mood bubble position (redraw at current position)
       const moodBubble = memberMoodBubbles[m.id];
       if (moodBubble && moodBubble.text.text.length > 0) {
         const display = moodBubble.text.text;
-        const tw = display.length * 7 + 16;
-        const yOff = m.id === "hermes" ? -45 : -35;
+        const tw = display.length * 9 + 20;
+        const yOff = m.id === "hermes" ? -54 : -42;
         const statusY = sp.y + yOff;
         moodBubble.bg.clear();
         moodBubble.bg.fillStyle(0xf0ead6, 0.95);
@@ -551,7 +551,7 @@ function update(time) {
         moodBubble.text.setPosition(sp.x, statusY - 13);
       }
       const lbl = window.memberLabels[m.id];
-      if (lbl) lbl.setPosition(sp.x, sp.y + 18);
+      if (lbl) lbl.setPosition(sp.x, sp.y + 22);
 
       if (m.id === 'hermes') return; // Hermes stays at center desk — skip movement but still update UI
 
@@ -567,9 +567,9 @@ function update(time) {
     const pulse = 0.12 + Math.sin(time/600) * 0.06;
     window.hermesGlow.clear();
     window.hermesGlow.fillStyle(0xffd700, pulse);
-    window.hermesGlow.fillCircle(star.x, star.y - 22, 18);
+    window.hermesGlow.fillCircle(star.x, star.y - 26, 22);
     window.hermesGlow.fillStyle(0xffd700, pulse * 0.6);
-    window.hermesGlow.fillCircle(star.x, star.y - 22, 26);
+    window.hermesGlow.fillCircle(star.x, star.y - 26, 32);
   }
 
   }
