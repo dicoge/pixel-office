@@ -709,7 +709,7 @@ function loadCustomAvatar(workerId, memberId) {
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     try {
-      const scene = game.scene.scenes[0];
+      const scene = game;
       if (!scene || !scene.textures) return;
 
       // Create 32x32 pixel-art canvas
