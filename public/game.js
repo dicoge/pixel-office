@@ -247,7 +247,7 @@ function drawRoom(scene) {
     fontFamily: 'monospace', fontSize: '16px'
   }).setOrigin(0.5).setDepth(52);
   // PIXEL OFFICE text
-  scene.add.text(plX, plY, 'PIXEL OFFICE', {
+  window.plaqueText = scene.add.text(plX, plY, window.currentOffice === 'company-b' ? 'MACBOOK OFFICE' : 'MINIPC OFFICE', {
     fontFamily: 'monospace', fontSize: '13px',
     fill: '#ffd700', stroke: '#000', strokeThickness: 1
   }).setOrigin(0.5).setDepth(52).setAlpha(0.95);
@@ -277,6 +277,9 @@ function setOfficeTheme(office) {
       window.officeLighting.fillStyle(0xffdd99, 0.015);
       window.officeLighting.fillRect(0, 0, 1280, 720);
     }
+  }
+  if (window.plaqueText) {
+    window.plaqueText.setText(office === 'company-b' ? 'MACBOOK OFFICE' : 'MINIPC OFFICE');
   }
 }
 
