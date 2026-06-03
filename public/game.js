@@ -320,7 +320,7 @@ function placeCharacters(scene) {
       // Hermes — use custom animated sprite for company-a, full star for company-b
       if (window.currentOffice === 'company-a' && scene.textures.exists('custom_hermes')) {
         sprite = scene.add.sprite(bx, by, 'custom_hermes', 0).setOrigin(0.5);
-        sprite.setScale(6.0);
+        sprite.setScale(3.2);
         sprite.setDepth(10);
         if (scene.anims.exists('custom_hermes_idle')) {
           sprite.play('custom_hermes_idle', true);
@@ -439,7 +439,7 @@ function preload() {
   this.load.spritesheet('star_idle', '/star-idle-v5.png', { frameWidth: 256, frameHeight: 256 });
 
   // Custom animated spritesheets (company-a specific)
-  this.load.spritesheet('custom_hermes', '/custom_hermes.webp', { frameWidth: 32, frameHeight: 32 });
+  this.load.spritesheet('custom_hermes', '/custom_hermes.webp', { frameWidth: 64, frameHeight: 64 });
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
   // Plants spritesheet
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });

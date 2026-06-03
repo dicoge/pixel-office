@@ -19,16 +19,19 @@ SPRITESHEETS = {
         "key": "custom_hermes",
         "name": "Hermes",
         "frames": 6,
+        "frame_size": 64,
         "prompt": (
-            "Create a detailed pixel art character as a 192x32 spritesheet. "
-            "The character: Hermes, a golden 5-pointed star, warm smiling face with big blue sparkly eyes, "
-            "rosy cheeks, star-shaped arms at sides, soft golden glow aura. "
-            "THE CHARACTER MUST FILL THE FULL HEIGHT of each 32x32 frame - draw it large, not tiny. "
-            "6 frames of subtle idle animation side by side: gentle up-down bounce (~2px), "
-            "eyes blink on frame 3, glow pulses between frames. "
-            "Frame dimensions: each 32x32, total 192x32. "
-            "Transparent background, retro game sprite style, crisp pixel edges, no text."
-        )
+            "Create a detailed pixel art character as a spritesheet. "
+            "The character: Hermes, a golden 5-pointed star character with a warm smiling face, "
+            "big bright blue eyes, rosy cheeks, two star-shaped arms at the sides, "
+            "and a soft golden glow aura around it. "
+            "THE CHARACTER MUST FILL THE ENTIRE FRAME - draw it large. "
+            "Each frame should be 64x64 pixels, 6 frames total = 384x64 pixels. "
+            "6 frames of idle animation: gentle up-down bounce, eyes occasionally blink, glow pulses. "
+            "Style: detailed retro RPG sprite, transparent background, crisp pixel edges, no text. "
+            "Use 12-16 vibrant colors for a rich look."
+        ),
+        "scale": 3.2
     },
     "worker-2": {
         "key": "custom_openclaw",
@@ -135,8 +138,8 @@ def generate_spritesheet(worker_id, api_key):
     cfg = SPRITESHEETS[worker_id]
     full_prompt = cfg["prompt"]
 
-    print(f"\n🎨 Generating spritesheet for {cfg['name']} ({worker_id})...")
-    print(f"   → {cfg['frames']} frames × 32px = {cfg['frames']*32}x32 spritesheet")
+    fs = cfg.get("frame_size", 32)  # default 32 for backward compat
+    print(f"   → {cfg['frames']} frames × {fs}px = {cfg['frames']*fs}x{fs} spritesheet")
 
     req_body = json.dumps({
         "model": MODEL,
@@ -177,9 +180,9 @@ def generate_spritesheet(worker_id, api_key):
     raw = base64.b64decode(b64_data)
     pil_img = Image.open(io.BytesIO(raw))
 
-    # Target: 192x32 (6 frames × 32px)
-    target_w = cfg["frames"] * 32
-    target_h = 32
+    # Target: frames * fs x fs
+    target_w = cfg["frames"] * fs
+    target_h = fs
 
     # Resize to exact target
     pil_img = pil_img.resize((target_w, target_h), Image.NEAREST)
