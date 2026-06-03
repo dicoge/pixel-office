@@ -717,7 +717,7 @@ function loadCustomAvatar(workerId, memberId) {
       sp.destroy();
 
       const newSprite = scene.add.sprite(bx, by, avKey).setOrigin(0.5);
-      newSprite.setScale(memberId === 'hermes' ? 2.5 : 1.8);
+      newSprite.setScale(memberId === 'hermes' ? 0.83 : 0.6);
       newSprite.setDepth(depth);
       window.memberSprites[memberId] = newSprite;
       window.guestSprites[memberId] = newSprite;

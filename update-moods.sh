@@ -1,38 +1,39 @@
 #!/bin/bash
 # ============================================================
 # Pixel Office — 每小時自動 mood 更新腳本
-# 每位 worker 用自己的 OpenRouter API key 生成 mood (≤20字)
-# Hermes 負責協調，不混用 key
+# 所有 worker 共用同一 OpenRouter key (從 auth.json 拿)
 # ============================================================
 set -euo pipefail
 
 PIXEL_OFFICE_URL="https://pixel-office-eanf.onrender.com"
 TASK_QUEUE_KEY="s3cr3t_t4sk_k3y_2026"
 
-# ---- 各 worker 的 OpenRouter key 位置 ----
-# Hermes: 從 auth.json 拿
-HERMES_KEY=$(python3 -c "import json; print(json.load(open('/home/dicoge/.hermes/auth.json')).get('openrouter_api_key',''))")
-
-# 其餘從 bashrc env var (source .bashrc 確保載入)
-source ~/.bashrc
+# 從 auth.json 拿 OpenRouter key
+HERMES_KEY=$(python3 -c "
+import json
+with open('/home/dicoge/.hermes/auth.json') as f:
+    data = json.load(f)
+for cred in data.get('credential_pool',{}).get('openrouter',[]):
+    if cred.get('label')=='OPENROUTER_API_KEY':
+        print(cred.get('access_token',''))
+        break
+")
+[ -z "$HERMES_KEY" ] && { echo "❌ 無法取得 API key"; exit 1; }
 
 declare -A WORKERS
-# company-a (MiniPC)
 WORKERS["worker-1"]="Hermes|$HERMES_KEY|company-a"
-WORKERS["worker-2"]="OpenClaw|$OPENAI_API_KEY|company-a"
-WORKERS["worker-3"]="Codex|$CODEX_API_KEY|company-a"
-WORKERS["worker-4"]="Gemini|$AI_API_KEY|company-a"
-WORKERS["worker-5"]="Manus|$HERMES_KEY|company-a"    # Manus key 在 config.toml, 暫用 Hermes key
-WORKERS["worker-6"]="Claude Code|$ANTHROPIC_API_KEY|company-a"
-WORKERS["worker-7"]="OpenCode|$HERMES_KEY|company-a" # OpenCode 本地模型，暫用 Hermes key
-
-# company-b (MacBook)
+WORKERS["worker-2"]="OpenClaw|$HERMES_KEY|company-a"
+WORKERS["worker-3"]="Codex|$HERMES_KEY|company-a"
+WORKERS["worker-4"]="Gemini|$HERMES_KEY|company-a"
+WORKERS["worker-5"]="Manus|$HERMES_KEY|company-a"
+WORKERS["worker-6"]="Claude Code|$HERMES_KEY|company-a"
+WORKERS["worker-7"]="OpenCode|$HERMES_KEY|company-a"
 WORKERS["worker-b1"]="Hermes|$HERMES_KEY|company-b"
-WORKERS["worker-b2"]="OpenClaw|$OPENAI_API_KEY|company-b"
-WORKERS["worker-b3"]="Codex|$CODEX_API_KEY|company-b"
-WORKERS["worker-b4"]="Gemini|$AI_API_KEY|company-b"
+WORKERS["worker-b2"]="OpenClaw|$HERMES_KEY|company-b"
+WORKERS["worker-b3"]="Codex|$HERMES_KEY|company-b"
+WORKERS["worker-b4"]="Gemini|$HERMES_KEY|company-b"
 WORKERS["worker-b5"]="Manus|$HERMES_KEY|company-b"
-WORKERS["worker-b6"]="Claude Code|$ANTHROPIC_API_KEY|company-b"
+WORKERS["worker-b6"]="Claude Code|$HERMES_KEY|company-b"
 WORKERS["worker-b7"]="OpenCode|$HERMES_KEY|company-b"
 
 # ---- 生成 mood 的 helper ----
@@ -43,7 +44,7 @@ ask_mood() {
   [ -z "$api_key" ] && { echo "❌ $worker_name: 無 API key"; return 1; }
 
   local response
-  response=$(curl -s --max-time 15 https://openrouter.ai/api/v1/chat/completions \
+  response=$(curl -s --max-time 20 https://openrouter.ai/api/v1/chat/completions \
     -H "Authorization: Bearer $api_key" \
     -H "Content-Type: application/json" \
     -H "HTTP-Referer: https://pixel-office.local" \
@@ -52,7 +53,7 @@ ask_mood() {
       "messages": [
         {
           "role": "system",
-          "content": "你是一位叫 '"$worker_name"' 的 AI 工程師。用一句話（20字內）描述你現在的心情或工作狀態。只回答文字，不加引號、標點符號、表情符號。"
+          "content": "你是一位叫 '\"$worker_name\"' 的 AI 工程師。用一句話（20字內）描述你現在的心情或工作狀態。只回答中文文字，不加引號標點符號表情符號。"
         },
         {
           "role": "user",
@@ -60,18 +61,16 @@ ask_mood() {
         }
       ],
       "max_tokens": 30,
-      "temperature": 0.8
-    }' 2>/dev/null)
+      "temperature": 0.85
+    }' 2>/dev/null) || return 1
 
   local mood
   mood=$(echo "$response" | python3 -c "
-import sys, json
+import sys, json, re
 try:
     data = json.load(sys.stdin)
-    text = data['choices'][0]['message']['content']
-    # 取最後一段中文（可能有 reasoning 在前面）
-    import re
-    chinese = re.findall(r'[\u4e00-\u9fff]+', text)
+    text = data['choices'][0]['message']['content'] or ''
+    chinese = re.findall(r'[\\u4e00-\\u9fff]+', text)
     result = ''.join(chinese)[:20]
     print(result if result else '工作中')
 except:
@@ -86,15 +85,19 @@ except:
 log_file="/tmp/pixel-office-mood-update.log"
 echo "=== Mood Update $(date '+%Y-%m-%d %H:%M') ===" | tee -a "$log_file"
 
+count=0
 for worker_id in "${!WORKERS[@]}"; do
   IFS='|' read -r worker_name api_key company_id <<< "${WORKERS[$worker_id]}"
+  
+  # Rate limit: 3s between requests (skip for first)
+  [ $count -gt 0 ] && sleep 3
+  ((count++))
 
   mood=$(ask_mood "$worker_name" "$api_key") || {
     echo "  ⚠ $worker_id ($worker_name): mood 取得失敗" | tee -a "$log_file"
     continue
   }
 
-  # PING Pixel Office API
   http_status=$(curl -s -o /dev/null -w "%{http_code}" \
     -X POST "$PIXEL_OFFICE_URL/api/workers/ping/$worker_id" \
     -H "x-api-key: $TASK_QUEUE_KEY" \
