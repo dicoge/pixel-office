@@ -320,10 +320,18 @@ function placeCharacters(scene) {
       // Hermes — use custom animated sprite for company-a, full star for company-b
       if (window.currentOffice === 'company-a' && scene.textures.exists('custom_hermes')) {
         sprite = scene.add.sprite(bx, by, 'custom_hermes', 0).setOrigin(0.5);
-        sprite.setScale(2.2);
+        sprite.setScale(6.0);
         sprite.setDepth(10);
         if (scene.anims.exists('custom_hermes_idle')) {
           sprite.play('custom_hermes_idle', true);
+        }
+        // Adjust glow aura to match new size
+        window.hermesGlow?.clear();
+        if (window.hermesGlow) {
+          window.hermesGlow.fillStyle(0xffd700, 0.15);
+          window.hermesGlow.fillCircle(bx, by - 90, 60);
+          window.hermesGlow.fillStyle(0xffd700, 0.08);
+          window.hermesGlow.fillCircle(bx, by - 90, 80);
         }
       } else {
         // Original star spritesheet (company-b fallback)

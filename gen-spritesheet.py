@@ -20,14 +20,14 @@ SPRITESHEETS = {
         "name": "Hermes",
         "frames": 6,
         "prompt": (
-            "Create a 32x32 pixel art character spritesheet showing 6 frames of a gentle idle animation. "
-            "The character: a golden 5-pointed star named Hermes, warm smiling face with big blue sparkling eyes, "
-            "rosy cheeks, tiny star-shaped arms at the sides, soft golden glow. "
-            "Each frame shows subtle breathing motion (the star gently bounces up and down ~1-2px, "
-            "the glow pulses slightly, eyes occasionally blink). "
-            "Layout: EXACTLY 6 frames arranged horizontally in a single row. "
-            "Total canvas size: 192x32 pixels. Frame 1 is the rest pose. "
-            "Pixel art, transparent background, crisp edges, no text."
+            "Create a detailed pixel art character as a 192x32 spritesheet. "
+            "The character: Hermes, a golden 5-pointed star, warm smiling face with big blue sparkly eyes, "
+            "rosy cheeks, star-shaped arms at sides, soft golden glow aura. "
+            "THE CHARACTER MUST FILL THE FULL HEIGHT of each 32x32 frame - draw it large, not tiny. "
+            "6 frames of subtle idle animation side by side: gentle up-down bounce (~2px), "
+            "eyes blink on frame 3, glow pulses between frames. "
+            "Frame dimensions: each 32x32, total 192x32. "
+            "Transparent background, retro game sprite style, crisp pixel edges, no text."
         )
     },
     "worker-2": {
