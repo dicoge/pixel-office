@@ -645,10 +645,11 @@ function fetchStatus() {
       window.memberStates[mm.id] = ws;
       window.memberMoods[mm.id] = w.mood || '';
       // Custom avatar: if worker has avatar data, load it
-      if (w.avatar && !window.workerIdMap[mm.id]) {
-        window.workerIdMap[mm.id] = w.id;
-        loadCustomAvatar(w.id, mm.id);
-      }
+      // DISABLED: user prefers animated default sprites over static pixel art
+      // if (w.avatar && !window.workerIdMap[mm.id]) {
+      //   window.workerIdMap[mm.id] = w.id;
+      //   loadCustomAvatar(w.id, mm.id);
+      // }
       let ta = (STATES[ws] || STATES.idle).area;
       if (ws === 'idle') ta = mm.area;  // idle 時留在自己的書桌
       if (mm.id === 'hermes') ta = 'center';
@@ -785,11 +786,7 @@ function handleWorkerUpdate(worker) {
   if (!mm) return;
   window.memberStates[mm.id] = normalizeState(worker.status);
   window.memberMoods[mm.id] = worker.mood || '';
-  // Custom avatar update via WebSocket
-  if (worker.avatar && !window.workerIdMap[mm.id]) {
-    window.workerIdMap[mm.id] = worker.id;
-    loadCustomAvatar(worker.id, mm.id);
-  }
+  // Custom avatar update via WebSocket — DISABLED (user prefers animated defaults)\n  // if (worker.avatar && !window.workerIdMap[mm.id]) {\n  //   window.workerIdMap[mm.id] = worker.id;\n  //   loadCustomAvatar(worker.id, mm.id);\n  // }
   renderMemberStatus();
 }
 
