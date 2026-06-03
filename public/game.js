@@ -317,12 +317,22 @@ function placeCharacters(scene) {
     window.memberShadows[m.id] = shadowG;
 
     if (m.id === 'hermes') {
-      // Hermes uses star-idle-v5 spritesheet (2048x1536, 256x256 frames)
-      sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
-      sprite.setScale(0.79);
-      sprite.setDepth(10);
-      if (scene.anims.exists('star_idle_anim')) {
-        sprite.play('star_idle_anim', true);
+      // Hermes — use custom animated sprite for company-a, full star for company-b
+      if (window.currentOffice === 'company-a' && scene.textures.exists('custom_hermes')) {
+        sprite = scene.add.sprite(bx, by, 'custom_hermes', 0).setOrigin(0.5);
+        sprite.setScale(2.2);
+        sprite.setDepth(10);
+        if (scene.anims.exists('custom_hermes_idle')) {
+          sprite.play('custom_hermes_idle', true);
+        }
+      } else {
+        // Original star spritesheet (company-b fallback)
+        sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
+        sprite.setScale(0.79);
+        sprite.setDepth(10);
+        if (scene.anims.exists('star_idle_anim')) {
+          sprite.play('star_idle_anim', true);
+        }
       }
       star = sprite;
 
@@ -420,7 +430,8 @@ function preload() {
   // Hermes spritesheet — star idle animation (2048x1536, 256x256 frames)
   this.load.spritesheet('star_idle', '/star-idle-v5.png', { frameWidth: 256, frameHeight: 256 });
 
-  // Coffee machine spritesheet
+  // Custom animated spritesheets (company-a specific)
+  this.load.spritesheet('custom_hermes', '/custom_hermes.webp', { frameWidth: 32, frameHeight: 32 });
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
   // Plants spritesheet
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
@@ -466,7 +477,7 @@ function create() {
   // Guest idle animations — frames 0~5 (6 frames), frameRate 6, repeat -1
   // Note: guest_anim_6 is skipped (identical to guest_anim_5), guest_anim_7 = guest_role_1.png (blue, for OpenClaw)
   for (let i = 1; i <= 7; i++) {
-    if (i === 6) continue; // guest_anim_6 not loaded (duplicate of 5)
+    if (i === 6) continue;
     if (!this.anims.exists('guest_idle_' + i)) {
       this.anims.create({
         key: 'guest_idle_' + i,
@@ -475,6 +486,16 @@ function create() {
         repeat: -1
       });
     }
+  }
+
+  // Custom character animations (company-a)
+  if (!this.anims.exists('custom_hermes_idle')) {
+    this.anims.create({
+      key: 'custom_hermes_idle',
+      frames: this.anims.generateFrameNumbers('custom_hermes', { start: 0, end: 5 }),
+      frameRate: 6,
+      repeat: -1
+    });
   }
 
   // 2. Draw room background + furniture
