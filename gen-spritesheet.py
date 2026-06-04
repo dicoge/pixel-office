@@ -187,7 +187,25 @@ def generate_spritesheet(worker_id, api_key):
     # Resize to exact target
     pil_img = pil_img.resize((target_w, target_h), Image.NEAREST)
 
-    # Save as WebP
+    # Ensure RGBA mode — detect and remove white/light background
+    if pil_img.mode != 'RGBA':
+        pil_img = pil_img.convert('RGBA')
+    # Make white/near-white pixels transparent (only on the spritesheet background)
+    from collections import Counter
+    pixels = list(pil_img.getdata())
+    bg_color = Counter(pixels).most_common(1)[0][0]  # most common = likely background
+    r_bg, g_bg, b_bg, _ = bg_color
+    # If background is white/near-white, make it transparent
+    if r_bg > 200 and g_bg > 200 and b_bg > 200:
+        pix_data = pil_img.load()
+        w, h = pil_img.size
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = pix_data[x, y]
+                if r > 200 and g > 200 and b > 200:
+                    pix_data[x, y] = (r, g, b, 0)
+
+    # Save as WebP with transparency
     buf = io.BytesIO()
     pil_img.save(buf, format="WEBP", lossless=True)
     webp_b64 = base64.b64encode(buf.getvalue()).decode()
