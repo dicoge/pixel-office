@@ -345,11 +345,11 @@ function placeCharacters(scene) {
       star = sprite;
 
       // Glow aura behind Hermes badge
-      const glowG = scene.add.graphics().setDepth(11);
-      glowG.fillStyle(0xffd700, 0.15);
-      glowG.fillCircle(bx, by - 34, 34);
+      const glowG = scene.add.graphics().setDepth(9);
       glowG.fillStyle(0xffd700, 0.08);
-      glowG.fillCircle(bx, by - 34, 46);
+      glowG.fillCircle(bx, by - 26, 28);
+      glowG.fillStyle(0xffd700, 0.04);
+      glowG.fillCircle(bx, by - 26, 40);
       window.hermesGlow = glowG;
 
     } else {
@@ -598,11 +598,11 @@ function update(time) {
 
   // Animate Hermes glow
   if (window.hermesGlow && star) {
-    const pulse = 0.12 + Math.sin(time/600) * 0.06;
+    const pulse = 0.06 + Math.sin(time/600) * 0.03;
     window.hermesGlow.clear();
     window.hermesGlow.fillStyle(0xffd700, pulse);
     window.hermesGlow.fillCircle(star.x, star.y - 26, 22);
-    window.hermesGlow.fillStyle(0xffd700, pulse * 0.6);
+    window.hermesGlow.fillStyle(0xffd700, pulse * 0.5);
     window.hermesGlow.fillCircle(star.x, star.y - 26, 32);
   }
 
