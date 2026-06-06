@@ -317,30 +317,12 @@ function placeCharacters(scene) {
     window.memberShadows[m.id] = shadowG;
 
     if (m.id === 'hermes') {
-      // Hermes — use custom animated sprite for company-a, full star for company-b
-      if (window.currentOffice === 'company-a' && scene.textures.exists('custom_hermes')) {
-        sprite = scene.add.sprite(bx, by, 'custom_hermes', 0).setOrigin(0.5);
-        sprite.setScale(3.2);
-        sprite.setDepth(10);
-        if (scene.anims.exists('custom_hermes_idle')) {
-          sprite.play('custom_hermes_idle', true);
-        }
-        // Adjust glow aura to match new size
-        window.hermesGlow?.clear();
-        if (window.hermesGlow) {
-          window.hermesGlow.fillStyle(0xffd700, 0.15);
-          window.hermesGlow.fillCircle(bx, by - 90, 60);
-          window.hermesGlow.fillStyle(0xffd700, 0.08);
-          window.hermesGlow.fillCircle(bx, by - 90, 80);
-        }
-      } else {
-        // Original star spritesheet (company-b fallback)
-        sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
-        sprite.setScale(0.79);
-        sprite.setDepth(10);
-        if (scene.anims.exists('star_idle_anim')) {
-          sprite.play('star_idle_anim', true);
-        }
+      // 統一使用 star_idle spritesheet (48幀完美對齊) — 解決 custom_hermes 重影問題
+      sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
+      sprite.setScale(0.79);
+      sprite.setDepth(10);
+      if (scene.anims.exists('star_idle_anim')) {
+        sprite.play('star_idle_anim', true);
       }
       star = sprite;
 
