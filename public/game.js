@@ -317,21 +317,18 @@ function placeCharacters(scene) {
     window.memberShadows[m.id] = shadowG;
 
     if (m.id === 'hermes') {
-      // 統一使用 star_idle spritesheet (48幀完美對齊) — 解決 custom_hermes 重影問題
-      sprite = scene.add.sprite(bx, by, 'star_idle', 0).setOrigin(0.5);
-      sprite.setScale(0.79);
-      sprite.setDepth(10);
-      if (scene.anims.exists('star_idle_anim')) {
-        sprite.play('star_idle_anim', true);
-      }
+      // 使用靜態 ⭐ emoji — 不用 spritesheet 動畫，避免殘影
+      sprite = scene.add.text(bx, by, '⭐', {
+        fontFamily: 'monospace', fontSize: '32px'
+      }).setOrigin(0.5).setDepth(10);
       star = sprite;
 
       // Glow aura behind Hermes badge
       const glowG = scene.add.graphics().setDepth(9);
       glowG.fillStyle(0xffd700, 0.08);
-      glowG.fillCircle(bx, by - 26, 28);
+      glowG.fillCircle(bx, by - 10, 28);
       glowG.fillStyle(0xffd700, 0.04);
-      glowG.fillCircle(bx, by - 26, 40);
+      glowG.fillCircle(bx, by - 10, 40);
       window.hermesGlow = glowG;
 
     } else {
