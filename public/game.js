@@ -185,15 +185,16 @@ function drawRoom(scene) {
     signG.fillStyle(0xffd700, 0.8);
     signG.fillCircle(580, 19, 2);
     signG.fillCircle(750, 19, 2);
-    scene.add.text(665, 25, 'CENTRAL PERK', {
+    const signText = scene.add.text(665, 25, 'CENTRAL PERK', {
       fontFamily: 'monospace', fontSize: '11px',
       fill: '#ffd700', stroke: '#000', strokeThickness: 1
     }).setOrigin(0.5).setDepth(4).setAlpha(1);
+    window.officeSign = [signG, signText];
 
     // Coffee machine (left room, next to bookshelf, right of desk lamp) — company-a only
-    const coffeeCompat = scene.add.sprite(235, 190, 'coffee_machine', 0)
+    window.officeCoffee = scene.add.sprite(235, 190, 'coffee_machine', 0)
       .setOrigin(0.5).setDepth(5).setScale(0.35);
-    if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
+    if (scene.anims.exists('cf_machine')) window.officeCoffee.play('cf_machine', true);
   }
 
   // Plant (right side) — depth 5 — with pot shadow (company-a only)
@@ -216,15 +217,16 @@ function drawRoom(scene) {
   }
 
   // === 6 desks (2 columns x 3 rows) — company-a only ===
+  window.officeDesks = [];
   if (window.currentOffice === 'company-a' && scene.textures.exists('desk')) {
     // Column 1 — facing LEFT (v17: x=205, y=310/440/570)
-    scene.add.image(205, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(205, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
-    scene.add.image(205, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
+    window.officeDesks.push(scene.add.image(205, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90));
+    window.officeDesks.push(scene.add.image(205, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90));
+    window.officeDesks.push(scene.add.image(205, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90));
     // Column 2 — facing RIGHT (v16: x=260, y=310/440/570)
-    scene.add.image(260, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(260, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
-    scene.add.image(260, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90);
+    window.officeDesks.push(scene.add.image(260, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90));
+    window.officeDesks.push(scene.add.image(260, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90));
+    window.officeDesks.push(scene.add.image(260, 570, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(90));
   }
 
   // === SUBTLE VIGNETTE CORNERS (depth 50) — company-a only ===
@@ -287,6 +289,16 @@ function setOfficeTheme(office) {
   }
   if (window.plaqueText) {
     window.plaqueText.setText(office === 'company-b' ? 'MACBOOK OFFICE' : 'MINIPC OFFICE');
+  }
+  // Toggle furniture visibility
+  if (window.officeSign) {
+    window.officeSign.forEach(obj => { if (obj) obj.setVisible(office === 'company-a'); });
+  }
+  if (window.officeCoffee) {
+    window.officeCoffee.setVisible(office === 'company-a');
+  }
+  if (window.officeDesks) {
+    window.officeDesks.forEach(d => { if (d) d.setVisible(office === 'company-a'); });
   }
 }
 
