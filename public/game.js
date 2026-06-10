@@ -1019,5 +1019,5 @@ function handleWorkerUpdate(worker) {
   renderMemberStatus();
 }
 
-// ===== BOOTSTRAP =====
-initGame();
+// ==== BOOTSTRAP ====
+// initGame() called by enterOffice() after login
