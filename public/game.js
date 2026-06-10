@@ -168,31 +168,33 @@ function drawRoom(scene) {
   // === FURNITURE (depth 3~5) ===
 
   // CENTRAL PERK sign — depth 3 — centered at x=665 (company-a only)
-  const signG = scene.add.graphics().setDepth(3);
-  // Sign shadow
-  signG.fillStyle(0x000000, 0.12);
-  signG.fillRect(575, 15, 180, 24);
-  // Sign board — warm wood, fully opaque
-  signG.fillStyle(0x3e2723, 1);
-  signG.fillRect(573, 13, 184, 24);
-  signG.fillStyle(0x5d4037, 1);
-  signG.fillRect(575, 15, 180, 20);
-  // Gold border
-  signG.lineStyle(1, 0xffd700, 0.7);
-  signG.strokeRect(574, 14, 182, 22);
-  // Sign screws
-  signG.fillStyle(0xffd700, 0.8);
-  signG.fillCircle(580, 19, 2);
-  signG.fillCircle(750, 19, 2);
-  scene.add.text(665, 25, 'CENTRAL PERK', {
-    fontFamily: 'monospace', fontSize: '11px',
-    fill: '#ffd700', stroke: '#000', strokeThickness: 1
-  }).setOrigin(0.5).setDepth(4).setAlpha(1);
+  if (window.currentOffice === 'company-a') {
+    const signG = scene.add.graphics().setDepth(3);
+    // Sign shadow
+    signG.fillStyle(0x000000, 0.12);
+    signG.fillRect(575, 15, 180, 24);
+    // Sign board — warm wood, fully opaque
+    signG.fillStyle(0x3e2723, 1);
+    signG.fillRect(573, 13, 184, 24);
+    signG.fillStyle(0x5d4037, 1);
+    signG.fillRect(575, 15, 180, 20);
+    // Gold border
+    signG.lineStyle(1, 0xffd700, 0.7);
+    signG.strokeRect(574, 14, 182, 22);
+    // Sign screws
+    signG.fillStyle(0xffd700, 0.8);
+    signG.fillCircle(580, 19, 2);
+    signG.fillCircle(750, 19, 2);
+    scene.add.text(665, 25, 'CENTRAL PERK', {
+      fontFamily: 'monospace', fontSize: '11px',
+      fill: '#ffd700', stroke: '#000', strokeThickness: 1
+    }).setOrigin(0.5).setDepth(4).setAlpha(1);
 
-  // Coffee machine (left room, next to bookshelf, right of desk lamp) — company-a only
-  const coffeeCompat = scene.add.sprite(235, 190, 'coffee_machine', 0)
-    .setOrigin(0.5).setDepth(5).setScale(0.35);
-  if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
+    // Coffee machine (left room, next to bookshelf, right of desk lamp) — company-a only
+    const coffeeCompat = scene.add.sprite(235, 190, 'coffee_machine', 0)
+      .setOrigin(0.5).setDepth(5).setScale(0.35);
+    if (scene.anims.exists('cf_machine')) coffeeCompat.play('cf_machine', true);
+  }
 
   // Plant (right side) — depth 5 — with pot shadow (company-a only)
   if (scene.textures.exists('plants')) {
@@ -214,7 +216,7 @@ function drawRoom(scene) {
   }
 
   // === 6 desks (2 columns x 3 rows) — company-a only ===
-  if (scene.textures.exists('desk')) {
+  if (window.currentOffice === 'company-a' && scene.textures.exists('desk')) {
     // Column 1 — facing LEFT (v17: x=205, y=310/440/570)
     scene.add.image(205, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
     scene.add.image(205, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90);
@@ -487,10 +489,9 @@ function placeCharacters(scene) {
     window.memberShadows[m.id] = shadowG;
 
     if (m.id === 'hermes') {
-      // 使用靜態 ⭐ emoji — 不用 spritesheet 動畫，避免殘影
-      sprite = scene.add.text(bx, by, '⭐', {
-        fontFamily: 'monospace', fontSize: '32px'
-      }).setOrigin(0.5).setDepth(10);
+      // 使用 custom_hermes sprite (company-a specific spritesheet)
+      sprite = scene.add.sprite(bx, by, "custom_hermes", 0).setOrigin(0.5).setScale(1.0).setDepth(10);
+      sprite.play("custom_hermes_idle", true);
       star = sprite;
 
       // Glow aura behind Hermes badge
@@ -665,6 +666,9 @@ function create() {
   // 4. Camera
   mainCamera = this.cameras.main;
   mainCamera.setBounds(0, 0, 1280, 720);
+
+  // 4b. Initialize movement for all members
+  MEMBERS.forEach(m => { if (typeof initMemberMovement === "function") initMemberMovement(m.id); });
 
   // 5. Fetch agent status
   fetchStatus();

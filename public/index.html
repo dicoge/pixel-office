@@ -201,7 +201,7 @@
     window._gameReady = new Promise(function(resolve) {
       fetch('/game.js?_t=' + Date.now()).then(function(r) { return r.text(); }).then(function(code) {
         try {
-          eval(code);
+          (0, eval)(code);
           console.log('✅ game.js eval success');
         } catch(e) { console.error('❌ game.js eval error:', e); }
         resolve();
