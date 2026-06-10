@@ -29,7 +29,7 @@ const HERMES_AUTH_TOKEN=process.env.HERMES_AUTH_TOKEN || 'hermes-secret-token-20
 
 // Admin credentials (hardcoded - Railway env var override disabled to prevent hash corruption)
 const ADMIN_USERNAME = 'dicoge';
-const ADMIN_PASSWORD_HASH = '$2a$12$2F2UHCzUjNHyzOE1wsz7vuSLiS/aRj1.aijJI3nYp4KUXpmx9D3Pi';
+const ADMIN_PASSWORD_HASH='$2a$12$pmHKiNWftrRruXx7yu7KROJAG3pLGatpMMaiYIT0JSypJIX6r5u8a';
 
 // ============ PROCESS-LEVEL ERROR HANDLING ============
 process.on('uncaughtException', (err) => {
@@ -1234,9 +1234,16 @@ app.post('/api/messages', async (req, res) => {
     const command = parseCommand(content);
     let botResponse = null;
 
+    console.log('📝 Parsed command:', JSON.stringify(command));
     if (command) {
       // Command matched - execute it
-      botResponse = await executeCommand(command, company_id, db);
+      try {
+        botResponse = await executeCommand(command, company_id, db);
+        console.log('✅ Command response:', botResponse);
+      } catch (cmdErr) {
+        console.error('❌ ExecuteCommand error:', cmdErr.message, cmdErr.stack);
+        botResponse = '❌ 指令執行失敗: ' + cmdErr.message;
+      }
     } else {
       // No command matched - broadcast to Hermes clients for AI response
       if (hermesClients.size > 0) {
@@ -1260,10 +1267,10 @@ app.post('/api/messages', async (req, res) => {
     if (botResponse) {
       // Send bot response message
       const botId = 'bot-' + uuidv4().slice(0, 8);
-      db.prepare(`
+db.prepare(`
         INSERT INTO messages (id, company_id, sender_id, sender_type, sender_name, content, room_type, room_id)
-  VALUES (?, ?, 'hermes', 'bot', '🤖 Hermes', ?, ?, ?)
-      `).run(botId, company_id, 'bot', botResponse, room_type, room_id);
+  VALUES (?, ?, 'hermes', 'bot', ?, ?, ?, ?)
+      `).run(botId, company_id, '🤖 Hermes', botResponse, room_type, room_id);
 
       const botMsg = db.prepare('SELECT * FROM messages WHERE id = ?').get(botId);
       broadcast({ type: 'message_sent', message: botMsg });
