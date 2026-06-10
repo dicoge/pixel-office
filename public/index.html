@@ -196,7 +196,21 @@
   <script src="/pathfinding.js"></script>
   <script src="/walk.js"></script>
   <script src="/behaviors.js"></script>
-  <script src="/game.js"></script>
+  <script id="game-js-loader">
+    // Fetch and eval game.js — set a flag when done
+    window._gameReady = new Promise(function(resolve) {
+      fetch('/game.js?_t=' + Date.now()).then(function(r) { return r.text(); }).then(function(code) {
+        try {
+          eval(code);
+          console.log('✅ game.js eval success');
+        } catch(e) { console.error('❌ game.js eval error:', e); }
+        resolve();
+      }).catch(function(e) {
+        console.error('❌ game.js fetch error:', e);
+        resolve(); // resolve anyway so app doesn't hang
+      });
+    });
+  </script>
   <script>
     // ===== AUTH=***
     const TOKEN_KEY='pixel_office_token';
@@ -226,9 +240,12 @@
       document.getElementById('login-screen').classList.add('hidden');
       const app = document.getElementById('app');
       app.classList.add('visible');
-      // Scripts are loaded via <script> tags in HTML — game.js will auto-init
-      console.log('✅ Office entered, scripts should be ready');
-      initGame();
+      // Wait for game.js to be fetched + evaled, then init
+      var waitForGame = window._gameReady || Promise.resolve();
+      waitForGame.then(function() {
+        console.log('✅ Office entered, game ready');
+        initGame();
+      });
     }
 
     function handleLogout() {
