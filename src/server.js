@@ -29,7 +29,7 @@ const HERMES_AUTH_TOKEN=process.env.HERMES_AUTH_TOKEN || 'hermes-secret-token-20
 
 // Admin credentials (hardcoded - Railway env var override disabled to prevent hash corruption)
 const ADMIN_USERNAME = 'dicoge';
-const ADMIN_PASSWORD_HASH='$2a$12$pmHKiNWftrRruXx7yu7KROJAG3pLGatpMMaiYIT0JSypJIX6r5u8a';
+const ADMIN_PASSWORD_HASH='$2a$12$3sLjJGsUF.0aE.h5gI2tbeQYZSpe0bCrQyEHoxcP1kfb3FlU/M9ee';
 
 // ============ PROCESS-LEVEL ERROR HANDLING ============
 process.on('uncaughtException', (err) => {
