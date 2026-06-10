@@ -1,3 +1,4 @@
+console.log('🐱 GAME.JS LOADED - executing top level');
 // Pixel Office v8 — Star Office UI (Central Perk Coffee Shop)
 // Background image + pixel art sprites + programmatic furniture
 
@@ -56,10 +57,13 @@ const STATUS_LABELS = {
   researching: '搜尋中',
   executing: '執行中',
   syncing: '同步中',
+  slacking: '摸魚中',
   error: '出錯'
 };
 
 function getStatusColor(state) {
+  // Use WORKER_STATUS colors for new states
+  if (WORKER_STATUS[state]) return WORKER_STATUS[state].color;
   switch(state) {
     case 'writing': case 'researching': case 'executing': return '#f1c40f'; // 黃色
     case 'syncing': return '#3498db';  // 藍色
@@ -114,7 +118,8 @@ window.currentOffice = localStorage.getItem("current_office") || "company-a";
 let game, star, areas={}, currentState='idle', pendingState=null;
 let lastFetch=0, lastClickFetch=0, targetX=490, targetY=280;
 let ttText='', ttTarget='', ttIdx=0, lastTT=0;
-const FETCH_INT=15000, TT_DELAY=50;
+let behaviorTimer = 0;
+const FETCH_INT=15000, TT_DELAY=50, BEHAVIOR_INTERVAL=5000;
 let mainCamera;
 const spriteData = {};
 let memberStatusTexts = {};
@@ -283,6 +288,167 @@ function setOfficeTheme(office) {
   }
 }
 
+// ===================== WORKER STATUS CONSTANTS =====================
+
+const WORKER_STATUS = {
+  working:  { icon: '🟢', label: '工作中', color: '#2ecc71' },
+  idle:     { icon: '🟡', label: '清閒中', color: '#f1c40f' },
+  busy:     { icon: '🔴', label: '忙碌中', color: '#e74c3c' },
+  slacking: { icon: '🐟', label: '摸魚中', color: '#9b59b6' }
+};
+
+// ===================== MOVEMENT SYSTEM =====================
+
+window.memberMovement = {};
+
+function initMemberMovement(memberId) {
+  window.memberMovement[memberId] = {
+    path: [],
+    currentTarget: null,
+    speed: 1.2,
+    state: 'idle',   // 'idle' | 'walking' | 'arriving'
+    facing: 'down',
+    arrived: false,
+    lastBehaviorTime: 0
+  };
+}
+
+function navigateTo(memberId, targetNavPointId) {
+  if (!window.memberMovement[memberId]) {
+    initMemberMovement(memberId);
+  }
+  const mv = window.memberMovement[memberId];
+  const sp = window.memberSprites[memberId];
+  if (!sp) return;
+
+  // Find current NAV_POINT from sprite position
+  const fromId = findClosestNavPoint(sp.x, sp.y);
+  const toId = targetNavPointId;
+
+  // Find path
+  const path = findPath(fromId, toId);
+  if (path.length === 0) {
+    console.warn(`navigateTo: no path from ${fromId} to ${toId}`);
+    return;
+  }
+
+  mv.path = path;
+  mv.state = 'walking';
+  mv.arrived = false;
+}
+
+function updateWorkerMovement(m, time) {
+  const sp = window.memberSprites[m.id];
+  const mv = window.memberMovement[m.id];
+  if (!sp || !mv) return;
+
+  // Skip if idle, arriving, or hermes (Hermes doesn't walk)
+  if (mv.state === 'idle' || mv.state === 'arriving' || m.id === 'hermes') return;
+  if (mv.path.length === 0) {
+    mv.state = 'idle';
+    playIdleAnim(m.id);
+    return;
+  }
+
+  // Get next waypoint
+  const nextId = mv.path[0];
+  const nextPt = NAV_POINTS[nextId];
+  if (!nextPt) {
+    mv.path.shift();
+    return;
+  }
+
+  const dx = nextPt.x - sp.x;
+  const dy = nextPt.y - sp.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  if (dist < 3) {
+    // Reached waypoint
+    mv.path.shift();
+    if (mv.path.length === 0) {
+      mv.state = 'arriving';
+      mv.arrived = true;
+      playIdleAnim(m.id);
+    }
+    // Keep walking to next waypoint
+  } else {
+    mv.state = 'walking';
+    mv.facing = getFacing(dx, dy);
+    playWalkAnim(m.id, mv.facing);
+    sp.x += (dx / dist) * mv.speed;
+    sp.y += (dy / dist) * mv.speed;
+  }
+}
+
+// ===================== STATUS CHANGE VISUAL FEEDBACK =====================
+
+function onStatusChange(memberId, oldState, newState) {
+  const sprite = window.memberSprites && window.memberSprites[memberId];
+  if (!sprite || !sprite.scene) return;
+  const scene = sprite.scene;
+
+  // 1. Flash effect
+  scene.tweens.add({
+    targets: sprite,
+    alpha: { from: 0.3, to: 1 },
+    duration: 300,
+    ease: 'Sine.easeInOut'
+  });
+
+  // 2. Status emoji floating up
+  const emoji = WORKER_STATUS[newState] ? WORKER_STATUS[newState].icon : '❓';
+  const floatText = scene.add.text(sprite.x, sprite.y - 60, emoji, {
+    fontSize: '24px'
+  }).setOrigin(0.5).setDepth(20);
+
+  scene.tweens.add({
+    targets: floatText,
+    y: floatText.y - 30,
+    alpha: 0,
+    duration: 1500,
+    ease: 'Power2',
+    onComplete: () => floatText.destroy()
+  });
+
+  // 3. Slacking special animation
+  if (newState === 'slacking') {
+    showSlackingAnimation(memberId);
+  }
+}
+
+function showSlackingAnimation(memberId) {
+  const sprite = window.memberSprites && window.memberSprites[memberId];
+  if (!sprite || !sprite.scene || memberId === 'hermes') return;
+  const scene = sprite.scene;
+
+  // Wiggle / spin effect
+  scene.tweens.add({
+    targets: sprite,
+    angle: { from: -8, to: 8 },
+    yoyo: true,
+    repeat: 4,
+    duration: 150,
+    ease: 'Sine.easeInOut',
+    onComplete: () => {
+      sprite.setAngle(0);
+    }
+  });
+
+  // Also do a little hop
+  scene.tweens.add({
+    targets: sprite,
+    scaleY: { from: 1.8, to: 1.6 },
+    scaleX: { from: 1.8, to: 1.9 },
+    yoyo: true,
+    repeat: 2,
+    duration: 200,
+    ease: 'Back.easeInOut',
+    onComplete: () => {
+      sprite.setScale(1.8);
+    }
+  });
+}
+
 // ===================== CHARACTERS =====================
 
 function placeCharacters(scene) {
@@ -293,8 +459,12 @@ function placeCharacters(scene) {
   window.memberTargets = {};
   window.memberShadows = {};
   window.guestSprites = {};
+  window.memberMovement = {};
 
   MEMBERS.forEach((m) => {
+    // Initialize movement tracking
+    initMemberMovement(m.id);
+
     const area = AREAS[m.area] || AREAS.lounge;
     const bx = area.x + m.offset.x;
     const by = area.y + m.offset.y;
@@ -523,11 +693,16 @@ function update(time) {
     ttIdx++; lastTT = time;
   }
 
+  // Behavior tick — run every BEHAVIOR_INTERVAL ms
+  if (window.tickBehaviors && time - behaviorTimer > BEHAVIOR_INTERVAL) {
+    tickBehaviors(time);
+    behaviorTimer = time;
+  }
+
   if (window.memberSprites) {
     MEMBERS.forEach(m => {
       const sp = window.memberSprites[m.id];
-      const t = window.memberTargets[m.id];
-      if (!sp || !t) return;
+      if (!sp) return;
 
       // Update shadow to follow sprite
       const shadow = window.memberShadows && window.memberShadows[m.id];
@@ -566,11 +741,8 @@ function update(time) {
       const lbl = window.memberLabels[m.id];
       if (lbl) lbl.setPosition(sp.x, sp.y + 22);
 
-      if (m.id === 'hermes') return; // Hermes stays at center desk — skip movement but still update UI
-
-      const dx = t.x - sp.x, dy = t.y - sp.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 3) { sp.x += (dx/dist) * 1.2; sp.y += (dy/dist) * 1.2; }
+      // Use new waypoint-based movement system
+      updateWorkerMovement(m, time);
     });
   }
   if (star) moveStar(time);
@@ -585,13 +757,26 @@ function update(time) {
     window.hermesGlow.fillCircle(star.x, star.y - 26, 32);
   }
 
+  // Track state changes for visual feedback
+  if (window.memberStates) {
+    if (!window._prevStates) window._prevStates = {};
+    MEMBERS.forEach(m => {
+      const cur = window.memberStates[m.id];
+      const prev = window._prevStates[m.id];
+      if (cur && prev && cur !== prev) {
+        onStatusChange(m.id, prev, cur);
+      }
+      window._prevStates[m.id] = cur;
+    });
   }
+}
 
 // ===================== STATE =====================
 
 function normalizeState(s) {
   if (!s) return 'idle';
   if (s === 'active' || s === 'idle') return 'idle';
+  if (s === 'slacking') return 'slacking';
   if (s === 'working') return 'writing';
   if (s === 'run' || s === 'running') return 'executing';
   if (s === 'sync') return 'syncing';
@@ -650,20 +835,20 @@ function fetchStatus() {
       });
       if (!mm) return;
       const ws = normalizeState(w.status||'idle');
+      const oldState = window.memberStates[mm.id];
       window.memberStates[mm.id] = ws;
       window.memberMoods[mm.id] = w.mood || '';
-      // Custom avatar: if worker has avatar data, load it
-      // DISABLED: user prefers animated default sprites over static pixel art
-      // if (w.avatar && !window.workerIdMap[mm.id]) {
-      //   window.workerIdMap[mm.id] = w.id;
-      //   loadCustomAvatar(w.id, mm.id);
-      // }
-      let ta = (STATES[ws] || STATES.idle).area;
-      if (ws === 'idle') ta = mm.area;  // idle 時留在自己的書桌
-      if (mm.id === 'hermes') ta = 'center';
-      if (mm.id === 'openclaw') ta = 'sofa';
-      if (AREAS[ta]) {
-        window.memberTargets[mm.id] = { x: AREAS[ta].x + mm.offset.x, y: AREAS[ta].y + mm.offset.y };
+      // Navigate to appropriate area based on status
+      let navId = getMemberNavPoint(mm.id); // Default: go home
+      if (ws !== 'idle' && ws !== 'slacking') {
+        const areaName = (STATES[ws] || STATES.idle).area;
+        navId = areaToNavPoint(areaName) || navId;
+      }
+      if (mm.id === 'hermes') navId = 'center_desk';
+      if (mm.id === 'openclaw') navId = 'sofa';
+      // Only navigate if state changed and not already moving
+      if (oldState !== ws) {
+        navigateTo(mm.id, navId);
       }
     });
     renderMemberStatus();
@@ -685,7 +870,8 @@ function renderMemberStatus() {
     const sp = window.memberSprites[m.id];
     if (!sp) return;
     const state = window.memberStates[m.id] || 'idle';
-    const label = STATUS_LABELS[state] || '閒置中';
+    // Use WORKER_STATUS label if available, fall back to STATUS_LABELS
+    const label = (WORKER_STATUS[state] ? WORKER_STATUS[state].label : STATUS_LABELS[state]) || '閒置中';
     const txt = memberStatusTexts[m.id];
     if (txt) {
       txt.setText(label);
@@ -774,6 +960,27 @@ function connectHermes() {
       const data = JSON.parse(ev.data);
       if (data.type === 'worker_ping' && data.worker) {
         handleWorkerUpdate(data.worker);
+      } else if (data.type === 'worker_state_change' && data.worker) {
+        handleWorkerUpdate(data.worker);
+      } else if (data.type === 'worker_batch_update' && data.updates) {
+        data.updates.forEach(w => handleWorkerUpdate(w));
+      } else if (data.type === 'worker_movement' && data.worker) {
+        // Navigate worker to target position
+        const w = data.worker;
+        if (w.target_x !== undefined && w.target_y !== undefined) {
+          const navId = findClosestNavPoint(w.target_x, w.target_y);
+          if (navId) {
+            // Find matching member
+            const wn = (w.name||'').toLowerCase();
+            MEMBERS.forEach(m => {
+              if (wn === m.id || m.id.includes(wn) || wn.includes(m.id)) {
+                navigateTo(m.id, navId);
+              }
+            });
+          }
+        }
+      } else if (data.type === 'worker_slacking' && data.worker) {
+        handleWorkerUpdate(data.worker);
       }
     } catch(e) {}
   };
@@ -792,9 +999,23 @@ function handleWorkerUpdate(worker) {
     if (sc > bs) { bs = sc; mm = m; }
   });
   if (!mm) return;
-  window.memberStates[mm.id] = normalizeState(worker.status);
+  const oldState = window.memberStates[mm.id];
+  const newState = normalizeState(worker.status);
+  window.memberStates[mm.id] = newState;
   window.memberMoods[mm.id] = worker.mood || '';
-  // Custom avatar update via WebSocket — DISABLED (user prefers animated defaults)\n  // if (worker.avatar && !window.workerIdMap[mm.id]) {\n  //   window.workerIdMap[mm.id] = worker.id;\n  //   loadCustomAvatar(worker.id, mm.id);\n  // }
+
+  // Navigate on state change
+  if (oldState !== newState) {
+    let navId = getMemberNavPoint(mm.id);
+    if (newState !== 'idle' && newState !== 'slacking') {
+      const areaName = (STATES[newState] || STATES.idle).area;
+      navId = areaToNavPoint(areaName) || navId;
+    }
+    if (mm.id === 'hermes') navId = 'center_desk';
+    if (mm.id === 'openclaw') navId = 'sofa';
+    navigateTo(mm.id, navId);
+  }
+
   renderMemberStatus();
 }
 

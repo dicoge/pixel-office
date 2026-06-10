@@ -751,7 +751,7 @@ app.post('/api/workers/ping/:id', (req, res) => {
 
   const { status, mood } = req.body;
   const company_id = getCompanyId(req);
-  const validStatuses = ['active', 'idle', 'busy'];
+  const validStatuses = ['active', 'idle', 'busy', 'slacking', 'working'];
   const newStatus = validStatuses.includes(status) ? status : 'active';
 
   const existing = db.prepare('SELECT * FROM workers WHERE id = ?').get(req.params.id);
@@ -773,6 +773,89 @@ app.post('/api/workers/ping/:id', (req, res) => {
   broadcast({ type: 'worker_ping', worker });
 
   res.json(worker);
+});
+
+// POST /api/workers/:id/state — Update a single worker's status (including slacking)
+app.post('/api/workers/:id/state', (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== TASK_QUEUE_API_KEY) {
+    return res.status(401).json({ error: 'Invalid API key' });
+  }
+
+  const { status, mood } = req.body;
+  const company_id = getCompanyId(req);
+  const validStatuses = ['active', 'idle', 'busy', 'slacking', 'working'];
+  const newStatus = validStatuses.includes(status) ? status : 'idle';
+
+  const existing = db.prepare('SELECT * FROM workers WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ error: 'Worker not found' });
+  }
+
+  const oldStatus = existing.status;
+
+  if (mood !== undefined) {
+    db.prepare(`
+      UPDATE workers SET status = ?, mood = ?, last_ping = datetime('now') WHERE id = ?
+    `).run(newStatus, mood, req.params.id);
+  } else {
+    db.prepare(`
+      UPDATE workers SET status = ?, last_ping = datetime('now') WHERE id = ?
+    `).run(newStatus, req.params.id);
+  }
+
+  const worker = db.prepare('SELECT * FROM workers WHERE id = ?').get(req.params.id);
+  broadcast({ type: 'worker_state_change', worker: { id: worker.id, name: worker.name, from_status: oldStatus, to_status: newStatus, mood: worker.mood } });
+  broadcast({ type: 'worker_ping', worker });
+
+  res.json(worker);
+});
+
+// POST /api/workers/batch-status — Batch update multiple workers' statuses
+app.post('/api/workers/batch-status', (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== TASK_QUEUE_API_KEY) {
+    return res.status(401).json({ error: 'Invalid API key' });
+  }
+
+  const { updates } = req.body;
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return res.status(400).json({ error: 'updates array is required and must not be empty' });
+  }
+
+  const validStatuses = ['active', 'idle', 'busy', 'slacking', 'working'];
+  const updatedWorkers = [];
+
+  updates.forEach(u => {
+    const { id, status, mood } = u;
+    if (!id) return;
+    const existing = db.prepare('SELECT * FROM workers WHERE id = ?').get(id);
+    if (!existing) return;
+
+    const newStatus = validStatuses.includes(status) ? status : existing.status;
+    if (mood !== undefined) {
+      db.prepare(`
+        UPDATE workers SET status = ?, mood = ?, last_ping = datetime('now') WHERE id = ?
+      `).run(newStatus, mood, id);
+    } else {
+      db.prepare(`
+        UPDATE workers SET status = ?, last_ping = datetime('now') WHERE id = ?
+      `).run(newStatus, id);
+    }
+
+    const worker = db.prepare('SELECT id, name, status, mood FROM workers WHERE id = ?').get(id);
+    updatedWorkers.push(worker);
+  });
+
+  if (updatedWorkers.length > 0) {
+    broadcast({ type: 'worker_batch_update', updates: updatedWorkers });
+    // Also send individual worker_ping for each
+    updatedWorkers.forEach(w => {
+      broadcast({ type: 'worker_ping', worker: w });
+    });
+  }
+
+  res.json({ success: true, updated: updatedWorkers.length, workers: updatedWorkers });
 });
 
 app.get('/api/workers/status', (req, res) => {

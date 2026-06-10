@@ -222,9 +222,13 @@
       document.getElementById('login-screen').classList.add('hidden');
       const app = document.getElementById('app');
       app.classList.add('visible');
-      const script = document.createElement('script');
-      script.src = '/game.js?_t=' + Date.now();
-      document.body.appendChild(script);
+      // Use dynamic import for reliable loading order
+      import('/pathfinding.js?_t=' + Date.now())
+        .then(() => import('/walk.js?_t=' + Date.now()))
+        .then(() => import('/behaviors.js?_t=' + Date.now()))
+        .then(() => import('/game.js?_t=' + Date.now()))
+        .then(() => console.log('✅ All scripts loaded'))
+        .catch(e => console.error('Script load error:', e));
     }
 
     function handleLogout() {
