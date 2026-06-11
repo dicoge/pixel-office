@@ -19,7 +19,7 @@ const config = {
 };
 
 let totalAssets=0, loadedAssets=0, lpBar, lpText, lpOverlay;
-let loadingTimeout = setTimeout(hideLoadingOverlay, 15000);
+let loadingTimeout = null, loadingTimedOut = false;
 
 function updateLoadingProgress() {
   loadedAssets++;
@@ -28,6 +28,7 @@ function updateLoadingProgress() {
   if (lpText) lpText.textContent = `載入中... ${p}%`;
 }
 function hideLoadingOverlay() {
+  if (loadingTimedOut) return;
   clearTimeout(loadingTimeout);
   setTimeout(() => {
     if (lpOverlay) { lpOverlay.style.opacity='0'; setTimeout(() => lpOverlay.style.display='none', 500); }
@@ -129,9 +130,22 @@ let memberMoodBubbles = {};  // { id: { bg, text } }
 
 function drawRoom(scene) {
   // 1. Background — office-specific
-  window.officeBg = scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0).setVisible(window.currentOffice !== 'company-b');
+  if (scene.textures && scene.textures.exists('office_bg')) {
+    window.officeBg = scene.add.image(640, 360, 'office_bg').setOrigin(0.5).setDepth(0).setVisible(window.currentOffice !== 'company-b');
+  } else {
+    const fb = scene.add.graphics().setDepth(0);
+    fb.fillStyle(0x2c1810, 1);
+    fb.fillRect(0, 0, 1280, 720);
+    fb.fillStyle(0x3d2317, 1);
+    fb.fillRect(0, 0, 1280, 545);
+    window.officeBg = fb;
+  }
 
-  window.officeBgMac = scene.add.image(640, 360, 'office_bg_full').setOrigin(0.5).setDepth(0).setVisible(window.currentOffice === 'company-b');
+  if (scene.textures && scene.textures.exists('office_bg_full')) {
+    window.officeBgMac = scene.add.image(640, 360, 'office_bg_full').setOrigin(0.5).setDepth(0).setVisible(window.currentOffice === 'company-b');
+  } else {
+    window.officeBgMac = null;
+  }
 
   window.officeLighting = scene.add.graphics().setDepth(1);
   // Warm glow from left side (shifted left with desks) — matches winter cabin mood
@@ -583,15 +597,26 @@ function preload() {
   lpBar = document.getElementById('loading-progress-bar');
   lpText = document.getElementById('loading-text');
   // Count all assets to load
-  totalAssets = 1 + 1 + 1 + 1 + 6 + 1 + 2; // bg + star + coffee + plants + 6 guests + desk + sofa
+  totalAssets = 2 + 1 + 1 + 1 + 1 + 6 + 1 + 1 + 1; // bg(2) + star + hermes + coffee + plants + 6 guests + desk + sofa + shadow
   loadedAssets = 0;
+  loadingTimedOut = false;
+
+  loadingTimeout = setTimeout(() => {
+    loadingTimedOut = true;
+    clearTimeout(loadingTimeout);
+    if (lpOverlay) {
+      lpOverlay.innerHTML = '<div style="color:#e74c3c;font-size:18px;text-align:center;padding:20px">連線逾時，重整頁面</div>';
+    }
+  }, 15000);
 
   const ps = document.createElement('style');
   ps.textContent = '@keyframes lp{0%,100%{box-shadow:0 0 5px #ffd700}50%{box-shadow:0 0 15px #ffd700}}' +
     '#loading-progress-bar{transition:width 0.3s ease;animation:lp 1.5s ease-in-out infinite}';
   document.head.appendChild(ps);
   this.load.on('filecomplete', updateLoadingProgress);
-  this.load.on('complete', hideLoadingOverlay);
+  this.load.on('loaderror', (file) => {
+    console.warn('Asset load error:', file.key, file.src);
+  });
 
   // Background image — Central Perk coffee shop scene
   this.load.image('office_bg', '/office_bg_small.webp');
@@ -691,6 +716,13 @@ function create() {
     lastClickFetch = n;
     fetchStatus();
     fetchDepartments();
+  });
+
+  // Hide loading overlay after first frame renders
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      hideLoadingOverlay();
+    });
   });
 }
 
