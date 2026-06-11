@@ -687,7 +687,7 @@ function create() {
   if (!this.anims.exists('custom_hermes_idle')) {
     this.anims.create({
       key: 'custom_hermes_idle',
-      frames: this.anims.generateFrameNumbers('custom_hermes', { start: 0, end: 5 }),
+      frames: this.anims.generateFrameNumbers('custom_hermes', { frames: [20, 21, 22, 23, 24] }),
       frameRate: 6,
       repeat: -1
     });
