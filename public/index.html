@@ -213,7 +213,7 @@
   </script>
   <script>
     // ===== AUTH=***
-    const TOKEN_KEY='pixel_office_token';
+const TOKEN_KEY='pixel_office_token';
     const USERNAME_KEY = 'username';
 
     async function handleLogin() {
@@ -285,7 +285,7 @@
     // 背景主題切換
     window.setOfficeTheme = function(office) {
       if (window.officeBg) window.officeBg.setVisible(office !== 'company-b');
-      if (window.bedroomBg) window.bedroomBg.setVisible(office === 'company-b');
+      if (window.officeBgMac) window.officeBgMac.setVisible(office === 'company-b');
     };
 
     // 下拉選單切換
