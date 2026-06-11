@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
+    "test": "mocha --timeout 30000",
     "postinstall": "echo 'No native rebuild needed'"
   },
   "dependencies": {
@@ -17,5 +18,9 @@
     "sql.js": "^1.14.1",
     "uuid": "^9.0.1",
     "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "mocha": "^11.7.6",
+    "supertest": "^7.2.2"
   }
 }
