@@ -626,7 +626,7 @@ function preload() {
   this.load.spritesheet('star_idle', '/star-idle-v5.png', { frameWidth: 256, frameHeight: 256 });
 
   // Custom animated spritesheets (company-a specific)
-  this.load.spritesheet('custom_hermes', '/cats-spritesheet.webp', { frameWidth: 64, frameHeight: 64 });
+  this.load.spritesheet('custom_hermes', '/custom_hermes.webp', { frameWidth: 64, frameHeight: 64 });
   this.load.spritesheet('coffee_machine', '/coffee-machine-v3-grid.webp', { frameWidth: 230, frameHeight: 230 });
   // Plants spritesheet
   this.load.spritesheet('plants', '/plants-spritesheet.webp', { frameWidth: 160, frameHeight: 160 });
