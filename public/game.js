@@ -278,7 +278,7 @@ function drawRoom(scene) {
 
 // ===================== OFFICE THEME SWITCHING =====================
 
-function setOfficeTheme(office) {
+window.setOfficeTheme = function(office) {
   if (window.officeBg) window.officeBg.setVisible(office !== 'company-b');
   if (window.officeBgMac) window.officeBgMac.setVisible(office === 'company-b');
   if (window.officeLighting) {
@@ -314,6 +314,76 @@ function setOfficeTheme(office) {
   if (window.officeDesks) {
     window.officeDesks.forEach(d => { if (d) d.setVisible(office === 'company-a'); });
   }
+  // Update war room button based on office
+  updateWarRoomButton(office);
+}
+
+// ===================== WAR ROOM BUTTON =====================
+
+window.warBtnBg = null;
+window.warBtn = null;
+
+function createWarRoomButton(scene) {
+  // Destroy existing button if any
+  if (window.warBtnBg) { window.warBtnBg.destroy(); window.warBtnBg = null; }
+  if (window.warBtn) { window.warBtn.destroy(); window.warBtn = null; }
+
+  const bg = scene.add.graphics().setDepth(100);
+  bg.fillStyle(0x1a1a2e, 0.85);
+  bg.fillRoundedRect(1130, 668, 140, 44, 6);
+  bg.lineStyle(2, 0xffd700, 0.5);
+  bg.strokeRoundedRect(1130, 668, 140, 44, 6);
+
+  const btn = scene.add.text(1200, 690, '🐝 戰情室', {
+    fontFamily: 'monospace', fontSize: '12px',
+    fill: '#ffd700', fontStyle: 'bold',
+    stroke: '#000', strokeThickness: 1
+  }).setOrigin(0.5).setDepth(101).setInteractive({ useHandCursor: true });
+
+  btn.on('pointerover', () => {
+    bg.clear();
+    bg.fillStyle(0x2a2a45, 0.9);
+    bg.fillRoundedRect(1130, 668, 140, 44, 6);
+    bg.lineStyle(2, 0xffd700, 0.8);
+    bg.strokeRoundedRect(1130, 668, 140, 44, 6);
+    btn.setFill('#ffffff');
+  });
+  btn.on('pointerout', () => {
+    bg.clear();
+    bg.fillStyle(0x1a1a2e, 0.85);
+    bg.fillRoundedRect(1130, 668, 140, 44, 6);
+    bg.lineStyle(2, 0xffd700, 0.5);
+    bg.strokeRoundedRect(1130, 668, 140, 44, 6);
+    btn.setFill('#ffd700');
+  });
+  btn.on('pointerdown', () => {
+    if (typeof openWarRoom === 'function') {
+      openWarRoom();
+    }
+  });
+
+  // Pulse animation
+  scene.tweens.add({
+    targets: btn,
+    alpha: { from: 1, to: 0.7 },
+    duration: 2000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
+
+  window.warBtnBg = bg;
+  window.warBtn = btn;
+}
+
+window.updateWarRoomButton = function(office) {
+  // Ensure the button exists (scene reference from game)
+  if (!window.warBtnBg && !window.warBtn && game) {
+    createWarRoomButton(game);
+  }
+  const show = office === 'company-b';
+  if (window.warBtnBg) window.warBtnBg.setVisible(show);
+  if (window.warBtn) window.warBtn.setVisible(show);
 }
 
 // ===================== WORKER STATUS CONSTANTS =====================
@@ -725,51 +795,9 @@ function create() {
     });
   });
 
-  // 6. War Room button (bottom-right corner)
-  const warBtnBg = this.add.graphics().setDepth(100);
-  warBtnBg.fillStyle(0x1a1a2e, 0.85);
-  warBtnBg.fillRoundedRect(1130, 668, 140, 44, 6);
-  warBtnBg.lineStyle(2, 0xffd700, 0.5);
-  warBtnBg.strokeRoundedRect(1130, 668, 140, 44, 6);
-
-  const warBtn = this.add.text(1200, 690, '🐝 戰情室', {
-    fontFamily: 'monospace', fontSize: '12px',
-    fill: '#ffd700', fontStyle: 'bold',
-    stroke: '#000', strokeThickness: 1
-  }).setOrigin(0.5).setDepth(101).setInteractive({ useHandCursor: true });
-
-  // Hover effects
-  warBtn.on('pointerover', () => {
-    warBtnBg.clear();
-    warBtnBg.fillStyle(0x2a2a45, 0.9);
-    warBtnBg.fillRoundedRect(1130, 668, 140, 44, 6);
-    warBtnBg.lineStyle(2, 0xffd700, 0.8);
-    warBtnBg.strokeRoundedRect(1130, 668, 140, 44, 6);
-    warBtn.setFill('#ffffff');
-  });
-  warBtn.on('pointerout', () => {
-    warBtnBg.clear();
-    warBtnBg.fillStyle(0x1a1a2e, 0.85);
-    warBtnBg.fillRoundedRect(1130, 668, 140, 44, 6);
-    warBtnBg.lineStyle(2, 0xffd700, 0.5);
-    warBtnBg.strokeRoundedRect(1130, 668, 140, 44, 6);
-    warBtn.setFill('#ffd700');
-  });
-  warBtn.on('pointerdown', () => {
-    if (typeof openWarRoom === 'function') {
-      openWarRoom();
-    }
-  });
-
-  // Pulse animation for the button
-  this.tweens.add({
-    targets: warBtn,
-    alpha: { from: 1, to: 0.7 },
-    duration: 2000,
-    yoyo: true,
-    repeat: -1,
-    ease: 'Sine.easeInOut'
-  });
+  // 6. War Room button (MacBook only)
+  createWarRoomButton(this);
+  updateWarRoomButton(window.currentOffice);
 }
 
 let lastStatusRender = 0;

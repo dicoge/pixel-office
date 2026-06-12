@@ -312,6 +312,16 @@ function initDatabase() {
   agentStmt.run('agent-gemini',     'Gemini',      'analyst', 'agent-hermes', 'idle', 'dept-stock',       '["analysis","research","monitor"]', 'company-a');
   agentStmt.run('agent-openmanus',  'Manus',       'worker',  'agent-hermes', 'idle', 'dept-pixeloffice', '["general","web","documents"]', 'company-a');
   agentStmt.run('agent-swarmclaw',  'SwarmClaw',   'hub',     'agent-hermes', 'active', 'dept-pixeloffice', '["war-room","coordination","status"]', 'company-a');
+
+  // Seed company-b (MacBook) agents
+  agentStmt.run('agent-hermes-b',   'Hermes (Mac)',    'coordinator', null, 'active', 'dept-pixeloffice', '["orchestration","memory","dispatch"]', 'company-b');
+  agentStmt.run('agent-ccr-b',      'CCR (Mac)',       'worker',  'agent-hermes-b', 'idle', 'dept-dungeon',     '["code","implement","claude-code"]', 'company-b');
+  agentStmt.run('agent-codex-b',    'Codex (Mac)',     'reviewer','agent-hermes-b', 'idle', 'dept-stock',       '["code-review","qa","audit"]', 'company-b');
+  agentStmt.run('agent-opencode-b', 'OpenCode (Mac)',  'worker',  'agent-hermes-b', 'idle', 'dept-pixeloffice', '["code","implement","deepseek"]', 'company-b');
+  agentStmt.run('agent-openclaw-b', 'OpenClaw (Mac)',  'tester',  'agent-hermes-b', 'idle', 'dept-dungeon',     '["test","verify","automation"]', 'company-b');
+  agentStmt.run('agent-gemini-b',   'Gemini (Mac)',    'analyst', 'agent-hermes-b', 'idle', 'dept-stock',       '["analysis","research","monitor"]', 'company-b');
+  agentStmt.run('agent-openmanus-b','Manus (Mac)',     'worker',  'agent-hermes-b', 'idle', 'dept-pixeloffice', '["general","web","documents"]', 'company-b');
+  agentStmt.run('agent-swarmclaw-b','SwarmClaw (Mac)', 'hub',     'agent-hermes-b', 'active', 'dept-pixeloffice', '["war-room","coordination","status"]', 'company-b');
 }
 
 // ============ MIDDLEWARE ============
@@ -1369,6 +1379,87 @@ app.post('/api/hermes-reply', authMiddleware, (req, res) => {
 });
 
 
+
+// ============ WAR ROOM / SWARMCLAW API ROUTES ============
+
+// GET /api/agents — list agents, supports ?company_id= filter
+app.get('/api/agents', (req, res) => {
+  const companyId = getCompanyId(req);
+  const agents = db.prepare('SELECT * FROM agents WHERE company_id = ? ORDER BY name').all(companyId);
+  res.json(agents);
+});
+
+// POST /api/agents — create agent
+app.post('/api/agents', (req, res) => {
+  const { name, role, parent_id, capabilities, company_id } = req.body;
+  const id = 'agent-' + uuidv4().slice(0, 8);
+  const companyId = company_id || getCompanyId(req);
+  db.prepare('INSERT INTO agents (id, name, role, parent_id, status, capabilities, company_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(id, name, role || 'worker', parent_id || null, 'idle', JSON.stringify(capabilities || []), companyId);
+  res.status(201).json(db.prepare('SELECT * FROM agents WHERE id = ?').get(id));
+});
+
+// PATCH /api/agents/:id — update agent
+app.patch('/api/agents/:id', (req, res) => {
+  const { status, role, parent_id } = req.body;
+  const updates = [];
+  const params = [];
+  if (status !== undefined) { updates.push('status = ?'); params.push(status); }
+  if (role !== undefined) { updates.push('role = ?'); params.push(role); }
+  if (parent_id !== undefined) { updates.push('parent_id = ?'); params.push(parent_id); }
+  if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
+  params.push(req.params.id);
+  db.prepare(`UPDATE agents SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+  res.json(db.prepare('SELECT * FROM agents WHERE id = ?').get(req.params.id));
+});
+
+// GET /api/agent-tasks — list agent tasks
+app.get('/api/agent-tasks', (req, res) => {
+  const companyId = getCompanyId(req);
+  const tasks = db.prepare('SELECT * FROM agent_tasks WHERE company_id = ? ORDER BY created_at DESC').all(companyId);
+  res.json(tasks);
+});
+
+// POST /api/agent-tasks — create task
+app.post('/api/agent-tasks', (req, res) => {
+  const { title, description, assigned_agent_id, priority, company_id } = req.body;
+  if (!title) return res.status(400).json({ error: 'Title is required' });
+  const id = uuidv4();
+  const companyId = company_id || getCompanyId(req);
+  db.prepare('INSERT INTO agent_tasks (id, title, description, status, priority, assigned_agent_id, company_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(id, title, description || null, 'pending', priority || 'normal', assigned_agent_id || null, companyId);
+  res.status(201).json(db.prepare('SELECT * FROM agent_tasks WHERE id = ?').get(id));
+});
+
+// PATCH /api/agent-tasks/:id — update task status
+app.patch('/api/agent-tasks/:id', (req, res) => {
+  const { status } = req.body;
+  if (!status) return res.status(400).json({ error: 'Status is required' });
+  const now = new Date().toISOString();
+  const completedAt = status === 'completed' ? ', completed_at = ?' : '';
+  const params = [status, now];
+  if (status === 'completed') params.push(now);
+  params.push(req.params.id);
+  db.prepare(`UPDATE agent_tasks SET status = ?, updated_at = ?${completedAt} WHERE id = ?`).run(...params);
+  res.json(db.prepare('SELECT * FROM agent_tasks WHERE id = ?').get(req.params.id));
+});
+
+// POST /api/agent-tasks/:id/retry — retry task
+app.post('/api/agent-tasks/:id/retry', (req, res) => {
+  const id = req.params.id;
+  const task = db.prepare('SELECT * FROM agent_tasks WHERE id = ?').get(id);
+  if (!task) return res.status(404).json({ error: 'Task not found' });
+  const retryCount = (task.retry_count || 0) + 1;
+  db.prepare("UPDATE agent_tasks SET status = 'pending', retry_count = ?, updated_at = datetime('now') WHERE id = ?").run(retryCount, id);
+  db.prepare("INSERT INTO agent_task_logs (id, task_id, action, detail) VALUES (?, ?, 'retry', ?)").run(uuidv4(), id, `Retry attempt ${retryCount}`);
+  res.json(db.prepare('SELECT * FROM agent_tasks WHERE id = ?').get(id));
+});
+
+// GET /api/agent-tasks/:id/logs — get task logs
+app.get('/api/agent-tasks/:id/logs', (req, res) => {
+  const logs = db.prepare('SELECT * FROM agent_task_logs WHERE task_id = ? ORDER BY created_at ASC').all(req.params.id);
+  res.json(logs);
+});
 
 // ============ SERVE FRONTEND ============
 app.get('/', (req, res) => {
