@@ -230,9 +230,9 @@ function drawRoom(scene) {
     scene.add.image(1092, 280, 'sofa').setOrigin(0.5).setDepth(5).setScale(0.45);
   }
 
-  // === 6 desks (2 columns x 3 rows) — company-a only ===
+  // === 6 desks (2 columns x 3 rows) ===
   window.officeDesks = [];
-  if (window.currentOffice === 'company-a' && scene.textures.exists('desk')) {
+  if (scene.textures && scene.textures.exists('desk')) {
     // Column 1 — facing LEFT (v17: x=205, y=310/440/570)
     window.officeDesks.push(scene.add.image(205, 310, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90));
     window.officeDesks.push(scene.add.image(205, 440, 'desk').setOrigin(0.5).setDepth(3).setScale(0.45).setAngle(-90));
@@ -311,9 +311,7 @@ window.setOfficeTheme = function(office) {
   if (window.officeCoffee) {
     window.officeCoffee.setVisible(office === 'company-a');
   }
-  if (window.officeDesks) {
-    window.officeDesks.forEach(d => { if (d) d.setVisible(office === 'company-a'); });
-  }
+  // Desks stay visible in both offices
   // Update war room button based on office
   updateWarRoomButton(office);
 }

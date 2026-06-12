@@ -305,7 +305,7 @@ function initDatabase() {
   // Seed real team agents (戰情室)
   const agentStmt = db.prepare('INSERT OR IGNORE INTO agents (id, name, role, parent_id, status, department_id, capabilities, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
   agentStmt.run('agent-hermes',     'Hermes',      'coordinator', null, 'active', 'dept-pixeloffice', '["orchestration","memory","dispatch"]', 'company-a');
-  agentStmt.run('agent-ccr',        'CCR',         'worker',  'agent-hermes', 'idle', 'dept-dungeon',     '["code","implement","claude-code"]', 'company-a');
+  agentStmt.run('agent-ccr',        'Claude Code',         'worker',  'agent-hermes', 'idle', 'dept-dungeon',     '["code","implement","claude-code"]', 'company-a');
   agentStmt.run('agent-codex',      'Codex',       'reviewer','agent-hermes', 'idle', 'dept-stock',       '["code-review","qa","audit"]', 'company-a');
   agentStmt.run('agent-opencode',   'OpenCode',    'worker',  'agent-hermes', 'idle', 'dept-pixeloffice', '["code","implement","deepseek"]', 'company-a');
   agentStmt.run('agent-openclaw',   'OpenClaw',    'tester',  'agent-hermes', 'idle', 'dept-dungeon',     '["test","verify","automation"]', 'company-a');
@@ -315,7 +315,7 @@ function initDatabase() {
 
   // Seed company-b (MacBook) agents
   agentStmt.run('agent-hermes-b',   'Hermes (Mac)',    'coordinator', null, 'active', 'dept-pixeloffice', '["orchestration","memory","dispatch"]', 'company-b');
-  agentStmt.run('agent-ccr-b',      'CCR (Mac)',       'worker',  'agent-hermes-b', 'idle', 'dept-dungeon',     '["code","implement","claude-code"]', 'company-b');
+  agentStmt.run('agent-ccr-b',      'Claude Code (Mac)',       'worker',  'agent-hermes-b', 'idle', 'dept-dungeon',     '["code","implement","claude-code"]', 'company-b');
   agentStmt.run('agent-codex-b',    'Codex (Mac)',     'reviewer','agent-hermes-b', 'idle', 'dept-stock',       '["code-review","qa","audit"]', 'company-b');
   agentStmt.run('agent-opencode-b', 'OpenCode (Mac)',  'worker',  'agent-hermes-b', 'idle', 'dept-pixeloffice', '["code","implement","deepseek"]', 'company-b');
   agentStmt.run('agent-openclaw-b', 'OpenClaw (Mac)',  'tester',  'agent-hermes-b', 'idle', 'dept-dungeon',     '["test","verify","automation"]', 'company-b');
@@ -1097,7 +1097,8 @@ app.patch('/api/tasks/:id', (req, res) => {
 
   const updates = [];
   const params = [];
-  if (status !== undefined) { updates.push('status = ?'); params.push(status); }
+  if (name !== undefined) { updates.push('name = ?'); params.push(name); }
+	  if (status !== undefined) { updates.push('status = ?'); params.push(status); }
   if (priority !== undefined) { updates.push('priority = ?'); params.push(priority); }
   if (assigned_to !== undefined) { updates.push('assigned_to = ?'); params.push(assigned_to); }
   if (title !== undefined) { updates.push('title = ?'); params.push(title); }
@@ -1401,10 +1402,11 @@ app.post('/api/agents', (req, res) => {
 
 // PATCH /api/agents/:id — update agent
 app.patch('/api/agents/:id', (req, res) => {
-  const { status, role, parent_id } = req.body;
+  const { name, status, role, parent_id } = req.body;
   const updates = [];
   const params = [];
-  if (status !== undefined) { updates.push('status = ?'); params.push(status); }
+  if (name !== undefined) { updates.push('name = ?'); params.push(name); }
+	  if (status !== undefined) { updates.push('status = ?'); params.push(status); }
   if (role !== undefined) { updates.push('role = ?'); params.push(role); }
   if (parent_id !== undefined) { updates.push('parent_id = ?'); params.push(parent_id); }
   if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
