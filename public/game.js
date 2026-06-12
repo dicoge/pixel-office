@@ -724,6 +724,52 @@ function create() {
       hideLoadingOverlay();
     });
   });
+
+  // 6. War Room button (bottom-right corner)
+  const warBtnBg = this.add.graphics().setDepth(100);
+  warBtnBg.fillStyle(0x1a1a2e, 0.85);
+  warBtnBg.fillRoundedRect(1130, 668, 140, 44, 6);
+  warBtnBg.lineStyle(2, 0xffd700, 0.5);
+  warBtnBg.strokeRoundedRect(1130, 668, 140, 44, 6);
+
+  const warBtn = this.add.text(1200, 690, '🐝 戰情室', {
+    fontFamily: 'monospace', fontSize: '12px',
+    fill: '#ffd700', fontStyle: 'bold',
+    stroke: '#000', strokeThickness: 1
+  }).setOrigin(0.5).setDepth(101).setInteractive({ useHandCursor: true });
+
+  // Hover effects
+  warBtn.on('pointerover', () => {
+    warBtnBg.clear();
+    warBtnBg.fillStyle(0x2a2a45, 0.9);
+    warBtnBg.fillRoundedRect(1130, 668, 140, 44, 6);
+    warBtnBg.lineStyle(2, 0xffd700, 0.8);
+    warBtnBg.strokeRoundedRect(1130, 668, 140, 44, 6);
+    warBtn.setFill('#ffffff');
+  });
+  warBtn.on('pointerout', () => {
+    warBtnBg.clear();
+    warBtnBg.fillStyle(0x1a1a2e, 0.85);
+    warBtnBg.fillRoundedRect(1130, 668, 140, 44, 6);
+    warBtnBg.lineStyle(2, 0xffd700, 0.5);
+    warBtnBg.strokeRoundedRect(1130, 668, 140, 44, 6);
+    warBtn.setFill('#ffd700');
+  });
+  warBtn.on('pointerdown', () => {
+    if (typeof openWarRoom === 'function') {
+      openWarRoom();
+    }
+  });
+
+  // Pulse animation for the button
+  this.tweens.add({
+    targets: warBtn,
+    alpha: { from: 1, to: 0.7 },
+    duration: 2000,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut'
+  });
 }
 
 let lastStatusRender = 0;
