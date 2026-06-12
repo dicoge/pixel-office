@@ -693,7 +693,11 @@ function renderTasks() {
       '<td class="' + statusClass + '">' + status + '</td>' +
       '<td>' + priority + '</td>' +
       '<td>' + retries + '</td>' +
-      '<td style="color:#555">—</td></tr>';
+      '<td>' +
+        (status === 'failed' ? '<button class="wr-task-btn" onclick="retryTask(\''+id+'\')">↻ 重試</button>' : '') +
+        '<button class="wr-task-btn" onclick="deleteTask(\''+id+'\')">🗑 刪除</button>' +
+        '<button class="wr-task-btn" onclick="viewTaskLogs(\''+id+'\')">📄 日誌</button>' +
+      '</td></tr>';
   }).join('');
 }
 
@@ -706,6 +710,14 @@ async function updateTask(taskId, newStatus) {
     });
     if (r.ok) loadWarRoom();
   } catch(e) { console.warn('Task update error:', e); }
+}
+
+async function deleteTask(taskId) {
+  if (!taskId || !confirm('確定刪除這個任務？')) return;
+  try {
+    const r = await wrFetch('/api/agent-tasks/' + encodeURIComponent(taskId), { method: 'DELETE' });
+    if (r.ok) loadWarRoom();
+  } catch(e) { console.warn('Delete error:', e); }
 }
 
 async function retryTask(taskId) {
