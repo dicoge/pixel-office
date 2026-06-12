@@ -489,7 +489,7 @@ const TOKEN_KEY='***';
       <div id="wr-tasks-container" style="overflow-x:auto">
         <table class="wr-task-table" id="wr-task-table">
           <thead><tr>
-            <th>標題</th><th>指派</th><th>狀態</th><th>優先級</th><th>重試</th><th>操作</th>
+            <th>標題</th><th>指派</th><th>狀態</th><th>優先級</th><th>重試</th><th style="width:60px"></th>
           </tr></thead>
           <tbody id="wr-task-body"></tbody>
         </table>
@@ -693,13 +693,7 @@ function renderTasks() {
       '<td class="' + statusClass + '">' + status + '</td>' +
       '<td>' + priority + '</td>' +
       '<td>' + retries + '</td>' +
-      '<td>' +
-        (status === 'pending' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'running\')">▶ 開始</button>' : '') +
-        (status === 'running' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'completed\')">✓ 完成</button>' : '') +
-        (status !== 'completed' && status !== 'failed' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'failed\')">✗ 失敗</button>' : '') +
-        (status === 'failed' ? '<button class="wr-task-btn retry" onclick="retryTask(\''+id+'\')">↻ 重試</button>' : '') +
-        '<button class="wr-task-btn logs" onclick="viewTaskLogs(\''+id+'\')">📄 日誌</button>' +
-      '</td></tr>';
+      '<td style="color:#555">—</td></tr>';
   }).join('');
 }
 
