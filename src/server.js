@@ -322,16 +322,6 @@ function initDatabase() {
   agentStmt.run('agent-gemini-b',   'Gemini (Mac)',    'analyst', 'agent-hermes-b', 'idle', 'dept-stock',       '["analysis","research","monitor"]', 'company-b');
   agentStmt.run('agent-openmanus-b','Manus (Mac)',     'worker',  'agent-hermes-b', 'idle', 'dept-pixeloffice', '["general","web","documents"]', 'company-b');
   agentStmt.run('agent-swarmclaw-b','SwarmClaw (Mac)', 'hub',     'agent-hermes-b', 'active', 'dept-pixeloffice', '["war-room","coordination","status"]', 'company-b');
-
-  // Seed example agent_tasks for war room demo
-  const taskStmt = db.prepare('INSERT OR IGNORE INTO agent_tasks (id, title, description, status, priority, assigned_agent_id, company_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-  const now = new Date().toISOString();
-  taskStmt.run('task-demo-1', '檢查 SwarmClaw 連線狀態', '確認本機 SwarmClaw server (localhost:3456) 是否正常運作', 'pending', 'normal', 'agent-swarmclaw-b', 'company-b', now);
-  taskStmt.run('task-demo-2', '測試戰情室功能', '確認 Agent 狀態切換、任務 CRUD、組織圖顯示都正常', 'pending', 'high', 'agent-hermes-b', 'company-b', now);
-  taskStmt.run('task-demo-3', '部屬 hunterCard 到戰情室', '將 hunterCard 掃描功能整合進戰情室流程', 'pending', 'normal', 'agent-openclaw-b', 'company-b', now);
-  taskStmt.run('task-demo-4', 'Review Codex CR 回饋', '確認最新 code review 的建議是否已全部處理', 'completed', 'normal', 'agent-codex-b', 'company-b', now);
-  taskStmt.run('task-demo-5', '更新 API 文件', '補齊戰情室 API routes 的文件', 'pending', 'low', 'agent-gemini-b', 'company-b', now);
-  taskStmt.run('task-demo-6', '探索 SwarmClaw API', '調查 SwarmClaw 的 REST API 端點', 'running', 'high', 'agent-openmanus-b', 'company-b', now);
 }
 
 // ============ MIDDLEWARE ============
@@ -1473,6 +1463,15 @@ app.post('/api/agent-tasks/:id/retry', (req, res) => {
   db.prepare("UPDATE agent_tasks SET status = 'pending', retry_count = ?, updated_at = datetime('now') WHERE id = ?").run(retryCount, id);
   db.prepare("INSERT INTO agent_task_logs (id, task_id, action, detail) VALUES (?, ?, 'retry', ?)").run(uuidv4(), id, `Retry attempt ${retryCount}`);
   res.json(db.prepare('SELECT * FROM agent_tasks WHERE id = ?').get(id));
+});
+
+// DELETE /api/agent-tasks/:id — delete task
+app.delete('/api/agent-tasks/:id', (req, res) => {
+  const existing = db.prepare('SELECT * FROM agent_tasks WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Task not found' });
+  db.prepare('DELETE FROM agent_task_logs WHERE task_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM agent_tasks WHERE id = ?').run(req.params.id);
+  res.json({ deleted: true, id: req.params.id });
 });
 
 // GET /api/agent-tasks/:id/logs — get task logs
