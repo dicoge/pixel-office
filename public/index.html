@@ -567,9 +567,10 @@ function wrFetch(url, opts) {
 
 async function loadWarRoom() {
   try {
+    const companyParam = (window.currentOffice && window.currentOffice !== 'company-a') ? '?company_id=' + window.currentOffice : '';
     const [agentsData, tasksData] = await Promise.all([
-      wrFetch('/api/agents').then(r => r.ok ? r.json() : []),
-      wrFetch('/api/agent-tasks').then(r => r.ok ? r.json() : [])
+      wrFetch('/api/agents' + companyParam).then(r => r.ok ? r.json() : []),
+      wrFetch('/api/agent-tasks' + companyParam).then(r => r.ok ? r.json() : [])
     ]);
     wrAgents = Array.isArray(agentsData) ? agentsData : (agentsData.agents || []);
     wrTasks = Array.isArray(tasksData) ? tasksData : (tasksData.tasks || []);
