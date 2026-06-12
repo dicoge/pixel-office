@@ -1,698 +1,713 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pixel Office</title>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-  <script>
-  // Auto-hide loading overlay after 2s
-  setTimeout(function() {
-    var lo = document.getElementById('loading-overlay');
-    if (lo) { lo.style.transition = 'opacity 0.5s ease'; lo.style.opacity = '0';
-      setTimeout(function() { lo.style.display = 'none'; }, 500); }
-  }, 2000);
-  if (typeof Phaser === 'undefined') {
-    document.getElementById('loading-overlay').style.display = 'none';
-    console.warn('Phaser CDN failed');
-  }
-  </script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; image-rendering: crisp-edges; }
-    body {
-      background: #1a1a2e;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      font-family: 'Courier New', monospace;
-      color: #f0f0f0;
-    }
-
-    /* ===== LOGIN ===== */
-    #login-screen {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 100vh; min-height: 100dvh; padding: 20px; width: 100%;
-    }
-    #login-screen.hidden { display: none; }
-    .login-logo {
-      font-size: 28px; color: #ffd700;
-      text-shadow: 3px 3px 0 #e67e22, 0 0 20px rgba(255,215,0,0.3);
-      margin-bottom: 8px; letter-spacing: 2px;
-    }
-    .login-subtitle {
-      font-size: 12px; color: #00d4aa;
-      margin-bottom: 30px; text-shadow: 0 0 10px rgba(0,212,170,0.3);
-    }
-    .login-box {
-      background: rgba(22, 33, 62, 0.9);
-      border: 2px solid rgba(255, 215, 0, 0.3);
-      padding: 30px; width: 320px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,215,0,0.1);
-    }
-    .login-input {
-      width: 100%; padding: 12px; margin: 10px 0;
-      background: rgba(26, 26, 46, 0.8);
-      border: 2px solid rgba(240, 240, 240, 0.2);
-      color: #f0f0f0; font-family: 'Courier New', monospace; font-size: 14px;
-      border-radius: 4px;
-    }
-    .login-input:focus { outline: none; border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
-    .login-btn {
-      width: 100%; padding: 14px; margin-top: 15px;
-      background: linear-gradient(135deg, #0f9b0f, #1db81d);
-      border: 2px solid rgba(255, 215, 0, 0.3);
-      color: #f0f0f0; font-family: 'Courier New', monospace; font-size: 14px;
-      cursor: pointer; font-weight: bold; border-radius: 4px;
-    }
-    .login-btn:hover { background: linear-gradient(135deg, #2ecc71, #3ddc84); }
-    .login-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 20px; text-align: center; }
-
-    /* ===== APP ===== */
-    #app { display: none; }
-    #app.visible { display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 40px); padding-top: 40px; }
-
-    #main-stage { position: relative; }
-
-    #game-container {
-      position: relative; border: 0;
-      image-rendering: pixelated; width: 1280px; max-width: 100vw;
-      aspect-ratio: 16/9; overflow: hidden;
-    }
-    #game-container canvas {
-      width: 100% !important; height: 100% !important;
-      image-rendering: pixelated; object-fit: contain;
-      position: absolute; top: 0; left: 0; z-index: 10;
-    }
-    #game-skeleton {
-      position: absolute; inset: 0; z-index: 5;
-      background: radial-gradient(ellipse at center, #2a2a45 0%, #1a1a2e 65%, #151522 100%);
-      display: flex; align-items: center; justify-content: center;
-    }
-    #game-skeleton .hint { color: #cbd5e1; font-size: 16px; }
-
-    /* ===== LOADING OVERLAY ===== */
-    #loading-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(ellipse at center, #1a1a2e, #0f0f23);
-      display: flex; flex-direction: column; justify-content: center;
-      align-items: center; z-index: 100000;
-    }
-    #loading-text { color: #ffd700; font-size: 16px; margin-bottom: 20px; }
-    #loading-progress-container {
-      width: 300px; height: 6px;
-      background: rgba(51, 51, 51, 0.6);
-      border: 1px solid rgba(255,215,0,0.2); border-radius: 3px; overflow: hidden;
-    }
-    #loading-progress-bar {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, #00d4aa, #ffd700);
-      background-size: 200% 100%; border-radius: 3px;
-    }
-
-    /* ===== STATUS TEXT ===== */
-    #status-text {
-      position: absolute; bottom: 12px; left: 12px;
-      color: rgba(238,238,238,0.35); font-size: 11px;
-      z-index: 30; pointer-events: none;
-      font-family: 'Courier New', monospace;
-    }
-
-    .office-select {
-      background: rgba(0,0,0,0.5); color: #fff;
-      border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
-      padding: 4px 8px; font-family: monospace; font-size: 12px;
-      margin-left: 12px; cursor: pointer;
-    }
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6); z-index: 9999;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .modal-content {
-      background: #1a1a2e; border: 1px solid #ffd700; border-radius: 8px;
-      padding: 24px; width: 360px; color: #fff;
-    }
-    .modal-content h3 { margin: 0 0 16px 0; }
-    .modal-content label { display: block; margin: 8px 0 4px; font-size: 12px; color: #aaa; }
-    .modal-content input {
-      width: 100%; padding: 8px; border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 4px; background: rgba(0,0,0,0.4); color: #fff;
-      font-family: monospace; font-size: 12px; box-sizing: border-box;
-    }
-    .modal-content button {
-      margin-top: 12px; margin-right: 8px; padding: 6px 16px;
-      border: 1px solid #ffd700; border-radius: 4px;
-      background: rgba(255,215,0,0.15); color: #ffd700; cursor: pointer;
-    }
-    .modal-content button:hover { background: rgba(255,215,0,0.3); }
-  </style>
-</head>
-<body>
-
-  <!-- ===== LOADING ===== -->
-  <div id="loading-overlay">
-    <div id="loading-text">正在載入像素辦公室...</div>
-    <div id="loading-progress-container">
-      <div id="loading-progress-bar"></div>
+1|<!DOCTYPE html>
+     2|<html lang="zh-TW">
+     3|<head>
+     4|  <meta charset="UTF-8">
+     5|  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     6|  <title>Pixel Office</title>
+     7|  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+     8|  <script>
+     9|  // Auto-hide loading overlay after 2s
+    10|  setTimeout(function() {
+    11|    var lo = document.getElementById('loading-overlay');
+    12|    if (lo) { lo.style.transition = 'opacity 0.5s ease'; lo.style.opacity = '0';
+    13|      setTimeout(function() { lo.style.display = 'none'; }, 500); }
+    14|  }, 2000);
+    15|  if (typeof Phaser === 'undefined') {
+    16|    document.getElementById('loading-overlay').style.display = 'none';
+    17|    console.warn('Phaser CDN failed');
+    18|  }
+    19|  </script>
+    20|  <style>
+    21|    * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; image-rendering: crisp-edges; }
+    22|    body {
+    23|      background: #1a1a2e;
+    24|      display: flex;
+    25|      justify-content: center;
+    26|      min-height: 100vh;
+    27|      font-family: 'Courier New', monospace;
+    28|      color: #f0f0f0;
+    29|    }
+    30|
+    31|    /* ===== LOGIN ===== */
+    32|    #login-screen {
+    33|      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    34|      min-height: 100vh; min-height: 100dvh; padding: 20px; width: 100%;
+    35|    }
+    36|    #login-screen.hidden { display: none; }
+    37|    .login-logo {
+    38|      font-size: 28px; color: #ffd700;
+    39|      text-shadow: 3px 3px 0 #e67e22, 0 0 20px rgba(255,215,0,0.3);
+    40|      margin-bottom: 8px; letter-spacing: 2px;
+    41|    }
+    42|    .login-subtitle {
+    43|      font-size: 12px; color: #00d4aa;
+    44|      margin-bottom: 30px; text-shadow: 0 0 10px rgba(0,212,170,0.3);
+    45|    }
+    46|    .login-box {
+    47|      background: rgba(22, 33, 62, 0.9);
+    48|      border: 2px solid rgba(255, 215, 0, 0.3);
+    49|      padding: 30px; width: 320px;
+    50|      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,215,0,0.1);
+    51|    }
+    52|    .login-input {
+    53|      width: 100%; padding: 12px; margin: 10px 0;
+    54|      background: rgba(26, 26, 46, 0.8);
+    55|      border: 2px solid rgba(240, 240, 240, 0.2);
+    56|      color: #f0f0f0; font-family: 'Courier New', monospace; font-size: 14px;
+    57|      border-radius: 4px;
+    58|    }
+    59|    .login-input:focus { outline: none; border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+    60|    .login-btn {
+    61|      width: 100%; padding: 14px; margin-top: 15px;
+    62|      background: linear-gradient(135deg, #0f9b0f, #1db81d);
+    63|      border: 2px solid rgba(255, 215, 0, 0.3);
+    64|      color: #f0f0f0; font-family: 'Courier New', monospace; font-size: 14px;
+    65|      cursor: pointer; font-weight: bold; border-radius: 4px;
+    66|    }
+    67|    .login-btn:hover { background: linear-gradient(135deg, #2ecc71, #3ddc84); }
+    68|    .login-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 20px; text-align: center; }
+    69|
+    70|    /* ===== APP ===== */
+    71|    #app { display: none; }
+    72|    #app.visible { display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 40px); padding-top: 40px; }
+    73|
+    74|    #main-stage { position: relative; }
+    75|
+    76|    #game-container {
+    77|      position: relative; border: 0;
+    78|      image-rendering: pixelated; width: 1280px; max-width: 100vw;
+    79|      aspect-ratio: 16/9; overflow: hidden;
+    80|    }
+    81|    #game-container canvas {
+    82|      width: 100% !important; height: 100% !important;
+    83|      image-rendering: pixelated; object-fit: contain;
+    84|      position: absolute; top: 0; left: 0; z-index: 10;
+    85|    }
+    86|    #game-skeleton {
+    87|      position: absolute; inset: 0; z-index: 5;
+    88|      background: radial-gradient(ellipse at center, #2a2a45 0%, #1a1a2e 65%, #151522 100%);
+    89|      display: flex; align-items: center; justify-content: center;
+    90|    }
+    91|    #game-skeleton .hint { color: #cbd5e1; font-size: 16px; }
+    92|
+    93|    /* ===== LOADING OVERLAY ===== */
+    94|    #loading-overlay {
+    95|      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    96|      background: radial-gradient(ellipse at center, #1a1a2e, #0f0f23);
+    97|      display: flex; flex-direction: column; justify-content: center;
+    98|      align-items: center; z-index: 100000;
+    99|    }
+   100|    #loading-text { color: #ffd700; font-size: 16px; margin-bottom: 20px; }
+   101|    #loading-progress-container {
+   102|      width: 300px; height: 6px;
+   103|      background: rgba(51, 51, 51, 0.6);
+   104|      border: 1px solid rgba(255,215,0,0.2); border-radius: 3px; overflow: hidden;
+   105|    }
+   106|    #loading-progress-bar {
+   107|      height: 100%; width: 0%;
+   108|      background: linear-gradient(90deg, #00d4aa, #ffd700);
+   109|      background-size: 200% 100%; border-radius: 3px;
+   110|    }
+   111|
+   112|    /* ===== STATUS TEXT ===== */
+   113|    #status-text {
+   114|      position: absolute; bottom: 12px; left: 12px;
+   115|      color: rgba(238,238,238,0.35); font-size: 11px;
+   116|      z-index: 30; pointer-events: none;
+   117|      font-family: 'Courier New', monospace;
+   118|    }
+   119|
+   120|    .office-select {
+   121|      background: rgba(0,0,0,0.5); color: #fff;
+   122|      border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+   123|      padding: 4px 8px; font-family: monospace; font-size: 12px;
+   124|      margin-left: 12px; cursor: pointer;
+   125|    }
+   126|    .modal-overlay {
+   127|      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+   128|      background: rgba(0,0,0,0.6); z-index: 9999;
+   129|      display: flex; align-items: center; justify-content: center;
+   130|    }
+   131|    .modal-content {
+   132|      background: #1a1a2e; border: 1px solid #ffd700; border-radius: 8px;
+   133|      padding: 24px; width: 360px; color: #fff;
+   134|    }
+   135|    .modal-content h3 { margin: 0 0 16px 0; }
+   136|    .modal-content label { display: block; margin: 8px 0 4px; font-size: 12px; color: #aaa; }
+   137|    .modal-content input {
+   138|      width: 100%; padding: 8px; border: 1px solid rgba(255,255,255,0.2);
+   139|      border-radius: 4px; background: rgba(0,0,0,0.4); color: #fff;
+   140|      font-family: monospace; font-size: 12px; box-sizing: border-box;
+   141|    }
+   142|    .modal-content button {
+   143|      margin-top: 12px; margin-right: 8px; padding: 6px 16px;
+   144|      border: 1px solid #ffd700; border-radius: 4px;
+   145|      background: rgba(255,215,0,0.15); color: #ffd700; cursor: pointer;
+   146|    }
+   147|    .modal-content button:hover { background: rgba(255,215,0,0.3); }
+   148|  </style>
+   149|</head>
+   150|<body>
+   151|
+   152|  <!-- ===== LOADING ===== -->
+   153|  <div id="loading-overlay">
+   154|    <div id="loading-text">正在載入像素辦公室...</div>
+   155|    <div id="loading-progress-container">
+   156|      <div id="loading-progress-bar"></div>
+   157|    </div>
+   158|  </div>
+   159|
+   160|  <!-- ===== LOGIN ===== -->
+   161|  <div id="login-screen">
+   162|    <div class="login-logo">PIXEL OFFICE</div>
+   163|    <div class="login-subtitle">AI Agent 管理系統</div>
+   164|    <div class="login-box">
+   165|      <input type="text" id="login-username" class="login-input" placeholder="使用者名稱" autocomplete="username">
+   166|      <input type="password" id="login-password" class="login-input" placeholder="密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
+   167|      <button class="login-btn" onclick="handleLogin()" id="login-btn">登入</button>
+   168|      <div class="login-error" id="login-error"></div>
+   169|    </div>
+   170|  </div>
+   171|
+   172|  <!-- ===== APP ===== -->
+   173|  <div id="app">
+   174|    <div id="top-bar" style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#16213e;border-bottom:2px solid rgba(255,215,0,0.3);color:#f0f0f0;font-family:monospace;position:absolute;top:0;left:0;right:0;z-index:100;height:40px">
+   175|      <div style="display:flex;align-items:center">
+   176|        <span style="color:#ffd700;font-weight:bold">PIXEL OFFICE</span>
+   177|        <select id="office-switcher" class="office-select">
+   178|          <option value="company-a">🖥️ MiniPC</option>
+   179|          <option value="company-b">💻 MacBook</option>
+   180|        </select>
+   181|      </div>
+   182|      <span id="room-label" style="color:#2ecc71">辦公室</span>
+   183|      <div style="display:flex;align-items:center;gap:4px">
+   184|        <button id="logout-btn" onclick="localStorage.removeItem('pixel_office_token');location.reload()" style="background:#e74c3c;border:none;color:white;padding:6px 14px;cursor:pointer;font-family:monospace;border-radius:4px">登出</button>
+   185|      </div>
+   186|    </div>
+   187|    <div id="main-stage">
+   188|      <div id="game-container">
+   189|        <div id="game-skeleton"><div class="hint">正在進入像素辦公室…</div></div>
+   190|        <div id="status-text">載入中...</div>
+   191|      </div>
+   192|    </div>
+   193|  </div>
+   194|
+   195|<!-- ===== SCRIPTS ===== -->
+   196|  <script src="/pathfinding.js"></script>
+   197|  <script src="/walk.js"></script>
+   198|  <script src="/behaviors.js"></script>
+   199|  <script id="game-js-loader">
+   200|    // Fetch and eval game.js — set a flag when done
+   201|    window._gameReady = new Promise(function(resolve) {
+   202|      fetch('/game.js?_t=' + Date.now()).then(function(r) { return r.text(); }).then(function(code) {
+   203|        try {
+   204|          (0, eval)(code);
+   205|          console.log('✅ game.js eval success');
+   206|        } catch(e) { console.error('❌ game.js eval error:', e); }
+   207|        resolve();
+   208|      }).catch(function(e) {
+   209|        console.error('❌ game.js fetch error:', e);
+   210|        resolve(); // resolve anyway so app doesn't hang
+   211|      });
+   212|    });
+   213|  </script>
+   214|  <script>
+   215|    // ===== AUTH=***
+   216|const TOKEN_KEY='***';
+   217|    const USERNAME_KEY = 'username';
+   218|
+   219|    async function handleLogin() {
+   220|      const username = document.getElementById('login-username').value.trim();
+   221|      const password = document.getElementById('login-password').value.trim();
+   222|      const errorEl = document.getElementById('login-error');
+   223|      if (!username || !password) { errorEl.textContent = '請輸入使用者名稱和密碼'; return; }
+   224|      errorEl.textContent = '登入中...';
+   225|      try {
+   226|        const resp = await fetch('/auth/login', {
+   227|          method: 'POST',
+   228|          headers: { 'Content-Type': 'application/json' },
+   229|          body: JSON.stringify({ username, password })
+   230|        });
+   231|        const data = await resp.json();
+   232|        if (!resp.ok) { errorEl.textContent = data.error || '登入失敗'; return; }
+   233|        localStorage.setItem(TOKEN_KEY, data.token);
+   234|        localStorage.setItem(USERNAME_KEY, username);
+   235|        enterOffice();
+   236|      } catch (e) { errorEl.textContent = '網路錯誤：' + e.message; }
+   237|    }
+   238|
+   239|    function enterOffice() {
+   240|      document.getElementById('login-screen').classList.add('hidden');
+   241|      const app = document.getElementById('app');
+   242|      app.classList.add('visible');
+   243|      // Wait for game.js to be fetched + evaled, then init
+   244|      var waitForGame = window._gameReady || Promise.resolve();
+   245|      waitForGame.then(function() {
+   246|        console.log('✅ Office entered, game ready');
+   247|        initGame();
+   248|      });
+   249|    }
+   250|
+   251|    function handleLogout() {
+   252|      localStorage.removeItem(TOKEN_KEY);
+   253|      localStorage.removeItem(USERNAME_KEY);
+   254|      document.getElementById('login-screen').classList.remove('hidden');
+   255|      document.getElementById('app').classList.remove('visible');
+   256|      document.getElementById('login-error').textContent = '';
+   257|      if (window.hermesWs) { try { window.hermesWs.close(); } catch(e) {} window.hermesWs = null; }
+   258|    }
+   259|
+   260|    function getToken() { return localStorage.getItem(TOKEN_KEY); }
+   261|
+   262|    // ===== AUTO LOGIN =====
+   263|    (function autoLogin() {
+   264|      const token = localStorage.getItem(TOKEN_KEY);
+   265|      if (token) {
+   266|        fetch('/api/stats', { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' })
+   267|          .then(resp => { if (resp.ok) enterOffice(); else localStorage.removeItem(TOKEN_KEY); })
+   268|          .catch(() => enterOffice());
+   269|      }
+   270|    })();
+   271|  </script>
+   272|
+   273|
+   274|
+   275|  <script>
+   276|    window.currentOffice = localStorage.getItem("current_office") || "company-a";
+   277|
+   278|    // 載入已儲存的辦公室選擇
+   279|    const savedOffice = localStorage.getItem("current_office");
+   280|    if (savedOffice) {
+   281|      window.currentOffice = savedOffice;
+   282|      document.getElementById("office-switcher").value = savedOffice;
+   283|    }
+   284|
+   285|    // 背景主題切換
+   286|    window.setOfficeTheme = function(office) {
+   287|      if (window.officeBg) window.officeBg.setVisible(office !== 'company-b');
+   288|      if (window.officeBgMac) window.officeBgMac.setVisible(office === 'company-b');
+   289|    };
+   290|
+   291|    // 下拉選單切換
+   292|    document.getElementById("office-switcher").onchange = function() {
+   293|      window.currentOffice = this.value;
+   294|      localStorage.setItem("current_office", this.value);
+   295|      if (typeof setOfficeTheme === "function") setOfficeTheme(this.value);
+   296|      if (typeof fetchStatus === "function") {
+   297|        lastFetch = 0;
+   298|        fetchStatus();
+   299|        ttTarget = window.currentOffice === "company-a" ? "🖥️ 已切換到 MiniPC" : "💻 已切換到 MacBook";
+   300|        ttText = "";
+   301|        ttIdx = 0;
+   302|      }
+   303|    };
+   304|  </script>
+   305|
+   306|<!-- ===== WAR ROOM CSS ===== -->
+   307|<style>
+   308|/* WAR ROOM OVERLAY */
+   309|#war-room-overlay {
+   310|  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+   311|  background: rgba(0,0,0,0.75); z-index: 99999;
+   312|  display: none; align-items: center; justify-content: center;
+   313|  font-family: 'Courier New', monospace;
+   314|}
+   315|#war-room-overlay.active { display: flex; }
+   316|#war-room-panel {
+   317|  background: #1a1a2e; border: 2px solid rgba(255,215,0,0.4);
+   318|  border-radius: 8px; width: 92vw; max-width: 1200px;
+   319|  max-height: 88vh; overflow-y: auto; padding: 20px 24px;
+   320|  position: relative; box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+   321|  color: #f0f0f0;
+   322|}
+   323|#war-close-btn {
+   324|  position: absolute; top: 12px; right: 16px;
+   325|  background: none; border: none; color: #ffd700;
+   326|  font-size: 22px; cursor: pointer; font-family: monospace;
+   327|  padding: 4px 10px; border-radius: 4px;
+   328|}
+   329|#war-close-btn:hover { background: rgba(255,215,0,0.15); }
+   330|.wr-title {
+   331|  color: #00d4aa; font-size: 18px; font-weight: bold;
+   332|  text-shadow: 0 0 10px rgba(0,212,170,0.3);
+   333|  margin-bottom: 16px; letter-spacing: 1px;
+   334|}
+   335|.wr-section { margin-bottom: 20px; }
+   336|.wr-section-title {
+   337|  color: #ffd700; font-size: 13px; font-weight: bold;
+   338|  border-bottom: 1px solid rgba(255,215,0,0.2);
+   339|  padding-bottom: 6px; margin-bottom: 10px;
+   340|}
+   341|
+   342|/* Stats row */
+   343|.wr-stats {
+   344|  display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+   345|  gap: 8px; margin-bottom: 16px;
+   346|}
+   347|.wr-stat-card {
+   348|  background: rgba(22,33,62,0.8); border: 1px solid rgba(255,215,0,0.15);
+   349|  border-radius: 6px; padding: 10px; text-align: center;
+   350|}
+   351|.wr-stat-card .val { font-size: 22px; font-weight: bold; color: #ffd700; }
+   352|.wr-stat-card .lbl { font-size: 10px; color: #8899aa; margin-top: 2px; }
+   353|
+   354|/* Agent grid */
+   355|.wr-agent-grid {
+   356|  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+   357|  gap: 10px;
+   358|}
+   359|.wr-agent-card {
+   360|  background: rgba(22,33,62,0.8); border: 1px solid rgba(255,255,255,0.08);
+   361|  border-radius: 6px; padding: 12px; position: relative;
+   362|}
+   363|.wr-agent-card .name {
+   364|  font-size: 13px; font-weight: bold; color: #f0f0f0; margin-bottom: 4px;
+   365|}
+   366|.wr-agent-card .role-tag {
+   367|  display: inline-block; font-size: 9px; padding: 1px 6px;
+   368|  border-radius: 3px; background: rgba(0,212,170,0.15);
+   369|  color: #00d4aa; margin-right: 4px;
+   370|}
+   371|.wr-status-dot {
+   372|  display: inline-block; width: 10px; height: 10px;
+   373|  border-radius: 50%; margin-right: 4px; vertical-align: middle;
+   374|}
+   375|.wr-agent-card .status-line { font-size: 11px; margin: 6px 0; }
+   376|.wr-agent-card .caps {
+   377|  font-size: 9px; color: #8899aa; margin: 4px 0;
+   378|}
+   379|.wr-agent-card .caps span {
+   380|  display: inline-block; background: rgba(255,255,255,0.06);
+   381|  padding: 1px 5px; border-radius: 3px; margin: 1px 2px;
+   382|}
+   383|.wr-agent-card select {
+   384|  background: rgba(0,0,0,0.4); color: #f0f0f0;
+   385|  border: 1px solid rgba(255,255,255,0.15); border-radius: 3px;
+   386|  font-size: 10px; padding: 2px 4px; font-family: monospace; cursor: pointer;
+   387|  margin-top: 4px; width: 100%;
+   388|}
+   389|
+   390|/* Org tree */
+   391|.wr-org-tree { padding-left: 8px; }
+   392|.wr-tree-root {
+   393|  font-size: 13px; font-weight: bold; color: #ffd700; margin-bottom: 6px;
+   394|  cursor: pointer;
+   395|}
+   396|.wr-tree-root::before { content: '▼ '; font-size: 10px; }
+   397|.wr-tree-root.collapsed::before { content: '▶ '; }
+   398|.wr-tree-children { padding-left: 24px; border-left: 1px solid rgba(255,215,0,0.2); }
+   399|.wr-tree-children.collapsed { display: none; }
+   400|.wr-tree-node {
+   401|  font-size: 11px; padding: 4px 6px; margin: 2px 0;
+   402|  background: rgba(22,33,62,0.6); border-radius: 4px;
+   403|  display: flex; align-items: center; gap: 6px;
+   404|}
+   405|
+   406|/* Task table */
+   407|.wr-task-filters { margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+   408|.wr-task-filters button {
+   409|  background: rgba(22,33,62,0.6); border: 1px solid rgba(255,255,255,0.1);
+   410|  color: #8899aa; font-family: monospace; font-size: 10px; padding: 4px 10px;
+   411|  border-radius: 4px; cursor: pointer;
+   412|}
+   413|.wr-task-filters button.active { color: #ffd700; border-color: #ffd700; background: rgba(255,215,0,0.1); }
+   414|.wr-task-filters button:hover { border-color: rgba(255,215,0,0.3); }
+   415|.wr-task-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+   416|.wr-task-table th {
+   417|  background: rgba(22,33,62,0.8); padding: 6px 8px; text-align: left;
+   418|  color: #8899aa; font-size: 10px; border-bottom: 1px solid rgba(255,215,0,0.15);
+   419|}
+   420|.wr-task-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+   421|.wr-task-table tr:hover td { background: rgba(255,255,255,0.03); }
+   422|.wr-task-btn {
+   423|  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+   424|  color: #f0f0f0; font-family: monospace; font-size: 9px; padding: 2px 6px;
+   425|  border-radius: 3px; cursor: pointer; margin: 0 1px;
+   426|}
+   427|.wr-task-btn:hover { border-color: #ffd700; color: #ffd700; }
+   428|.wr-task-btn.retry { color: #f1c40f; }
+   429|.wr-task-btn.logs { color: #3498db; }
+   430|.status-pending { color: #f1c40f; }
+   431|.status-running { color: #3498db; }
+   432|.status-completed { color: #2ecc71; }
+   433|.status-failed { color: #e74c3c; }
+   434|
+   435|@media (max-width: 600px) {
+   436|  #war-room-panel { padding: 14px; width: 96vw; max-height: 90vh; }
+   437|  .wr-agent-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+   438|  .wr-agent-card { padding: 8px; }
+   439|  .wr-agent-card .name { font-size: 11px; }
+   440|  .wr-stats { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+   441|  .wr-stat-card { padding: 6px; }
+   442|  .wr-stat-card .val { font-size: 16px; }
+   443|  .wr-task-table { font-size: 9px; }
+   444|  .wr-task-table th, .wr-task-table td { padding: 4px 3px; }
+   445|}
+   446|@media (max-width: 400px) {
+   447|  .wr-agent-grid { grid-template-columns: 1fr; }
+   448|  .wr-stats { grid-template-columns: repeat(2, 1fr); }
+   449|}
+   450|</style>
+   451|
+   452|<!-- ===== WAR ROOM OVERLAY HTML ===== -->
+   453|<div id="war-room-overlay">
+   454|  <div id="war-room-panel">
+   455|    <button id="war-close-btn">✕</button>
+   456|    <div class="wr-title">🐝 戰情室</div>
+   457|
+   458|    <!-- Stats -->
+   459|    <div class="wr-stats" id="wr-stats">
+   460|      <div class="wr-stat-card"><div class="val" id="ws-total">--</div><div class="lbl">Agent 總數</div></div>
+   461|      <div class="wr-stat-card"><div class="val" id="ws-commanders">--</div><div class="lbl">指揮官</div></div>
+   462|      <div class="wr-stat-card"><div class="val" id="ws-workers">--</div><div class="lbl">工作中</div></div>
+   463|      <div class="wr-stat-card"><div class="val" id="ws-idle">--</div><div class="lbl">閒置中</div></div>
+   464|      <div class="wr-stat-card"><div class="val" id="ws-tasks">--</div><div class="lbl">任務佇列</div></div>
+   465|    </div>
+   466|
+   467|    <!-- Agent Grid -->
+   468|    <div class="wr-section">
+   469|      <div class="wr-section-title">👥 全員一覽</div>
+   470|      <div class="wr-agent-grid" id="wr-agent-grid"></div>
+   471|    </div>
+   472|
+   473|    <!-- Org Tree -->
+   474|    <div class="wr-section">
+   475|      <div class="wr-section-title">🌳 Agent 組織圖</div>
+   476|      <div class="wr-org-tree" id="wr-org-tree">
+   477|        <div class="wr-tree-root" id="wr-tree-root" onclick="toggleOrgTree()">Hermes</div>
+   478|        <div class="wr-tree-children" id="wr-tree-children"></div>
+   479|      </div>
+   480|    </div>
+   481|
+   482|    <!-- Task Queue -->
+   483|    <div class="wr-section">
+   484|      <div class="wr-section-title">📋 任務佇列</div>
+   485|      <div class="wr-task-filters" id="wr-task-filters">
+   486|        <button class="active" data-filter="all" onclick="filterTasks('all',this)">全部</button>
+   487|        <button data-filter="pending" onclick="filterTasks('pending',this)">待處理</button>
+   488|        <button data-filter="running" onclick="filterTasks('running',this)">進行中</button>
+   489|        <button data-filter="completed" onclick="filterTasks('completed',this)">已完成</button>
+   490|        <button data-filter="failed" onclick="filterTasks('failed',this)">失敗</button>
+   491|      </div>
+   492|      <div id="wr-tasks-container" style="overflow-x:auto">
+   493|        <table class="wr-task-table" id="wr-task-table">
+   494|          <thead><tr>
+   495|            <th>標題</th><th>指派</th><th>狀態</th><th>優先級</th><th>重試</th><th>操作</th>
+   496|          </tr></thead>
+   497|          <tbody id="wr-task-body"></tbody>
+   498|        </table>
+   499|      </div>
+   500|    </div>
+   501|  </div>
+   502|</div>
+   503|
+   504|
+<!-- Task logs modal -->
+<div id="wr-task-logs-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999999;align-items:center;justify-content:center;font-family:'Courier New',monospace;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#1a1a2e;border:2px solid #ffd700;border-radius:6px;width:80vw;max-width:700px;max-height:70vh;padding:16px;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="color:#00d4aa;font-weight:bold;">&#x1F4DC; 任務日誌</span>
+      <button onclick="document.getElementById('wr-task-logs-modal').style.display='none'" style="background:none;border:none;color:#ffd700;font-size:18px;cursor:pointer;">&#x2715;</button>
     </div>
-  </div>
-
-  <!-- ===== LOGIN ===== -->
-  <div id="login-screen">
-    <div class="login-logo">PIXEL OFFICE</div>
-    <div class="login-subtitle">AI Agent 管理系統</div>
-    <div class="login-box">
-      <input type="text" id="login-username" class="login-input" placeholder="使用者名稱" autocomplete="username">
-      <input type="password" id="login-password" class="login-input" placeholder="密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
-      <button class="login-btn" onclick="handleLogin()" id="login-btn">登入</button>
-      <div class="login-error" id="login-error"></div>
-    </div>
-  </div>
-
-  <!-- ===== APP ===== -->
-  <div id="app">
-    <div id="top-bar" style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#16213e;border-bottom:2px solid rgba(255,215,0,0.3);color:#f0f0f0;font-family:monospace;position:absolute;top:0;left:0;right:0;z-index:100;height:40px">
-      <div style="display:flex;align-items:center">
-        <span style="color:#ffd700;font-weight:bold">PIXEL OFFICE</span>
-        <select id="office-switcher" class="office-select">
-          <option value="company-a">🖥️ MiniPC</option>
-          <option value="company-b">💻 MacBook</option>
-        </select>
-      </div>
-      <span id="room-label" style="color:#2ecc71">辦公室</span>
-      <div style="display:flex;align-items:center;gap:4px">
-        <button id="logout-btn" onclick="localStorage.removeItem('pixel_office_token');location.reload()" style="background:#e74c3c;border:none;color:white;padding:6px 14px;cursor:pointer;font-family:monospace;border-radius:4px">登出</button>
-      </div>
-    </div>
-    <div id="main-stage">
-      <div id="game-container">
-        <div id="game-skeleton"><div class="hint">正在進入像素辦公室…</div></div>
-        <div id="status-text">載入中...</div>
-      </div>
-    </div>
-  </div>
-
-<!-- ===== SCRIPTS ===== -->
-  <script src="/pathfinding.js"></script>
-  <script src="/walk.js"></script>
-  <script src="/behaviors.js"></script>
-  <script id="game-js-loader">
-    // Fetch and eval game.js — set a flag when done
-    window._gameReady = new Promise(function(resolve) {
-      fetch('/game.js?_t=' + Date.now()).then(function(r) { return r.text(); }).then(function(code) {
-        try {
-          (0, eval)(code);
-          console.log('✅ game.js eval success');
-        } catch(e) { console.error('❌ game.js eval error:', e); }
-        resolve();
-      }).catch(function(e) {
-        console.error('❌ game.js fetch error:', e);
-        resolve(); // resolve anyway so app doesn't hang
-      });
-    });
-  </script>
-  <script>
-    // ===== AUTH=***
-const TOKEN_KEY='pixel_office_token';
-    const USERNAME_KEY = 'username';
-
-    async function handleLogin() {
-      const username = document.getElementById('login-username').value.trim();
-      const password = document.getElementById('login-password').value.trim();
-      const errorEl = document.getElementById('login-error');
-      if (!username || !password) { errorEl.textContent = '請輸入使用者名稱和密碼'; return; }
-      errorEl.textContent = '登入中...';
-      try {
-        const resp = await fetch('/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await resp.json();
-        if (!resp.ok) { errorEl.textContent = data.error || '登入失敗'; return; }
-        localStorage.setItem(TOKEN_KEY, data.token);
-        localStorage.setItem(USERNAME_KEY, username);
-        enterOffice();
-      } catch (e) { errorEl.textContent = '網路錯誤：' + e.message; }
-    }
-
-    function enterOffice() {
-      document.getElementById('login-screen').classList.add('hidden');
-      const app = document.getElementById('app');
-      app.classList.add('visible');
-      // Wait for game.js to be fetched + evaled, then init
-      var waitForGame = window._gameReady || Promise.resolve();
-      waitForGame.then(function() {
-        console.log('✅ Office entered, game ready');
-        initGame();
-      });
-    }
-
-    function handleLogout() {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USERNAME_KEY);
-      document.getElementById('login-screen').classList.remove('hidden');
-      document.getElementById('app').classList.remove('visible');
-      document.getElementById('login-error').textContent = '';
-      if (window.hermesWs) { try { window.hermesWs.close(); } catch(e) {} window.hermesWs = null; }
-    }
-
-    function getToken() { return localStorage.getItem(TOKEN_KEY); }
-
-    // ===== AUTO LOGIN =====
-    (function autoLogin() {
-      const token = localStorage.getItem(TOKEN_KEY);
-      if (token) {
-        fetch('/api/stats', { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' })
-          .then(resp => { if (resp.ok) enterOffice(); else localStorage.removeItem(TOKEN_KEY); })
-          .catch(() => enterOffice());
-      }
-    })();
-  </script>
-
-
-
-  <script>
-    window.currentOffice = localStorage.getItem("current_office") || "company-a";
-
-    // 載入已儲存的辦公室選擇
-    const savedOffice = localStorage.getItem("current_office");
-    if (savedOffice) {
-      window.currentOffice = savedOffice;
-      document.getElementById("office-switcher").value = savedOffice;
-    }
-
-    // 背景主題切換
-    window.setOfficeTheme = function(office) {
-      if (window.officeBg) window.officeBg.setVisible(office !== 'company-b');
-      if (window.officeBgMac) window.officeBgMac.setVisible(office === 'company-b');
-    };
-
-    // 下拉選單切換
-    document.getElementById("office-switcher").onchange = function() {
-      window.currentOffice = this.value;
-      localStorage.setItem("current_office", this.value);
-      if (typeof setOfficeTheme === "function") setOfficeTheme(this.value);
-      if (typeof fetchStatus === "function") {
-        lastFetch = 0;
-        fetchStatus();
-        ttTarget = window.currentOffice === "company-a" ? "🖥️ 已切換到 MiniPC" : "💻 已切換到 MacBook";
-        ttText = "";
-        ttIdx = 0;
-      }
-    };
-  </script>
-
-<!-- ===== WAR ROOM CSS ===== -->
-<style>
-/* WAR ROOM OVERLAY */
-#war-room-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.75); z-index: 99999;
-  display: none; align-items: center; justify-content: center;
-  font-family: 'Courier New', monospace;
-}
-#war-room-overlay.active { display: flex; }
-#war-room-panel {
-  background: #1a1a2e; border: 2px solid rgba(255,215,0,0.4);
-  border-radius: 8px; width: 92vw; max-width: 1200px;
-  max-height: 88vh; overflow-y: auto; padding: 20px 24px;
-  position: relative; box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-  color: #f0f0f0;
-}
-#war-close-btn {
-  position: absolute; top: 12px; right: 16px;
-  background: none; border: none; color: #ffd700;
-  font-size: 22px; cursor: pointer; font-family: monospace;
-  padding: 4px 10px; border-radius: 4px;
-}
-#war-close-btn:hover { background: rgba(255,215,0,0.15); }
-.wr-title {
-  color: #00d4aa; font-size: 18px; font-weight: bold;
-  text-shadow: 0 0 10px rgba(0,212,170,0.3);
-  margin-bottom: 16px; letter-spacing: 1px;
-}
-.wr-section { margin-bottom: 20px; }
-.wr-section-title {
-  color: #ffd700; font-size: 13px; font-weight: bold;
-  border-bottom: 1px solid rgba(255,215,0,0.2);
-  padding-bottom: 6px; margin-bottom: 10px;
-}
-
-/* Stats row */
-.wr-stats {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 8px; margin-bottom: 16px;
-}
-.wr-stat-card {
-  background: rgba(22,33,62,0.8); border: 1px solid rgba(255,215,0,0.15);
-  border-radius: 6px; padding: 10px; text-align: center;
-}
-.wr-stat-card .val { font-size: 22px; font-weight: bold; color: #ffd700; }
-.wr-stat-card .lbl { font-size: 10px; color: #8899aa; margin-top: 2px; }
-
-/* Agent grid */
-.wr-agent-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-.wr-agent-card {
-  background: rgba(22,33,62,0.8); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 6px; padding: 12px; position: relative;
-}
-.wr-agent-card .name {
-  font-size: 13px; font-weight: bold; color: #f0f0f0; margin-bottom: 4px;
-}
-.wr-agent-card .role-tag {
-  display: inline-block; font-size: 9px; padding: 1px 6px;
-  border-radius: 3px; background: rgba(0,212,170,0.15);
-  color: #00d4aa; margin-right: 4px;
-}
-.wr-status-dot {
-  display: inline-block; width: 10px; height: 10px;
-  border-radius: 50%; margin-right: 4px; vertical-align: middle;
-}
-.wr-agent-card .status-line { font-size: 11px; margin: 6px 0; }
-.wr-agent-card .caps {
-  font-size: 9px; color: #8899aa; margin: 4px 0;
-}
-.wr-agent-card .caps span {
-  display: inline-block; background: rgba(255,255,255,0.06);
-  padding: 1px 5px; border-radius: 3px; margin: 1px 2px;
-}
-.wr-agent-card select {
-  background: rgba(0,0,0,0.4); color: #f0f0f0;
-  border: 1px solid rgba(255,255,255,0.15); border-radius: 3px;
-  font-size: 10px; padding: 2px 4px; font-family: monospace; cursor: pointer;
-  margin-top: 4px; width: 100%;
-}
-
-/* Org tree */
-.wr-org-tree { padding-left: 8px; }
-.wr-tree-root {
-  font-size: 13px; font-weight: bold; color: #ffd700; margin-bottom: 6px;
-  cursor: pointer;
-}
-.wr-tree-root::before { content: '▼ '; font-size: 10px; }
-.wr-tree-root.collapsed::before { content: '▶ '; }
-.wr-tree-children { padding-left: 24px; border-left: 1px solid rgba(255,215,0,0.2); }
-.wr-tree-children.collapsed { display: none; }
-.wr-tree-node {
-  font-size: 11px; padding: 4px 6px; margin: 2px 0;
-  background: rgba(22,33,62,0.6); border-radius: 4px;
-  display: flex; align-items: center; gap: 6px;
-}
-
-/* Task table */
-.wr-task-filters { margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-.wr-task-filters button {
-  background: rgba(22,33,62,0.6); border: 1px solid rgba(255,255,255,0.1);
-  color: #8899aa; font-family: monospace; font-size: 10px; padding: 4px 10px;
-  border-radius: 4px; cursor: pointer;
-}
-.wr-task-filters button.active { color: #ffd700; border-color: #ffd700; background: rgba(255,215,0,0.1); }
-.wr-task-filters button:hover { border-color: rgba(255,215,0,0.3); }
-.wr-task-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-.wr-task-table th {
-  background: rgba(22,33,62,0.8); padding: 6px 8px; text-align: left;
-  color: #8899aa; font-size: 10px; border-bottom: 1px solid rgba(255,215,0,0.15);
-}
-.wr-task-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.wr-task-table tr:hover td { background: rgba(255,255,255,0.03); }
-.wr-task-btn {
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-  color: #f0f0f0; font-family: monospace; font-size: 9px; padding: 2px 6px;
-  border-radius: 3px; cursor: pointer; margin: 0 1px;
-}
-.wr-task-btn:hover { border-color: #ffd700; color: #ffd700; }
-.wr-task-btn.retry { color: #f1c40f; }
-.wr-task-btn.logs { color: #3498db; }
-.status-pending { color: #f1c40f; }
-.status-running { color: #3498db; }
-.status-completed { color: #2ecc71; }
-.status-failed { color: #e74c3c; }
-
-@media (max-width: 600px) {
-  #war-room-panel { padding: 14px; width: 96vw; max-height: 90vh; }
-  .wr-agent-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-  .wr-agent-card { padding: 8px; }
-  .wr-agent-card .name { font-size: 11px; }
-  .wr-stats { grid-template-columns: repeat(3, 1fr); gap: 4px; }
-  .wr-stat-card { padding: 6px; }
-  .wr-stat-card .val { font-size: 16px; }
-  .wr-task-table { font-size: 9px; }
-  .wr-task-table th, .wr-task-table td { padding: 4px 3px; }
-}
-@media (max-width: 400px) {
-  .wr-agent-grid { grid-template-columns: 1fr; }
-  .wr-stats { grid-template-columns: repeat(2, 1fr); }
-}
-</style>
-
-<!-- ===== WAR ROOM OVERLAY HTML ===== -->
-<div id="war-room-overlay">
-  <div id="war-room-panel">
-    <button id="war-close-btn">✕</button>
-    <div class="wr-title">🐝 戰情室</div>
-
-    <!-- Stats -->
-    <div class="wr-stats" id="wr-stats">
-      <div class="wr-stat-card"><div class="val" id="ws-total">--</div><div class="lbl">Agent 總數</div></div>
-      <div class="wr-stat-card"><div class="val" id="ws-commanders">--</div><div class="lbl">指揮官</div></div>
-      <div class="wr-stat-card"><div class="val" id="ws-workers">--</div><div class="lbl">工作中</div></div>
-      <div class="wr-stat-card"><div class="val" id="ws-idle">--</div><div class="lbl">閒置中</div></div>
-      <div class="wr-stat-card"><div class="val" id="ws-tasks">--</div><div class="lbl">任務佇列</div></div>
-    </div>
-
-    <!-- Agent Grid -->
-    <div class="wr-section">
-      <div class="wr-section-title">👥 全員一覽</div>
-      <div class="wr-agent-grid" id="wr-agent-grid"></div>
-    </div>
-
-    <!-- Org Tree -->
-    <div class="wr-section">
-      <div class="wr-section-title">🌳 Agent 組織圖</div>
-      <div class="wr-org-tree" id="wr-org-tree">
-        <div class="wr-tree-root" id="wr-tree-root" onclick="toggleOrgTree()">Hermes</div>
-        <div class="wr-tree-children" id="wr-tree-children"></div>
-      </div>
-    </div>
-
-    <!-- Task Queue -->
-    <div class="wr-section">
-      <div class="wr-section-title">📋 任務佇列</div>
-      <div class="wr-task-filters" id="wr-task-filters">
-        <button class="active" data-filter="all" onclick="filterTasks('all',this)">全部</button>
-        <button data-filter="pending" onclick="filterTasks('pending',this)">待處理</button>
-        <button data-filter="running" onclick="filterTasks('running',this)">進行中</button>
-        <button data-filter="completed" onclick="filterTasks('completed',this)">已完成</button>
-        <button data-filter="failed" onclick="filterTasks('failed',this)">失敗</button>
-      </div>
-      <div id="wr-tasks-container" style="overflow-x:auto">
-        <table class="wr-task-table" id="wr-task-table">
-          <thead><tr>
-            <th>標題</th><th>指派</th><th>狀態</th><th>優先級</th><th>重試</th><th>操作</th>
-          </tr></thead>
-          <tbody id="wr-task-body"></tbody>
-        </table>
-      </div>
-    </div>
+    <pre id="wr-task-logs-content" style="color:#f0f0f0;font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-all;margin:0;"></pre>
   </div>
 </div>
 
 <!-- ===== WAR ROOM JS ===== -->
-<script>
-let wrAgents = [];
-let wrTasks = [];
-let wrTaskFilter = 'all';
+   505|<script>
+   506|let wrAgents = [];
+   507|let wrTasks = [];
+   508|let wrTaskFilter = 'all';
+   509|
+   510|function escapeHtml(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
-function openWarRoom() {
-  document.getElementById('war-room-overlay').classList.add('active');
-  loadWarRoom();
-}
-function closeWarRoom() {
-  document.getElementById('war-room-overlay').classList.remove('active');
-}
-document.getElementById('war-close-btn').onclick = closeWarRoom;
-document.getElementById('war-room-overlay').onclick = function(e) {
-  if (e.target === this) closeWarRoom();
-};
-
-function getWrToken() { return localStorage.getItem('pixel_office_token'); }
-
-function wrFetch(url, opts) {
-  const token = getWrToken();
-  return fetch(url, Object.assign({ headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, cache: 'no-store' }, opts || {}));
-}
-
-async function loadWarRoom() {
-  try {
-    const [agentsData, tasksData] = await Promise.all([
-      wrFetch('/api/agents').then(r => r.ok ? r.json() : []),
-      wrFetch('/api/agent-tasks').then(r => r.ok ? r.json() : [])
-    ]);
-    wrAgents = Array.isArray(agentsData) ? agentsData : (agentsData.agents || []);
-    wrTasks = Array.isArray(tasksData) ? tasksData : (tasksData.tasks || []);
-    renderStats();
-    renderAgentGrid();
-    renderOrgTree();
-    renderTasks();
-  } catch(e) { console.warn('War room load error:', e); }
-}
-
-function renderStats() {
-  const total = wrAgents.length;
-  const commanders = wrAgents.filter(a => (a.role||'').toLowerCase() === 'coordinator' || (a.role||'').includes('指揮')).length;
-  const workers = wrAgents.filter(a => a.status === 'working' || a.status === 'busy').length;
-  const idle = wrAgents.filter(a => a.status === 'idle' || a.status === 'active').length;
-  const taskCount = wrTasks.length;
-  document.getElementById('ws-total').textContent = total;
-  document.getElementById('ws-commanders').textContent = commanders;
-  document.getElementById('ws-workers').textContent = workers;
-  document.getElementById('ws-idle').textContent = idle;
-  document.getElementById('ws-tasks').textContent = taskCount;
-}
-
-function getStatusColor(status) {
-  const s = (status||'').toLowerCase();
-  if (s === 'active' || s === 'working') return '#2ecc71';
-  if (s === 'busy' || s === 'running') return '#3498db';
-  if (s === 'idle') return '#f1c40f';
-  if (s === 'failed' || s === 'error') return '#e74c3c';
-  return '#8899aa';
-}
-
-function renderAgentGrid() {
-  const grid = document.getElementById('wr-agent-grid');
-  if (!wrAgents.length) { grid.innerHTML = '<div style="color:#8899aa;font-size:11px;padding:10px">尚無 Agent 資料</div>'; return; }
-  grid.innerHTML = wrAgents.map(a => {
-    const name = a.name || a.username || a.id || 'Unknown';
-    const role = a.role || 'worker';
-    const status = a.status || 'idle';
-    const color = getStatusColor(status);
-    const caps = a.capabilities || a.capabilities || [];
-    const capsArr = Array.isArray(caps) ? caps : (typeof caps === 'string' ? caps.split(',') : []);
-    return '<div class="wr-agent-card">' +
-      '<div class="name">' + name + '</div>' +
-      '<div><span class="role-tag">' + role + '</span></div>' +
-      '<div class="status-line"><span class="wr-status-dot" style="background:'+color+'"></span>' +
-        '<span style="color:'+color+'">' + (status) + '</span></div>' +
-      '<div class="caps">' + capsArr.map(c => '<span>'+c.trim()+'</span>').join('') + '</div>' +
-      '<select onchange="updateAgentStatus(\'' + (a.id||a._id) + '\', this.value)">' +
-        '<option value="active" '+(status==='active'?'selected':'')+'>🟢 Active</option>' +
-        '<option value="idle" '+(status==='idle'?'selected':'')+'>🟡 Idle</option>' +
-        '<option value="busy" '+(status==='busy'?'selected':'')+'>🔵 Busy</option>' +
-        '<option value="working" '+(status==='working'?'selected':'')+'>🟢 Working</option>' +
-      '</select></div>';
-  }).join('');
-}
-
-async function updateAgentStatus(agentId, newStatus) {
-  if (!agentId) return;
-  try {
-    const r = await wrFetch('/api/agents/' + encodeURIComponent(agentId), {
-      method: 'PATCH',
-      body: JSON.stringify({ status: newStatus })
-    });
-    if (r.ok) loadWarRoom();
-  } catch(e) { console.warn('Status update error:', e); }
-}
-
-function toggleOrgTree() {
-  const root = document.getElementById('wr-tree-root');
-  const children = document.getElementById('wr-tree-children');
-  root.classList.toggle('collapsed');
-  children.classList.toggle('collapsed');
-}
-
-function renderOrgTree() {
-  const container = document.getElementById('wr-tree-children');
-  if (!wrAgents.length) { container.innerHTML = '<div style="color:#8899aa;font-size:10px">尚無資料</div>'; return; }
-  container.innerHTML = wrAgents.map(a => {
-    const name = a.name || a.id || 'Agent';
-    const role = a.role || 'worker';
-    const status = a.status || 'idle';
-    const color = getStatusColor(status);
-    return '<div class="wr-tree-node">' +
-      '<span class="wr-status-dot" style="background:'+color+'"></span>' +
-      '<span style="font-weight:bold">' + name + '</span>' +
-      '<span style="color:#00d4aa;font-size:9px">' + role + '</span>' +
-      '<span style="color:'+color+';font-size:9px">[' + status + ']</span></div>';
-  }).join('');
-}
-
-function filterTasks(filter, btn) {
-  wrTaskFilter = filter;
-  document.querySelectorAll('#wr-task-filters button').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderTasks();
-}
-
-function renderTasks() {
-  const tbody = document.getElementById('wr-task-body');
-  let tasks = wrTasks;
-  if (wrTaskFilter !== 'all') {
-    tasks = tasks.filter(t => (t.status||'').toLowerCase() === wrTaskFilter);
-  }
-  if (!tasks.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#8899aa;padding:16px;font-size:11px">尚無任務</td></tr>';
-    return;
-  }
-  tbody.innerHTML = tasks.map(t => {
-    const id = t.id || t._id;
-    const title = t.title || t.name || '(未命名)';
-    const assignee = t.assignee || t.assigned_to || '-';
-    const status = t.status || 'pending';
-    const priority = t.priority || 'normal';
-    const retries = t.retries || t.retry_count || 0;
-    const statusClass = 'status-' + status;
-    return '<tr>' +
-      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + title + '</td>' +
-      '<td>' + assignee + '</td>' +
-      '<td class="' + statusClass + '">' + status + '</td>' +
-      '<td>' + priority + '</td>' +
-      '<td>' + retries + '</td>' +
-      '<td>' +
-        (status === 'pending' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'running\')">▶ 開始</button>' : '') +
-        (status === 'running' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'completed\')">✓ 完成</button>' : '') +
-        (status !== 'completed' && status !== 'failed' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'failed\')">✗ 失敗</button>' : '') +
-        (status === 'failed' ? '<button class="wr-task-btn retry" onclick="retryTask(\''+id+'\')">↻ 重試</button>' : '') +
-        '<button class="wr-task-btn logs" onclick="viewTaskLogs(\''+id+'\')">📄 日誌</button>' +
-      '</td></tr>';
-  }).join('');
-}
-
-async function updateTask(taskId, newStatus) {
-  if (!taskId) return;
-  try {
-    const r = await wrFetch('/api/agent-tasks/' + encodeURIComponent(taskId), {
-      method: 'PATCH',
-      body: JSON.stringify({ status: newStatus })
-    });
-    if (r.ok) loadWarRoom();
-  } catch(e) { console.warn('Task update error:', e); }
-}
-
-async function retryTask(taskId) {
-  if (!taskId) return;
-  try {
-    const r = await wrFetch('/api/agent-tasks/' + encodeURIComponent(taskId) + '/retry', { method: 'POST' });
-    if (r.ok) loadWarRoom();
-  } catch(e) { console.warn('Task retry error:', e); }
-}
-
-async function viewTaskLogs(taskId) {
-  if (!taskId) return;
-  try {
-    const r = await wrFetch('/api/agent-tasks/' + encodeURIComponent(taskId) + '/logs');
-    if (!r.ok) { alert('無法載入日誌'); return; }
-    const logs = await r.json();
-    const text = Array.isArray(logs) ? logs.map(l => (typeof l === 'object' ? JSON.stringify(l, null, 2) : l)).join('\n') : (typeof logs === 'object' ? JSON.stringify(logs, null, 2) : String(logs));
-    alert(text || '(無日誌內容)');
-  } catch(e) { console.warn('Log fetch error:', e); }
-}
-</script>
-
-</body>
-</html>
+    function openWarRoom() {
+   511|  document.getElementById('war-room-overlay').classList.add('active');
+   512|  loadWarRoom();
+   513|}
+   514|function closeWarRoom() {
+   515|  document.getElementById('war-room-overlay').classList.remove('active');
+   516|}
+   517|document.getElementById('war-close-btn').onclick = closeWarRoom;
+   518|document.getElementById('war-room-overlay').onclick = function(e) {
+   519|  if (e.target === this) closeWarRoom();
+   520|};
+   521|
+   522|function getWrToken() { return localStorage.getItem('pixel_office_token'); }
+   523|
+   524|function wrFetch(url, opts) {
+   525|  const token = getWrToken();
+   526|  return fetch(url, Object.assign({ headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, cache: 'no-store' }, opts || {}));
+   527|}
+   528|
+   529|async function loadWarRoom() {
+   530|  try {
+   531|    const [agentsData, tasksData] = await Promise.all([
+   532|      wrFetch('/api/agents').then(r => r.ok ? r.json() : []),
+   533|      wrFetch('/api/agent-tasks').then(r => r.ok ? r.json() : [])
+   534|    ]);
+   535|    wrAgents = Array.isArray(agentsData) ? agentsData : (agentsData.agents || []);
+   536|    wrTasks = Array.isArray(tasksData) ? tasksData : (tasksData.tasks || []);
+   537|    renderStats();
+   538|    renderAgentGrid();
+   539|    renderOrgTree();
+   540|    renderTasks();
+   541|  } catch(e) { console.warn('War room load error:', e); }
+   542|}
+   543|
+   544|function renderStats() {
+   545|  const total = wrAgents.length;
+   546|  const commanders = wrAgents.filter(a => (a.role||'').toLowerCase() === 'coordinator' || (a.role||'').includes('指揮')).length;
+   547|  const workers = wrAgents.filter(a => a.status === 'working' || a.status === 'busy').length;
+   548|  const idle = wrAgents.filter(a => a.status === 'idle' || a.status === 'active').length;
+   549|  const taskCount = wrTasks.length;
+   550|  document.getElementById('ws-total').textContent = total;
+   551|  document.getElementById('ws-commanders').textContent = commanders;
+   552|  document.getElementById('ws-workers').textContent = workers;
+   553|  document.getElementById('ws-idle').textContent = idle;
+   554|  document.getElementById('ws-tasks').textContent = taskCount;
+   555|}
+   556|
+   557|function getStatusColor(status) {
+   558|  const s = (status||'').toLowerCase();
+   559|  if (s === 'active' || s === 'working') return '#2ecc71';
+   560|  if (s === 'busy' || s === 'running') return '#3498db';
+   561|  if (s === 'idle') return '#f1c40f';
+   562|  if (s === 'failed' || s === 'error') return '#e74c3c';
+   563|  return '#8899aa';
+   564|}
+   565|
+   566|function renderAgentGrid() {
+   567|  const grid = document.getElementById('wr-agent-grid');
+   568|  if (!wrAgents.length) { grid.innerHTML = '<div style="color:#8899aa;font-size:11px;padding:10px">尚無 Agent 資料</div>'; return; }
+   569|  grid.innerHTML = wrAgents.map(a => {
+   570|    const name = a.name || a.username || a.id || 'Unknown';
+   571|    const role = a.role || 'worker';
+   572|    const status = a.status || 'idle';
+   573|    const color = getStatusColor(status);
+   574|    const caps = a.capabilities || [];
+   575|    const capsArr = Array.isArray(caps) ? caps : (typeof caps === 'string' ? caps.split(',') : []);
+   576|    return '<div class="wr-agent-card">' +
+   577|      '<div class="name">' + name + '</div>' +
+   578|      '<div><span class="role-tag">' + role + '</span></div>' +
+   579|      '<div class="status-line"><span class="wr-status-dot" style="background:'+color+'"></span>' +
+   580|        '<span style="color:'+color+'">' + (status) + '</span></div>' +
+   581|      '<div class="caps">' + capsArr.map(c => '<span>'+c.trim()+'</span>').join('') + '</div>' +
+   582|      '<select onchange="updateAgentStatus(\'' + (a.id||a._id) + '\', this.value)">' +
+   583|        '<option value="active" '+(status==='active'?'selected':'')+'>🟢 Active</option>' +
+   584|        '<option value="idle" '+(status==='idle'?'selected':'')+'>🟡 Idle</option>' +
+   585|        '<option value="busy" '+(status==='busy'?'selected':'')+'>🔵 Busy</option>' +
+   586|        '<option value="working" '+(status==='working'?'selected':'')+'>🟢 Working</option>' +
+   587|      '</select></div>';
+   588|  }).join('');
+   589|}
+   590|
+   591|async function updateAgentStatus(agentId, newStatus) {
+   592|  if (!agentId) return;
+   593|  try {
+   594|    const r = await wrFetch('/api/agents/' + encodeURIComponent(agentId), {
+   595|      method: 'PATCH',
+   596|      body: JSON.stringify({ status: newStatus })
+   597|    });
+   598|    if (r.ok) loadWarRoom();
+   599|  } catch(e) { console.warn('Status update error:', e); }
+   600|}
+   601|
+   602|function toggleOrgTree() {
+   603|  const root = document.getElementById('wr-tree-root');
+   604|  const children = document.getElementById('wr-tree-children');
+   605|  root.classList.toggle('collapsed');
+   606|  children.classList.toggle('collapsed');
+   607|}
+   608|
+   609|function renderOrgTree() {
+   610|  const container = document.getElementById('wr-tree-children');
+   611|  if (!wrAgents.length) { container.innerHTML = '<div style="color:#8899aa;font-size:10px">尚無資料</div>'; return; }
+   612|  container.innerHTML = wrAgents.map(a => {
+   613|    const name = a.name || a.id || 'Agent';
+   614|    const role = a.role || 'worker';
+   615|    const status = a.status || 'idle';
+   616|    const color = getStatusColor(status);
+   617|    return '<div class="wr-tree-node">' +
+   618|      '<span class="wr-status-dot" style="background:'+color+'"></span>' +
+   619|      '<span style="font-weight:bold">' + name + '</span>' +
+   620|      '<span style="color:#00d4aa;font-size:9px">' + role + '</span>' +
+   621|      '<span style="color:'+color+';font-size:9px">[' + status + ']</span></div>';
+   622|  }).join('');
+   623|}
+   624|
+   625|function filterTasks(filter, btn) {
+   626|  wrTaskFilter = filter;
+   627|  document.querySelectorAll('#wr-task-filters button').forEach(b => b.classList.remove('active'));
+   628|  if (btn) btn.classList.add('active');
+   629|  renderTasks();
+   630|}
+   631|
+   632|function renderTasks() {
+   633|  const tbody = document.getElementById('wr-task-body');
+   634|  let tasks = wrTasks;
+   635|  if (wrTaskFilter !== 'all') {
+   636|    tasks = tasks.filter(t => (t.status||'').toLowerCase() === wrTaskFilter);
+   637|  }
+   638|  if (!tasks.length) {
+   639|    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#8899aa;padding:16px;font-size:11px">尚無任務</td></tr>';
+   640|    return;
+   641|  }
+   642|  tbody.innerHTML = tasks.map(t => {
+   643|    const id = t.id || t._id;
+   644|    const title = t.title || t.name || '(未命名)';
+   645|    const assignee = t.assignee || t.assigned_to || '-';
+   646|    const status = t.status || 'pending';
+   647|    const priority = t.priority || 'normal';
+   648|    const retries = t.retries || t.retry_count || 0;
+   649|    const statusClass = 'status-' + status;
+   650|    return '<tr>' +
+   651|      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + title + '</td>' +
+   652|      '<td>' + assignee + '</td>' +
+   653|      '<td class="' + statusClass + '">' + status + '</td>' +
+   654|      '<td>' + priority + '</td>' +
+   655|      '<td>' + retries + '</td>' +
+   656|      '<td>' +
+   657|        (status === 'pending' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'running\')">▶ 開始</button>' : '') +
+   658|        (status === 'running' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'completed\')">✓ 完成</button>' : '') +
+   659|        (status !== 'completed' && status !== 'failed' ? '<button class="wr-task-btn" onclick="updateTask(\''+id+'\',\'failed\')">✗ 失敗</button>' : '') +
+   660|        (status === 'failed' ? '<button class="wr-task-btn retry" onclick="retryTask(\''+id+'\')">↻ 重試</button>' : '') +
+   661|        '<button class="wr-task-btn logs" onclick="viewTaskLogs(\''+id+'\')">📄 日誌</button>' +
+   662|      '</td></tr>';
+   663|  }).join('');
+   664|}
+   665|
+   666|async function updateTask(taskId, newStatus) {
+   667|  if (!taskId) return;
+   668|  try {
+   669|    const r = await wrFetch('/api/agent-tasks/' + encodeURIComponent(taskId), {
+   670|      method: 'PATCH',
+   671|      body: JSON.stringify({ status: newStatus })
+   672|    });
+   673|    if (r.ok) loadWarRoom();
+   674|  } catch(e) { console.warn('Task update error:', e); }
+   675|}
+   676|
+   677|async function retryTask(taskId) {
+   678|  if (!taskId) return;
+   679|  try {
+   680|    const r = await wrFetch('/api/agent-tasks/' + encodeURIComponent(taskId) + '/retry', { method: 'POST' });
+   681|    if (r.ok) loadWarRoom();
+   682|  } catch(e) { console.warn('Task retry error:', e); }
+   683|}
+   684|
+   685|async function viewTaskLogs(taskId) {
+   686|  if (!taskId) return;
+   687|  try {
+   688|    const r = await wrFetch('/api/agent-tasks/' + encodeURIComponent(taskId) + '/logs');
+   689|    if (!r.ok) { alert('無法載入日誌'); return; }
+   690|    const logs = await r.json();
+   691|    const text = Array.isArray(logs) ? logs.map(l => (typeof l === 'object' ? JSON.stringify(l, null, 2) : l)).join('\n') : (typeof logs === 'object' ? JSON.stringify(logs, null, 2) : String(logs));
+   692|    alert(text || '(無日誌內容)');
+   693|  } catch(e) { console.warn('Log fetch error:', e); }
+   694|}
+   695|</script>
+   696|
+   697|</body>
+   698|</html>
+   699|
