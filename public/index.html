@@ -236,10 +236,19 @@ const TOKEN_KEY='***';
       } catch (e) { errorEl.textContent = '網路錯誤：' + e.message; }
     }
 
+    function isMobile() {
+      return window.innerWidth < 768;
+    }
+
     function enterOffice() {
       document.getElementById('login-screen').classList.add('hidden');
       const app = document.getElementById('app');
       app.classList.add('visible');
+      if (isMobile()) {
+        console.log('📱 Mobile detected — skip game, show war room');
+        openWarRoom();
+        return;
+      }
       // Wait for game.js to be fetched + evaled, then init
       var waitForGame = window._gameReady || Promise.resolve();
       waitForGame.then(function() {
@@ -440,6 +449,69 @@ const TOKEN_KEY='***';
 @media (max-width: 400px) {
   .wr-agent-grid { grid-template-columns: 1fr; }
   .wr-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== MOBILE MODE (< 768px) ===== */
+@media (max-width: 767px) {
+  /* 戰情室改為主頁面 */
+  #war-room-overlay {
+    position: relative;
+    background: #1a1a2e;
+    display: flex !important;
+    z-index: 10;
+  }
+  #war-room-panel {
+    width: 100vw; max-width: 100vw;
+    max-height: none; height: 100vh;
+    border: none; border-radius: 0;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  #war-close-btn { display: none; }
+
+  /* 隱藏遊戲相關元素 */
+  #game-container canvas, #game-skeleton, #top-bar { display: none; }
+
+  /* 任務表格改卡片式 */
+  .wr-task-table thead { display: none; }
+  .wr-task-table tr {
+    display: block;
+    border: 1px solid rgba(255,215,0,0.15);
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 8px;
+    background: rgba(22,33,62,0.6);
+  }
+  .wr-task-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border: none;
+    font-size: 11px;
+  }
+  .wr-task-table td::before {
+    content: attr(data-label);
+    color: #8899aa;
+    font-weight: bold;
+  }
+
+  /* 卡片網格 2 列 */
+  .wr-agent-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .wr-stats { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+
+  /* 建立任務 modal 滿版 */
+  #wr-create-task-modal > div {
+    width: 94vw !important;
+    max-width: 94vw !important;
+  }
+
+  /* 登入頁面優化 */
+  .login-box { width: 90vw; padding: 20px; }
+  .login-input { font-size: 16px; padding: 14px; }
+  .login-btn { padding: 16px; font-size: 16px; }
+
+  /* 任務篩選按鈕可滑動 */
+  .wr-task-filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 </style>
 
@@ -688,12 +760,12 @@ function renderTasks() {
     const retries = t.retries || t.retry_count || 0;
     const statusClass = 'status-' + status;
     return '<tr>' +
-      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + title + '</td>' +
-      '<td>' + assignee + '</td>' +
-      '<td class="' + statusClass + '">' + status + '</td>' +
-      '<td>' + priority + '</td>' +
-      '<td>' + retries + '</td>' +
-      '<td>' +
+      '<td data-label="標題" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + title + '</td>' +
+      '<td data-label="指派">' + assignee + '</td>' +
+      '<td class="' + statusClass + '" data-label="狀態">' + status + '</td>' +
+      '<td data-label="優先級">' + priority + '</td>' +
+      '<td data-label="重試">' + retries + '</td>' +
+      '<td data-label="操作">' +
         (status === 'failed' ? '<button class="wr-task-btn" onclick="retryTask(\''+id+'\')">↻ 重試</button>' : '') +
         '<button class="wr-task-btn" onclick="deleteTask(\''+id+'\')">🗑 刪除</button>' +
         '<button class="wr-task-btn" onclick="viewTaskLogs(\''+id+'\')">📄 日誌</button>' +
