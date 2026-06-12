@@ -1400,6 +1400,14 @@ app.get('/api/agents', (req, res) => {
   res.json(agents);
 });
 
+// DELETE /api/agents/:id — delete agent
+app.delete('/api/agents/:id', (req, res) => {
+  const existing = db.prepare('SELECT * FROM agents WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Agent not found' });
+  db.prepare('DELETE FROM agents WHERE id = ?').run(req.params.id);
+  res.json({ deleted: true, id: req.params.id });
+});
+
 // POST /api/agents — create agent
 app.post('/api/agents', (req, res) => {
   const { name, role, parent_id, capabilities, company_id } = req.body;
