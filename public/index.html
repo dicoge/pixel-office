@@ -664,7 +664,7 @@ function switchWarOffice(officeId) {
   loadWarRoom();
 }
 
-function getWrToken() { return localStorage.getItem('pixel_office_token'); }
+function getWrToken() { return localStorage.getItem(TOKEN_KEY); }
 
 function wrFetch(url, opts) {
   const token = getWrToken();
