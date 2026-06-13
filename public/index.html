@@ -470,7 +470,7 @@ const TOKEN_KEY='***';
   #war-close-btn { display: none; }
 
   /* 隱藏遊戲相關元素 */
-  #game-container canvas, #game-skeleton, #top-bar { display: none; }
+  #game-container canvas, #game-skeleton, #top-bar { display: none !important; }
 
   /* 任務表格改卡片式 */
   .wr-task-table thead { display: none; }
@@ -510,8 +510,16 @@ const TOKEN_KEY='***';
   .login-input { font-size: 16px; padding: 14px; }
   .login-btn { padding: 16px; font-size: 16px; }
 
-  /* 任務篩選按鈕可滑動 */
+  /* 區塊間距 */
+  .wr-section { margin-bottom: 16px; }
+
+  /* 篩選按鈕可滑動 + 防止壓縮 */
   .wr-task-filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .wr-task-filters button { flex-shrink: 0; }
+
+  #app.visible { padding-top: 0; min-height: 100vh; }
+
+  .wr-stats { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 
