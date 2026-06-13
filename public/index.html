@@ -458,6 +458,8 @@ const TOKEN_KEY='***';
     position: relative;
     background: #1a1a2e;
     display: flex !important;
+    width: 100%;
+    flex: 1;
     z-index: 10;
   }
   #war-room-panel {
@@ -470,6 +472,7 @@ const TOKEN_KEY='***';
   #war-close-btn { display: none; }
 
   /* 隱藏遊戲相關元素 */
+  #main-stage { display: none; }
   #game-container canvas, #game-skeleton, #top-bar { display: none !important; }
 
   /* 任務表格改卡片式 */
@@ -517,7 +520,7 @@ const TOKEN_KEY='***';
   .wr-task-filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .wr-task-filters button { flex-shrink: 0; }
 
-  #app.visible { padding-top: 0; min-height: 100vh; }
+  #app.visible { display: block !important; padding-top: 0; min-height: 100vh; }
 
   .wr-stats { grid-template-columns: repeat(2, 1fr); }
 }
