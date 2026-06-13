@@ -430,6 +430,13 @@ const TOKEN_KEY='***';
 .wr-task-btn:hover { border-color: #ffd700; color: #ffd700; }
 .wr-task-btn.retry { color: #f1c40f; }
 .wr-task-btn.logs { color: #3498db; }
+.wr-office-btn {
+  background: rgba(22,33,62,0.6); border: 1px solid rgba(255,255,255,0.15);
+  color: #8899aa; font-family: monospace; font-size: 13px; padding: 2px 8px;
+  border-radius: 4px; cursor: pointer; line-height: 1.4;
+}
+.wr-office-btn.active { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
+.wr-office-btn:hover { border-color: rgba(255,215,0,0.3); }
 .status-pending { color: #f1c40f; }
 .status-running { color: #3498db; }
 .status-completed { color: #2ecc71; }
@@ -449,6 +456,7 @@ const TOKEN_KEY='***';
 @media (max-width: 400px) {
   .wr-agent-grid { grid-template-columns: 1fr; }
   .wr-stats { grid-template-columns: repeat(2, 1fr); }
+  .wr-stat-card:last-child { grid-column: 1 / -1; }
 }
 
 /* ===== MOBILE MODE (< 768px) ===== */
@@ -530,7 +538,12 @@ const TOKEN_KEY='***';
 <div id="war-room-overlay">
   <div id="war-room-panel">
     <button id="war-close-btn">✕</button>
-    <div class="wr-title">🐝 戰情室</div>
+    <div class="wr-title">🐝 戰情室
+	      <div id="wr-office-toggle" style="display:inline-flex;gap:4px;margin-left:8px;vertical-align:middle">
+	        <button class="wr-office-btn" data-office="company-a" onclick="switchWarOffice('company-a')">🖥️</button>
+	        <button class="wr-office-btn" data-office="company-b" onclick="switchWarOffice('company-b')">💻</button>
+	      </div>
+	    </div>
 
     <!-- Stats -->
     <div class="wr-stats" id="wr-stats">
@@ -641,6 +654,16 @@ document.getElementById('war-room-overlay').onclick = function(e) {
   if (e.target === this) closeWarRoom();
 };
 
+function switchWarOffice(officeId) {
+  window.currentOffice = officeId;
+  localStorage.setItem("current_office", officeId);
+  document.querySelectorAll('.wr-office-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.office === officeId);
+  });
+  if (typeof setOfficeTheme === "function") setOfficeTheme(officeId);
+  loadWarRoom();
+}
+
 function getWrToken() { return localStorage.getItem('pixel_office_token'); }
 
 function wrFetch(url, opts) {
@@ -650,6 +673,10 @@ function wrFetch(url, opts) {
 
 async function loadWarRoom() {
   try {
+    // Sync toggle button active state
+    document.querySelectorAll('.wr-office-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.office === (window.currentOffice || 'company-a'));
+    });
     const companyParam = (window.currentOffice && window.currentOffice !== 'company-a') ? '?company_id=' + window.currentOffice : '';
     const [agentsData, tasksData] = await Promise.all([
       wrFetch('/api/agents' + companyParam).then(r => r.ok ? r.json() : []),
